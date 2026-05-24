@@ -48,15 +48,15 @@ gantt
 
 ---
 
-### 📌 Tahap 2: Pengelolaan Data Master (Filament Resources)
+### 📌 Tahap 2: Pengelolaan Data Master (Filament Resources) ✅
 * **Nama Cabang Git (Branch)**: `feature/master-data`
 * **Checklist Aktivitas**:
-  - [ ] 1. Membuat **Filament Resource** untuk kelola data Pasien (`PasienResource`).
-  - [ ] 2. Menambahkan logika generate Nomor Rekam Medis unik otomatis (*RM-YYYYMMDD-XXXX*) saat data pasien baru dibuat di Filament.
-  - [ ] 3. Membuat **Filament Resource** untuk kelola data Dokter (`DokterResource`).
-  - [ ] 4. Membuat **Filament Resource** untuk kelola data Pegawai (`PegawaiResource`).
-  - [ ] 5. Membuat **Filament Resource** untuk kelola Jadwal Praktek Dokter (`JadwalDokterResource`) (hari, jam mulai/selesai, serta kuota pasien per hari).
-  - [ ] 6. Menambahkan seeder data tiruan (dummy) untuk mempercepat pengujian.
+  - [x] 1. Membuat **Filament Resource** untuk kelola data Pasien (`PasienResource`).
+  - [x] 2. Menambahkan logika generate Nomor Rekam Medis unik otomatis (*RM-YYYYMMDD-XXXX*) saat data pasien baru dibuat di Filament.
+  - [x] 3. Membuat **Filament Resource** untuk kelola data Dokter (`DokterResource`).
+  - [x] 4. Membuat **Filament Resource** untuk kelola data Pegawai (`PegawaiResource`).
+  - [x] 5. Membuat **Filament Resource** untuk kelola Jadwal Praktek Dokter (`JadwalDokterResource`) (hari, jam mulai/selesai, serta kuota pasien per hari).
+  - [x] 6. Menambahkan seeder data tiruan (dummy) untuk mempercepat pengujian.
 
 * **Fitur Utama**:
   * CRUD Kelola Akun & Pasien di Filament.
