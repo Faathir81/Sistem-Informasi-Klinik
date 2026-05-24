@@ -76,10 +76,26 @@
                             <h4 class="font-semibold text-gray-800">Riwayat Medis</h4>
                         </div>
                         <p class="text-sm text-gray-500 mb-4">Lihat riwayat pemeriksaan dan resep obat Anda.</p>
-                        <span class="text-xs font-medium text-orange-600 bg-orange-50 px-3 py-1 rounded-full">🔜 Segera Hadir</span>
+                        <a href="{{ route('pasien.riwayat.index') }}" id="btn-riwayat-medis-card"
+                           class="inline-flex items-center gap-1 text-xs font-medium text-white bg-orange-500 hover:bg-orange-600 px-4 py-1.5 rounded-full transition">
+                            Lihat Riwayat
+                        </a>
                     </div>
                 </div>
 
+            </div>
+
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border-l-4 border-amber-400 hover:-translate-y-1 transition-transform duration-300">
+                <div class="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                        <h4 class="font-semibold text-gray-800">Pembayaran QRIS</h4>
+                        <p class="text-sm text-gray-500 mt-1">Bayar tagihan pemeriksaan dan obat dengan nominal manual melalui Midtrans.</p>
+                    </div>
+                    <a href="{{ route('pasien.pembayaran.index') }}" id="btn-pembayaran-qris"
+                       class="inline-flex items-center justify-center text-xs font-medium text-white bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-full transition">
+                        Bayar QRIS
+                    </a>
+                </div>
             </div>
 
             {{-- Info Akun --}}

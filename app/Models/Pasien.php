@@ -30,8 +30,8 @@ class Pasien extends Model
     protected static function booted(): void
     {
         static::creating(function (Pasien $pasien) {
-            $prefix = 'RM-' . Carbon::now()->format('Ymd') . '-';
-            $last = self::where('no_rekam_medis', 'like', $prefix . '%')
+            $prefix = 'RM-'.Carbon::now()->format('Ymd').'-';
+            $last = self::where('no_rekam_medis', 'like', $prefix.'%')
                 ->orderByDesc('no_rekam_medis')
                 ->first();
 
@@ -42,7 +42,7 @@ class Pasien extends Model
                 $nextNumber = '0001';
             }
 
-            $pasien->no_rekam_medis = $prefix . $nextNumber;
+            $pasien->no_rekam_medis = $prefix.$nextNumber;
         });
     }
 
@@ -50,5 +50,15 @@ class Pasien extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function antreans(): HasMany
+    {
+        return $this->hasMany(Antrean::class);
+    }
+
+    public function pemeriksaans(): HasMany
+    {
+        return $this->hasMany(Pemeriksaan::class);
     }
 }

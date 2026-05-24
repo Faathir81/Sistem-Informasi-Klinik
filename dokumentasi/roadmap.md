@@ -95,11 +95,11 @@ gantt
 
 - **Nama Cabang Git (Branch)**: `feature/medical-apothecary`
 - **Checklist Aktivitas**:
-    - [ ]   1. Membuat form input diagnosa rekam medis dan peracikan resep obat di Filament (`PemeriksaanResource` & `ResepResource`).
-    - [ ]   2. Membuat **Filament Resource** untuk kelola inventaris obat (`ObatResource`).
-    - [ ]   3. Mengimplementasikan logika pengurangan stok obat otomatis di Laravel Model/Observer saat resep obat disimpan di Filament.
-    - [ ]   4. Menambahkan widget notifikasi stok kritis (< 10) dan deteksi kadaluarsa obat pada dashboard admin Filament.
-    - [ ]   5. Menghubungkan riwayat rekam medis & resep agar bisa dibaca oleh pasien yang bersangkutan di portal Custom Blade.
+    - [x]   1. Membuat form input diagnosa rekam medis dan peracikan resep obat di Filament (`PemeriksaanResource` & `ResepResource`).
+    - [x]   2. Membuat **Filament Resource** untuk kelola inventaris obat (`ObatResource`).
+    - [x]   3. Mengimplementasikan logika pengurangan stok obat otomatis di Laravel Model/Observer saat resep obat disimpan di Filament.
+    - [x]   4. Menambahkan widget notifikasi stok kritis (< 10) dan deteksi kadaluarsa obat pada dashboard admin Filament.
+    - [x]   5. Menghubungkan riwayat rekam medis & resep agar bisa dibaca oleh pasien yang bersangkutan di portal Custom Blade.
 
 - **Fitur Utama**:
     - **Input Rekam Medis & Resep (Admin)**: Mencatat diagnosa, keluhan, tindakan, biaya konsultasi, serta meracik obat beserta aturan pakai di Filament.
@@ -117,12 +117,12 @@ gantt
 
 - **Nama Cabang Git (Branch)**: `feature/financial-qris`
 - **Checklist Aktivitas**:
-    - [ ]   1. Mengintegrasikan **Midtrans Snap SDK** ke dalam form pembayaran pasien di portal Custom Blade.
-    - [ ]   2. Membangun antarmuka input nominal pembayaran manual oleh pasien di portal Custom Blade.
-    - [ ]   3. Membuat route penampung Midtrans Webhook Notification untuk memproses pelunasan otomatis.
-    - [ ]   4. Membangun halaman **Simulator Pembayaran Sukses (Offline)** di menu admin Filament untuk kelancaran demo sidang ujian.
-    - [ ]   5. Membuat **Filament Resource** untuk pengelolaan gaji dokter & pegawai (`GajiResource`).
-    - [ ]   6. Membuat slip gaji format PDF yang bisa dicetak untuk pegawai & dokter.
+    - [x]   1. Mengintegrasikan **Midtrans Snap SDK** ke dalam form pembayaran pasien di portal Custom Blade.
+    - [x]   2. Membangun antarmuka input nominal pembayaran manual oleh pasien di portal Custom Blade.
+    - [x]   3. Membuat route penampung Midtrans Webhook Notification untuk memproses pelunasan otomatis.
+    - [x]   4. Membangun halaman **Simulator Pembayaran Sukses (Offline)** di menu admin Filament untuk kelancaran demo sidang ujian.
+    - [x]   5. Membuat **Filament Resource** untuk pengelolaan gaji dokter & pegawai (`GajiResource`).
+    - [x]   6. Membuat slip gaji format PDF yang bisa dicetak untuk pegawai & dokter.
 
 - **Fitur Utama**:
     - **Pembayaran QRIS Mandiri (Pasien)**: Pasien mengetik nominal âž” Sistem memanggil QRIS Midtrans âž” Pembayaran divalidasi otomatis di Custom Blade.
@@ -139,10 +139,10 @@ gantt
 
 - **Nama Cabang Git (Branch)**: `feature/reporting-analytics`
 - **Checklist Aktivitas**:
-    - [ ]   1. Mengintegrasikan package PDF (`Barryvdh-Dompdf`) dengan templat desain Kop Surat Resmi Klinik Ar-Ridlo.
-    - [ ]   2. Membuat filter laporan keuangan dan kunjungan berdasarkan rentang tanggal di Filament.
-    - [ ]   3. Menyisipkan grafik interaktif **Chart.js / Filament Widgets** di dashboard admin untuk analisis visual statistik operasional klinik.
-    - [ ]   4. Membuat visualisasi diagram donat untuk peringkat "Obat Paling Laris" menggunakan Filament Widget Chart.
+    - [x]   1. Mengintegrasikan package PDF (`Barryvdh-Dompdf`) dengan templat desain Kop Surat Resmi Klinik Ar-Ridlo.
+    - [x]   2. Membuat filter laporan keuangan dan kunjungan berdasarkan rentang tanggal di Filament.
+    - [x]   3. Menyisipkan grafik interaktif **Chart.js / Filament Widgets** di dashboard admin untuk analisis visual statistik operasional klinik.
+    - [x]   4. Membuat visualisasi diagram donat untuk peringkat "Obat Paling Laris" menggunakan Filament Widget Chart.
 
 - **Fitur Utama**:
     - **Dashboard Analitik (Admin)**: Visualisasi tren pemasukan bulanan, diagram donat obat terlaris, dan rasio pasien harian di Filament.
