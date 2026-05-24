@@ -70,13 +70,13 @@ gantt
 
 ---
 
-### 📌 Tahap 3: Pemesanan Antrean & Generator QR Code
+### 📌 Tahap 3: Pemesanan Antrean & Generator QR Code ✅
 * **Nama Cabang Git (Branch)**: `feature/booking-queue`
 * **Checklist Aktivitas**:
-  - [ ] 1. Membangun sistem booking nomor urut antrean harian secara otomatis (sisi Pasien - Custom Blade).
-  - [ ] 2. Mengintegrasikan package QR Code generator pada Laravel untuk merender data antrean menjadi gambar QR Code dinamis (sisi Pasien - Custom Blade).
-  - [ ] 3. Membuat antarmuka pemantauan antrean real-time untuk admin di Filament.
-  - [ ] 4. Membangun fitur pemanggilan antrean (panggil, lewatkan, selesaikan antrean) menggunakan Filament Custom Page / Custom Actions.
+  - [x] 1. Membangun sistem booking nomor urut antrean harian secara otomatis (sisi Pasien - Custom Blade).
+  - [x] 2. Mengintegrasikan package QR Code generator pada Laravel untuk merender data antrean menjadi gambar QR Code dinamis (sisi Pasien - Custom Blade).
+  - [x] 3. Membuat antarmuka pemantauan antrean real-time untuk admin di Filament.
+  - [x] 4. Membangun fitur pemanggilan antrean (panggil, lewatkan, selesaikan antrean) menggunakan Filament Custom Page / Custom Actions.
 
 * **Fitur Utama**:
   * **Pemesanan Antrean (Pasien)**: Pasien memilih tanggal kunjungan dan dokter di Custom Blade, sistem mengalokasikan nomor urut berikutnya secara otomatis.
