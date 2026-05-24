@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 class Antrean extends Model
@@ -38,7 +39,7 @@ class Antrean extends Model
 
             // Generate kode unik untuk QR Code: YYYYMMDD-XXXX (e.g., 20260524-A1B2)
             $antrean->kode_antrean = strtoupper(
-                now()->format('Ymd') . '-' . Str::random(6)
+                now()->format('Ymd').'-'.Str::random(6)
             );
         });
     }
@@ -57,5 +58,10 @@ class Antrean extends Model
     public function jadwalDokter(): BelongsTo
     {
         return $this->belongsTo(JadwalDokter::class);
+    }
+
+    public function pemeriksaan(): HasOne
+    {
+        return $this->hasOne(Pemeriksaan::class);
     }
 }

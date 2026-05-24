@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Dokter;
 use App\Models\JadwalDokter;
+use App\Models\Obat;
 use App\Models\Pasien;
 use App\Models\Pegawai;
 use App\Models\User;
@@ -16,23 +17,23 @@ class MasterDataSeeder extends Seeder
     {
         // ─── 1. DATA DOKTER ──────────────────────────────────────────────────
         $dokter1 = Dokter::create([
-            'nama_dokter'  => 'dr. Ahmad Rivai, Sp.U',
+            'nama_dokter' => 'dr. Ahmad Rivai, Sp.U',
             'spesialisasi' => 'Dokter Umum',
-            'no_hp'        => '081234567801',
+            'no_hp' => '081234567801',
             'status_aktif' => true,
         ]);
 
         $dokter2 = Dokter::create([
-            'nama_dokter'  => 'dr. Siti Nuraini, M.Kes',
+            'nama_dokter' => 'dr. Siti Nuraini, M.Kes',
             'spesialisasi' => 'Dokter Umum',
-            'no_hp'        => '081234567802',
+            'no_hp' => '081234567802',
             'status_aktif' => true,
         ]);
 
         $dokter3 = Dokter::create([
-            'nama_dokter'  => 'dr. Budi Santoso',
+            'nama_dokter' => 'dr. Budi Santoso',
             'spesialisasi' => 'Dokter Gizi Klinik',
-            'no_hp'        => '081234567803',
+            'no_hp' => '081234567803',
             'status_aktif' => true,
         ]);
 
@@ -58,20 +59,20 @@ class MasterDataSeeder extends Seeder
         // ─── 3. DATA PEGAWAI ─────────────────────────────────────────────────
         Pegawai::create([
             'nama_pegawai' => 'Dewi Rahayu',
-            'jabatan'      => 'Perawat',
-            'no_hp'        => '081234567810',
+            'jabatan' => 'Perawat',
+            'no_hp' => '081234567810',
         ]);
 
         Pegawai::create([
             'nama_pegawai' => 'Rizal Firmansyah',
-            'jabatan'      => 'Petugas Apotek',
-            'no_hp'        => '081234567811',
+            'jabatan' => 'Petugas Apotek',
+            'no_hp' => '081234567811',
         ]);
 
         Pegawai::create([
             'nama_pegawai' => 'Nurhayati',
-            'jabatan'      => 'Petugas Pendaftaran',
-            'no_hp'        => '081234567812',
+            'jabatan' => 'Petugas Pendaftaran',
+            'no_hp' => '081234567812',
         ]);
 
         // ─── 4. DATA PASIEN (+ akun user pasien) ─────────────────────────────
@@ -85,22 +86,35 @@ class MasterDataSeeder extends Seeder
 
         foreach ($pasienUsers as $data) {
             $user = User::create([
-                'name'     => $data['name'],
-                'email'    => $data['email'],
+                'name' => $data['name'],
+                'email' => $data['email'],
                 'password' => Hash::make('Pasien@123'),
-                'role'     => 'pasien',
-                'no_hp'    => $data['no_hp'],
+                'role' => 'pasien',
+                'no_hp' => $data['no_hp'],
             ]);
 
             Pasien::create([
-                'user_id'       => $user->id,
-                'nik'           => $data['nik'],
-                'nama_pasien'   => $data['name'],
-                'tgl_lahir'     => $data['tgl_lahir'],
+                'user_id' => $user->id,
+                'nik' => $data['nik'],
+                'nama_pasien' => $data['name'],
+                'tgl_lahir' => $data['tgl_lahir'],
                 'jenis_kelamin' => $data['jk'],
-                'alamat'        => $data['alamat'],
-                'no_hp'         => $data['no_hp'],
+                'alamat' => $data['alamat'],
+                'no_hp' => $data['no_hp'],
             ]);
+        }
+
+        // ─── 5. DATA OBAT AWAL ───────────────────────────────────────────────
+        $obats = [
+            ['nama_obat' => 'Paracetamol 500mg', 'satuan' => 'Tablet', 'stok' => 120, 'harga_beli' => 800, 'harga_jual' => 1500, 'tgl_kadaluarsa' => '2027-05-24'],
+            ['nama_obat' => 'Amoxicillin 500mg', 'satuan' => 'Kapsul', 'stok' => 80, 'harga_beli' => 1800, 'harga_jual' => 3000, 'tgl_kadaluarsa' => '2027-02-15'],
+            ['nama_obat' => 'Cetirizine 10mg', 'satuan' => 'Tablet', 'stok' => 60, 'harga_beli' => 900, 'harga_jual' => 2000, 'tgl_kadaluarsa' => '2026-12-10'],
+            ['nama_obat' => 'Vitamin C 500mg', 'satuan' => 'Tablet', 'stok' => 45, 'harga_beli' => 1000, 'harga_jual' => 2500, 'tgl_kadaluarsa' => '2027-08-01'],
+            ['nama_obat' => 'Antasida Doen', 'satuan' => 'Tablet', 'stok' => 8, 'harga_beli' => 700, 'harga_jual' => 1500, 'tgl_kadaluarsa' => '2026-06-20'],
+        ];
+
+        foreach ($obats as $obat) {
+            Obat::create($obat);
         }
     }
 }

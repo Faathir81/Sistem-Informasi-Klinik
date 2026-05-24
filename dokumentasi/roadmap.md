@@ -95,11 +95,11 @@ gantt
 
 - **Nama Cabang Git (Branch)**: `feature/medical-apothecary`
 - **Checklist Aktivitas**:
-    - [ ]   1. Membuat form input diagnosa rekam medis dan peracikan resep obat di Filament (`PemeriksaanResource` & `ResepResource`).
-    - [ ]   2. Membuat **Filament Resource** untuk kelola inventaris obat (`ObatResource`).
-    - [ ]   3. Mengimplementasikan logika pengurangan stok obat otomatis di Laravel Model/Observer saat resep obat disimpan di Filament.
-    - [ ]   4. Menambahkan widget notifikasi stok kritis (< 10) dan deteksi kadaluarsa obat pada dashboard admin Filament.
-    - [ ]   5. Menghubungkan riwayat rekam medis & resep agar bisa dibaca oleh pasien yang bersangkutan di portal Custom Blade.
+    - [x]   1. Membuat form input diagnosa rekam medis dan peracikan resep obat di Filament (`PemeriksaanResource` & `ResepResource`).
+    - [x]   2. Membuat **Filament Resource** untuk kelola inventaris obat (`ObatResource`).
+    - [x]   3. Mengimplementasikan logika pengurangan stok obat otomatis di Laravel Model/Observer saat resep obat disimpan di Filament.
+    - [x]   4. Menambahkan widget notifikasi stok kritis (< 10) dan deteksi kadaluarsa obat pada dashboard admin Filament.
+    - [x]   5. Menghubungkan riwayat rekam medis & resep agar bisa dibaca oleh pasien yang bersangkutan di portal Custom Blade.
 
 - **Fitur Utama**:
     - **Input Rekam Medis & Resep (Admin)**: Mencatat diagnosa, keluhan, tindakan, biaya konsultasi, serta meracik obat beserta aturan pakai di Filament.

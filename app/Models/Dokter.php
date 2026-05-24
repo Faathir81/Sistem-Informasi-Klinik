@@ -23,4 +23,14 @@ class Dokter extends Model
     {
         return $this->hasMany(JadwalDokter::class);
     }
+
+    public function antreans(): HasMany
+    {
+        return $this->hasMany(Antrean::class);
+    }
+
+    public function pemeriksaans(): HasMany
+    {
+        return $this->hasMany(Pemeriksaan::class);
+    }
 }
