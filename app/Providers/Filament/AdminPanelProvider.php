@@ -3,6 +3,9 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Widgets\ApotekAlertWidget;
+use App\Filament\Widgets\DailyVisitsChart;
+use App\Filament\Widgets\MonthlyRevenueChart;
+use App\Filament\Widgets\TopMedicineChart;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -41,6 +44,9 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 AccountWidget::class,
                 ApotekAlertWidget::class,
+                MonthlyRevenueChart::class,
+                DailyVisitsChart::class,
+                TopMedicineChart::class,
                 FilamentInfoWidget::class,
             ])
             ->middleware([

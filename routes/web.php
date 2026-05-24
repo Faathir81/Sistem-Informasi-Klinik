@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\GajiSlipController;
 use App\Http\Controllers\Midtrans\WebhookController;
 use App\Http\Controllers\Pasien\AntreanController;
@@ -48,6 +49,12 @@ Route::middleware(['auth', 'is.pasien'])->prefix('pasien')->name('pasien.')->gro
 Route::post('/midtrans/webhook', WebhookController::class)->name('midtrans.webhook');
 
 Route::middleware(['auth', 'is.admin'])->get('/admin/gaji/{gaji}/slip', GajiSlipController::class)->name('admin.gaji.slip');
+
+Route::middleware(['auth', 'is.admin'])->prefix('admin/laporan')->name('admin.reports.')->group(function () {
+    Route::get('/keuangan', [ReportController::class, 'keuangan'])->name('keuangan');
+    Route::get('/kunjungan', [ReportController::class, 'kunjungan'])->name('kunjungan');
+    Route::get('/stok-obat', [ReportController::class, 'stokObat'])->name('stok-obat');
+});
 
 // ─────────────────────────────────────────────────────────────────────
 // PROFILE ROUTES (dari Breeze)

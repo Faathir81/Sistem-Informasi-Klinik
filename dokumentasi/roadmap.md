@@ -139,10 +139,10 @@ gantt
 
 - **Nama Cabang Git (Branch)**: `feature/reporting-analytics`
 - **Checklist Aktivitas**:
-    - [ ]   1. Mengintegrasikan package PDF (`Barryvdh-Dompdf`) dengan templat desain Kop Surat Resmi Klinik Ar-Ridlo.
-    - [ ]   2. Membuat filter laporan keuangan dan kunjungan berdasarkan rentang tanggal di Filament.
-    - [ ]   3. Menyisipkan grafik interaktif **Chart.js / Filament Widgets** di dashboard admin untuk analisis visual statistik operasional klinik.
-    - [ ]   4. Membuat visualisasi diagram donat untuk peringkat "Obat Paling Laris" menggunakan Filament Widget Chart.
+    - [x]   1. Mengintegrasikan package PDF (`Barryvdh-Dompdf`) dengan templat desain Kop Surat Resmi Klinik Ar-Ridlo.
+    - [x]   2. Membuat filter laporan keuangan dan kunjungan berdasarkan rentang tanggal di Filament.
+    - [x]   3. Menyisipkan grafik interaktif **Chart.js / Filament Widgets** di dashboard admin untuk analisis visual statistik operasional klinik.
+    - [x]   4. Membuat visualisasi diagram donat untuk peringkat "Obat Paling Laris" menggunakan Filament Widget Chart.
 
 - **Fitur Utama**:
     - **Dashboard Analitik (Admin)**: Visualisasi tren pemasukan bulanan, diagram donat obat terlaris, dan rasio pasien harian di Filament.
