@@ -51,4 +51,14 @@ class Pemeriksaan extends Model
     {
         return $this->hasOne(Resep::class);
     }
+
+    public function transaksi(): HasOne
+    {
+        return $this->hasOne(Transaksi::class);
+    }
+
+    public function totalTagihan(): float
+    {
+        return (float) $this->biaya_konsultasi + (float) ($this->resep?->total_harga_obat ?? 0);
+    }
 }

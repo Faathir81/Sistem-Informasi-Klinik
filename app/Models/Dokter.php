@@ -33,4 +33,9 @@ class Dokter extends Model
     {
         return $this->hasMany(Pemeriksaan::class);
     }
+
+    public function gajis(): HasMany
+    {
+        return $this->hasMany(Gaji::class);
+    }
 }

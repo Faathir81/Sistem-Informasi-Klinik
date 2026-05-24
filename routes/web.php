@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\GajiSlipController;
+use App\Http\Controllers\Midtrans\WebhookController;
 use App\Http\Controllers\Pasien\AntreanController;
 use App\Http\Controllers\Pasien\DashboardController as PasienDashboard;
+use App\Http\Controllers\Pasien\PembayaranController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,6 +32,9 @@ Route::get('/dashboard', function () {
 Route::middleware(['auth', 'is.pasien'])->prefix('pasien')->name('pasien.')->group(function () {
     Route::get('/dashboard', [PasienDashboard::class, 'index'])->name('dashboard');
     Route::get('/riwayat-medis', [PasienDashboard::class, 'riwayat'])->name('riwayat.index');
+    Route::get('/pembayaran', [PembayaranController::class, 'index'])->name('pembayaran.index');
+    Route::post('/pembayaran/{pemeriksaan}', [PembayaranController::class, 'store'])->name('pembayaran.store');
+    Route::get('/pembayaran/transaksi/{transaksi}', [PembayaranController::class, 'show'])->name('pembayaran.show');
 
     // ── Antrean ──────────────────────────────────────────────────────────
     Route::get('/antrean', [AntreanController::class, 'index'])->name('antrean.index');
@@ -38,6 +44,10 @@ Route::middleware(['auth', 'is.pasien'])->prefix('pasien')->name('pasien.')->gro
     Route::get('/antrean/tiket/{kode}', [AntreanController::class, 'tiket'])->name('antrean.tiket');
     Route::patch('/antrean/{antrean}/batal', [AntreanController::class, 'batal'])->name('antrean.batal');
 });
+
+Route::post('/midtrans/webhook', WebhookController::class)->name('midtrans.webhook');
+
+Route::middleware(['auth', 'is.admin'])->get('/admin/gaji/{gaji}/slip', GajiSlipController::class)->name('admin.gaji.slip');
 
 // ─────────────────────────────────────────────────────────────────────
 // PROFILE ROUTES (dari Breeze)

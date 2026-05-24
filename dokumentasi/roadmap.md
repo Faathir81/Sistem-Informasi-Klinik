@@ -117,12 +117,12 @@ gantt
 
 - **Nama Cabang Git (Branch)**: `feature/financial-qris`
 - **Checklist Aktivitas**:
-    - [ ]   1. Mengintegrasikan **Midtrans Snap SDK** ke dalam form pembayaran pasien di portal Custom Blade.
-    - [ ]   2. Membangun antarmuka input nominal pembayaran manual oleh pasien di portal Custom Blade.
-    - [ ]   3. Membuat route penampung Midtrans Webhook Notification untuk memproses pelunasan otomatis.
-    - [ ]   4. Membangun halaman **Simulator Pembayaran Sukses (Offline)** di menu admin Filament untuk kelancaran demo sidang ujian.
-    - [ ]   5. Membuat **Filament Resource** untuk pengelolaan gaji dokter & pegawai (`GajiResource`).
-    - [ ]   6. Membuat slip gaji format PDF yang bisa dicetak untuk pegawai & dokter.
+    - [x]   1. Mengintegrasikan **Midtrans Snap SDK** ke dalam form pembayaran pasien di portal Custom Blade.
+    - [x]   2. Membangun antarmuka input nominal pembayaran manual oleh pasien di portal Custom Blade.
+    - [x]   3. Membuat route penampung Midtrans Webhook Notification untuk memproses pelunasan otomatis.
+    - [x]   4. Membangun halaman **Simulator Pembayaran Sukses (Offline)** di menu admin Filament untuk kelancaran demo sidang ujian.
+    - [x]   5. Membuat **Filament Resource** untuk pengelolaan gaji dokter & pegawai (`GajiResource`).
+    - [x]   6. Membuat slip gaji format PDF yang bisa dicetak untuk pegawai & dokter.
 
 - **Fitur Utama**:
     - **Pembayaran QRIS Mandiri (Pasien)**: Pasien mengetik nominal âž” Sistem memanggil QRIS Midtrans âž” Pembayaran divalidasi otomatis di Custom Blade.
