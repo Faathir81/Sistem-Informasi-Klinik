@@ -1,3 +1,155 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    :root {
+        --clinic-ink: #14342f;
+        --clinic-muted: #62756f;
+        --clinic-sage: #7ba891;
+        --clinic-mint: #dff3e8;
+        --clinic-cream: #fbf8f1;
+        --clinic-orange: #ef7b2d;
+        --clinic-orange-dark: #c75f1d;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        color: var(--clinic-ink);
+        background:
+            linear-gradient(180deg, rgba(251, 248, 241, 0.98) 0%, rgba(243, 250, 246, 0.96) 44%, #ffffff 100%);
+        text-rendering: geometricPrecision;
+    }
+
+    ::selection {
+        color: #ffffff;
+        background: var(--clinic-orange);
+    }
+}
+
+@layer components {
+    .clinic-page {
+        @apply min-h-screen bg-[#f7fbf7] text-[#14342f];
+    }
+
+    .clinic-section {
+        @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+    }
+
+    .clinic-card {
+        @apply rounded-lg border border-white/70 bg-white/90 shadow-[0_18px_45px_rgba(20,52,47,0.08)] backdrop-blur;
+    }
+
+    .clinic-card-solid {
+        @apply rounded-lg border border-slate-200/80 bg-white shadow-[0_14px_32px_rgba(20,52,47,0.07)];
+    }
+
+    .clinic-kicker {
+        @apply text-xs font-bold uppercase tracking-[0.18em] text-[#ef7b2d];
+    }
+
+    .clinic-heading {
+        @apply text-3xl font-black leading-tight text-[#14342f] sm:text-4xl lg:text-5xl;
+    }
+
+    .clinic-subcopy {
+        @apply text-base leading-7 text-[#62756f];
+    }
+
+    .clinic-btn {
+        @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md px-5 py-2.5 text-sm font-bold transition duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+    }
+
+    .clinic-btn-primary {
+        @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-[#ef7b2d] px-5 py-2.5 text-sm font-bold text-white shadow-[0_12px_26px_rgba(239,123,45,0.26)] transition duration-200 hover:-translate-y-0.5 hover:bg-[#d76b24] focus:outline-none focus:ring-2 focus:ring-[#ef7b2d] focus:ring-offset-2;
+    }
+
+    .clinic-btn-secondary {
+        @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-[#b8cec3] bg-white/80 px-5 py-2.5 text-sm font-bold text-[#14342f] transition duration-200 hover:-translate-y-0.5 hover:border-[#7ba891] hover:bg-[#eef8f2] focus:outline-none focus:ring-2 focus:ring-[#7ba891] focus:ring-offset-2;
+    }
+
+    .clinic-btn-quiet {
+        @apply inline-flex min-h-10 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold text-[#386258] transition hover:bg-[#e8f4ee] hover:text-[#14342f] focus:outline-none focus:ring-2 focus:ring-[#7ba891] focus:ring-offset-2;
+    }
+
+    .clinic-field {
+        @apply w-full rounded-md border-slate-200 bg-white px-3 py-2.5 text-sm text-[#14342f] shadow-sm transition placeholder:text-slate-400 focus:border-[#7ba891] focus:ring-[#7ba891];
+    }
+
+    .clinic-label {
+        @apply text-sm font-bold text-[#26443d];
+    }
+
+    .clinic-badge {
+        @apply inline-flex items-center gap-2 rounded-md border px-3 py-1 text-xs font-bold;
+    }
+
+    .clinic-badge-success {
+        @apply inline-flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700;
+    }
+
+    .clinic-badge-warning {
+        @apply inline-flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700;
+    }
+
+    .clinic-badge-info {
+        @apply inline-flex items-center gap-2 rounded-md border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-bold text-sky-700;
+    }
+
+    .clinic-badge-muted {
+        @apply inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-600;
+    }
+
+    .clinic-icon-box {
+        @apply flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-[#d6e7dd] bg-[#eef8f2] text-[#386258];
+    }
+
+    .clinic-nav-link {
+        @apply inline-flex h-10 items-center rounded-md px-3 text-sm font-semibold text-[#46665f] transition hover:bg-[#edf7f1] hover:text-[#14342f];
+    }
+
+    .clinic-nav-link-active {
+        @apply bg-[#e1f1e8] text-[#14342f];
+    }
+
+    .clinic-table {
+        @apply min-w-full text-sm;
+    }
+
+    .clinic-table th {
+        @apply border-b border-slate-100 py-3 pr-4 text-left text-xs font-bold uppercase tracking-[0.08em] text-slate-400;
+    }
+
+    .clinic-table td {
+        @apply border-b border-slate-100 py-3 pr-4 align-top;
+    }
+}
+
+@layer utilities {
+    .clinic-animate-in {
+        animation: clinicFadeUp 0.56s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .clinic-hover-lift {
+        @apply transition duration-300 hover:-translate-y-1 hover:shadow-[0_22px_55px_rgba(20,52,47,0.12)];
+    }
+
+    .clinic-focus-ring {
+        @apply focus:outline-none focus:ring-2 focus:ring-[#7ba891] focus:ring-offset-2;
+    }
+}
+
+@keyframes clinicFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

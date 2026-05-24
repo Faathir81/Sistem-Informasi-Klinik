@@ -1,46 +1,60 @@
-# Daftar Tugas: Sistem Informasi Klinik Ar-Ridlo (Laravel 13 + MySQL 8.0+)
+# Daftar Tugas: Sistem Informasi Klinik Ar-Ridlo
 
-Rencana kerja terperinci untuk membangun sistem informasi klinik berbasis Laravel 13 dan MySQL 8.0+ menggunakan pendekatan **Hibrida (Filament + Custom Blade)** yang siap pakai untuk sidang skripsi.
+Rencana kerja terperinci untuk membangun sistem informasi klinik berbasis **Laravel 12 + Filament v4 + MySQL 8.0+** menggunakan pendekatan **Hibrida (Filament Admin + Custom Blade Pasien)**.
 
-- `[ ]` **Tahap 1: Inisialisasi Proyek & Database**
-  - `[ ]` Setup proyek Laravel 13 menggunakan Composer
-  - `[ ]` Instalasi dan konfigurasi **Filament PHP** panel admin
-  - [ ] Konfigurasi file `.env` untuk koneksi database MySQL 8.0+
-  - `[ ]` Buat berkas-berkas Migrasi Database MySQL sesuai rancangan ERD
-  - `[ ]` Buat Model Eloquent beserta relasi-relasinya (User, Pasien, Dokter, Pegawai, JadwalDokter, Antrean, Pemeriksaan, Obat, Resep, ResepDetail, Transaksi, Pengeluaran, Gaji)
-  - `[ ]` Buat Database Seeders untuk memasukkan data awal (admin default, daftar dokter, pegawai, dan obat-obatan)
-  - `[ ]` Jalankan migrasi dan seeder database
+> Catatan: stack final mengikuti `roadmap.md`, yaitu Laravel 12 karena kompatibel penuh dengan Filament v4.
 
-- `[ ]` **Tahap 2: Autentikasi & Layout Utama**
-  - `[ ]` Implementasi fitur Login, Register, dan Logout dengan Laravel Session (Pasien)
-  - `[ ]` Buat custom Middleware untuk membatasi akses berdasarkan peran (`IsAdmin`, `IsPasien`)
-  - `[ ]` Setup Blade master layouts dengan gaya *Medical Light Theme* yang responsif (Pasien)
-  - `[ ]` Buat file CSS kustom (`public/css/style.css`) berisi design token premium, glassmorphism, dan micro-animations menggunakan CSS Nesting bawaan modern (Pasien)
-  - [ ] Konfigurasi Filament Admin Guard & Login Panel (Admin)
+- `[x]` **Tahap 1: Inisialisasi Proyek & Database**
+  - `[x]` Setup proyek Laravel 12 menggunakan Composer
+  - `[x]` Instalasi dan konfigurasi Filament PHP v4 panel admin
+  - `[x]` Konfigurasi file `.env` untuk koneksi database MySQL 8.0+
+  - `[x]` Buat migrasi database sesuai rancangan ERD
+  - `[x]` Buat Model Eloquent beserta relasi-relasinya
+  - `[x]` Buat seeders untuk admin default, dokter, pegawai, dan obat-obatan
+  - `[x]` Jalankan migrasi dan seeder database
 
-- `[ ]` **Tahap 3: Fitur & Tampilan Pasien (Custom Blade)**
-  - `[ ]` Halaman Dashboard Pasien (menampilkan jadwal dokter aktif hari ini, status antrean saat ini, widget info cepat)
-  - `[ ]` Halaman Booking Antrean (pilih dokter, hari/jam, input data jika pertama kali, dan generate nomor urut otomatis)
-  - `[ ]` Integrasi Generator QR Code Antrean (kode unik antrean dirender menjadi QR Code dinamis)
-  - `[ ]` Halaman Riwayat Medis & Resep Pasien
-  - `[ ]` Halaman Pembayaran QRIS Midtrans (menampilkan tagihan pemeriksaan & resep, input nominal bayar manual, integrasi Midtrans Snap JS, serta simulator webhook lokal offline untuk demo sidang)
+- `[x]` **Tahap 2: Autentikasi & Layout Utama**
+  - `[x]` Implementasi Login, Register, dan Logout dengan Laravel Breeze
+  - `[x]` Buat middleware role `IsAdmin` dan `IsPasien`
+  - `[x]` Setup Blade master layouts untuk portal pasien
+  - `[x]` Setup design token premium di `resources/css/app.css`
+  - `[x]` Konfigurasi Filament Admin Guard & Login Panel
 
-- `[ ]` **Tahap 4: Fitur & Tampilan Admin (Filament PHP)**
-  - `[ ]` Dashboard Admin Filament (Visualisasi statistik transaksi keuangan, bagan diagram donat obat terlaris menggunakan Filament Widgets, alert stok menipis)
-  - `[ ]` Filament Resource untuk Kelola Akun & Kelola Data Pasien
-  - `[ ]` Filament Resource untuk Kelola Data Dokter, Pegawai, & Jadwal Praktek Dokter
-  - `[ ]` Modul Pemantau Antrean Pasien di Filament (panggil nomor antrean, perbarui status 'Dipanggil' / 'Selesai' / 'Batal' menggunakan Filament Custom Actions)
-  - `[ ]` Modul Input Rekam Medis & Resep Obat di Filament (input diagnosis, keluhan, biaya konsultasi, obat dan dosis setelah pemeriksaan selesai)
-  - `[ ]` Filament Resource untuk Kelola Stok Obat (Apotek) & Kelola Resep Obat
-  - `[ ]` Modul Monitoring Transaksi Keuangan di Filament (mencatat semua invoice masuk dan transaksi QRIS)
-  - `[ ]` Modul Penggajian Dokter & Pegawai di Filament (perhitungan gaji dan tombol cetak slip gaji format PDF)
+- `[x]` **Tahap 3: Fitur & Tampilan Pasien**
+  - `[x]` Dashboard pasien dengan status antrean, ringkasan akun, riwayat, dan tagihan
+  - `[x]` Booking antrean berdasarkan dokter, tanggal, jadwal, dan kuota
+  - `[x]` Generate nomor antrean otomatis
+  - `[x]` Render QR Code antrean pada tiket digital
+  - `[x]` Riwayat medis dan resep pasien
+  - `[x]` Pembayaran QRIS Midtrans dengan input nominal manual
 
-- `[ ]` **Tahap 5: Pelaporan & Ekspor PDF (Laravel Controller & Dompdf)**
-  - `[ ]` Laporan Pemasukan & Pengeluaran (saringan tanggal, ekspor file PDF via `dompdf` dengan kop klinik resmi)
-  - `[ ]` Laporan Konsultasi & Kunjungan Pasien
-  - `[ ]` Laporan Mutasi Stok Obat Klinik
+- `[x]` **Tahap 4: Fitur & Tampilan Admin**
+  - `[x]` Dashboard Admin Filament dengan widget statistik dan alert apotek
+  - `[x]` Filament Resource untuk pasien, dokter, pegawai, jadwal dokter
+  - `[x]` Modul pemantau antrean pasien di Filament
+  - `[x]` Modul input rekam medis dan resep obat
+  - `[x]` Resource stok obat dan resep
+  - `[x]` Resource transaksi, pengeluaran, dan penggajian
+  - `[x]` Cetak slip gaji PDF
 
-- `[ ]` **Tahap 6: Pengujian & Polishing Visual**
-  - `[ ]` Uji alur antrean dari daftar -> periksa -> bayar QRIS secara end-to-end
-  - `[ ]` Pastikan seluruh form input memiliki validasi server-side Laravel dan pesan error yang ramah pengguna
-  - `[ ]` Tulis dokumen `walkthrough.md` berisi rangkuman fitur yang berhasil diselesaikan beserta petunjuk cara menjalankannya
+- `[x]` **Tahap 5: Pelaporan & Ekspor PDF**
+  - `[x]` Laporan pemasukan dan pengeluaran
+  - `[x]` Laporan konsultasi dan kunjungan pasien
+  - `[x]` Laporan mutasi stok obat klinik
+  - `[x]` Template PDF dengan kop Klinik Ar-Ridlo
+
+- `[x]` **Tahap 6: Pengujian & Polishing Visual**
+  - `[x]` Uji alur antrean dari daftar ke tiket QR
+  - `[x]` Uji alur pemeriksaan, resep, tagihan, dan pembayaran QRIS
+  - `[x]` Validasi server-side Laravel pada form utama
+  - `[x]` Dashboard analitik admin dan laporan PDF siap demo
+
+- `[x]` **Tahap 7: UI/UX Redesign & Finalisasi Frontend**
+  - `[x]` Landing page premium tema Hijau Sage & Oranye
+  - `[x]` Redesign halaman Login & Register Breeze
+  - `[x]` Redesign layout utama portal pasien dan navigasi responsif
+  - `[x]` Poles dashboard pasien, booking antrean, tiket QR, riwayat medis, dan pembayaran QRIS
+  - `[x]` Tambahkan micro-interactions, hover states, card elevation, dan visual hierarchy
+  - `[x]` Konsistensi identitas visual Filament Admin
+  - `[x]` Tambahkan aset hero klinik di `public/images/klinik-hero.png`
+  - `[x]` Verifikasi build frontend dengan `npm run build`

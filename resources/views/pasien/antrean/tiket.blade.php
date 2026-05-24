@@ -1,137 +1,153 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center gap-3">
-            <a href="{{ route('pasien.antrean.index') }}" class="text-gray-400 hover:text-gray-600">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            <a href="{{ route('pasien.antrean.index') }}" class="clinic-btn-quiet px-2" aria-label="Kembali">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m15 19-7-7 7-7"/>
                 </svg>
             </a>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                🎫 Tiket Antrean
-            </h2>
+            <div>
+                <p class="clinic-kicker">Tiket digital</p>
+                <h1 class="mt-1 text-2xl font-black text-[#14342f]">Tiket Antrean</h1>
+            </div>
         </div>
     </x-slot>
 
-    <div class="py-10">
-        <div class="max-w-md mx-auto sm:px-6 lg:px-8">
+    @php
+        $statusClass = match($antrean->status) {
+            'Menunggu' => 'clinic-badge-warning',
+            'Dipanggil' => 'clinic-badge-info',
+            'Selesai' => 'clinic-badge-success',
+            'Batal' => 'clinic-badge-muted',
+            default => 'clinic-badge-muted',
+        };
+        $statusDot = match($antrean->status) {
+            'Menunggu' => 'bg-amber-500',
+            'Dipanggil' => 'bg-sky-500',
+            'Selesai' => 'bg-emerald-500',
+            'Batal' => 'bg-slate-400',
+            default => 'bg-slate-400',
+        };
+    @endphp
 
+    <div class="py-8 sm:py-10">
+        <div class="clinic-section max-w-5xl">
             @if(session('success'))
-                <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-sm mb-5 text-center">
-                    ✅ {{ session('success') }}
+                <div class="mb-5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-sm font-semibold text-emerald-700">
+                    {{ session('success') }}
                 </div>
             @endif
 
-            {{-- Kartu Tiket --}}
-            <div class="bg-white shadow-lg rounded-2xl overflow-hidden" id="tiket-card">
-
-                {{-- Header Tiket --}}
-                <div class="bg-emerald-600 text-white px-6 py-5 text-center">
-                    <p class="text-emerald-200 text-xs uppercase tracking-widest font-medium mb-1">Klinik Ar-Ridlo</p>
-                    <h1 class="text-2xl font-bold">Tiket Antrean</h1>
-                    <p class="text-emerald-100 text-sm mt-1">
-                        {{ $antrean->tanggal_kunjungan->isoFormat('dddd, D MMMM Y') }}
-                    </p>
-                </div>
-
-                {{-- Nomor Antrean Besar --}}
-                <div class="text-center py-6 border-b border-dashed border-gray-200">
-                    <p class="text-xs text-gray-400 uppercase tracking-widest mb-1">Nomor Antrean</p>
-                    <div class="text-8xl font-extrabold text-emerald-600 leading-none">
-                        {{ str_pad($antrean->nomor_antrean, 3, '0', STR_PAD_LEFT) }}
+            <div class="grid gap-6 lg:grid-cols-[1fr_0.8fr] lg:items-start">
+                <section class="clinic-card-solid overflow-hidden" id="tiket-card">
+                    <div class="bg-[#14342f] p-6 text-white sm:p-8">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <p class="text-xs font-bold uppercase tracking-[0.18em] text-[#f8b37d]">Klinik Ar-Ridlo</p>
+                                <h2 class="mt-2 text-3xl font-black">Tiket Antrean</h2>
+                                <p class="mt-2 text-sm font-semibold text-white/70">{{ $antrean->tanggal_kunjungan->isoFormat('dddd, D MMMM Y') }}</p>
+                            </div>
+                            <span class="{{ $statusClass }} bg-white/10 text-white border-white/20">
+                                <span class="h-2 w-2 rounded-full {{ $statusDot }}"></span>
+                                {{ $antrean->status }}
+                            </span>
+                        </div>
                     </div>
 
-                    {{-- Status Badge --}}
-                    @php
-                        $statusColor = match($antrean->status) {
-                            'Menunggu'  => 'bg-yellow-100 text-yellow-800 border-yellow-300',
-                            'Dipanggil' => 'bg-blue-100 text-blue-800 border-blue-300',
-                            'Selesai'   => 'bg-emerald-100 text-emerald-800 border-emerald-300',
-                            'Batal'     => 'bg-gray-100 text-gray-500 border-gray-300',
-                        };
-                        $statusIcon = match($antrean->status) {
-                            'Menunggu'  => '⏳',
-                            'Dipanggil' => '📢',
-                            'Selesai'   => '✅',
-                            'Batal'     => '❌',
-                        };
-                    @endphp
-                    <span class="inline-flex items-center gap-1 text-xs font-semibold px-4 py-1.5 rounded-full border mt-3 {{ $statusColor }}">
-                        {{ $statusIcon }} {{ $antrean->status }}
-                    </span>
-                </div>
+                    <div class="grid gap-6 p-6 sm:p-8 md:grid-cols-[0.78fr_1.22fr]">
+                        <div class="rounded-lg border border-[#d6e7dd] bg-[#f3faf6] p-6 text-center">
+                            <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#62756f]">Nomor Antrean</p>
+                            <p class="mt-4 text-8xl font-black leading-none text-[#14342f]">
+                                {{ str_pad($antrean->nomor_antrean, 3, '0', STR_PAD_LEFT) }}
+                            </p>
+                            <p class="mt-4 font-mono text-xs font-bold tracking-[0.18em] text-[#62756f]">{{ $antrean->kode_antrean }}</p>
+                        </div>
 
-                {{-- Detail Dokter & Jadwal --}}
-                <div class="px-6 py-4 space-y-2 text-sm border-b border-dashed border-gray-200">
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">Dokter</span>
-                        <span class="font-semibold text-gray-800 text-right">{{ $antrean->dokter->nama_dokter }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">Spesialisasi</span>
-                        <span class="text-gray-700">{{ $antrean->dokter->spesialisasi }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">Jam Praktek</span>
-                        <span class="text-gray-700">
-                            {{ substr($antrean->jadwalDokter->jam_mulai, 0, 5) }} –
-                            {{ substr($antrean->jadwalDokter->jam_selesai, 0, 5) }} WIB
-                        </span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">Pasien</span>
-                        <span class="font-semibold text-gray-800">{{ $antrean->pasien->nama_pasien }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">No. Rekam Medis</span>
-                        <span class="font-mono text-gray-700 text-xs">{{ $antrean->pasien->no_rekam_medis }}</span>
-                    </div>
-                </div>
+                        <div class="space-y-4">
+                            <div class="grid gap-3 sm:grid-cols-2">
+                                <div class="rounded-lg bg-slate-50 p-4">
+                                    <span class="text-xs font-bold text-[#62756f]">Dokter</span>
+                                    <p class="mt-1 font-black text-[#14342f]">{{ $antrean->dokter->nama_dokter }}</p>
+                                </div>
+                                <div class="rounded-lg bg-slate-50 p-4">
+                                    <span class="text-xs font-bold text-[#62756f]">Spesialisasi</span>
+                                    <p class="mt-1 font-black text-[#14342f]">{{ $antrean->dokter->spesialisasi }}</p>
+                                </div>
+                                <div class="rounded-lg bg-slate-50 p-4">
+                                    <span class="text-xs font-bold text-[#62756f]">Jam Praktek</span>
+                                    <p class="mt-1 font-black text-[#14342f]">{{ substr($antrean->jadwalDokter->jam_mulai, 0, 5) }} - {{ substr($antrean->jadwalDokter->jam_selesai, 0, 5) }} WIB</p>
+                                </div>
+                                <div class="rounded-lg bg-slate-50 p-4">
+                                    <span class="text-xs font-bold text-[#62756f]">No. Rekam Medis</span>
+                                    <p class="mt-1 font-mono text-sm font-black text-[#14342f]">{{ $antrean->pasien->no_rekam_medis }}</p>
+                                </div>
+                            </div>
 
-                {{-- QR Code --}}
-                <div class="px-6 py-6 text-center" id="qrcode-section">
-                    <p class="text-xs text-gray-400 mb-3">Tunjukkan QR Code ini kepada petugas klinik</p>
-                    <div class="inline-block p-3 bg-white border-2 border-gray-200 rounded-xl shadow-sm">
-                        {!! QrCode::size(180)->format('svg')->generate($antrean->kode_antrean) !!}
+                            <div class="rounded-lg border border-[#d6e7dd] bg-white p-4">
+                                <span class="text-xs font-bold text-[#62756f]">Pasien</span>
+                                <p class="mt-1 text-lg font-black text-[#14342f]">{{ $antrean->pasien->nama_pasien }}</p>
+                            </div>
+                        </div>
                     </div>
-                    <p class="font-mono text-xs text-gray-400 mt-3 tracking-widest">{{ $antrean->kode_antrean }}</p>
-                </div>
+                </section>
 
-                {{-- Tombol Aksi --}}
-                <div class="px-6 pb-6 space-y-2">
-                    <button onclick="window.print()"
-                            id="btn-print-tiket"
-                            class="w-full flex items-center justify-center gap-2 border border-gray-300 text-gray-700 hover:bg-gray-50 font-medium text-sm py-2.5 rounded-lg transition">
-                        🖨️ Cetak / Simpan PDF
-                    </button>
+                <aside class="clinic-card-solid p-6" id="qrcode-section">
+                    <div class="text-center">
+                        <p class="clinic-kicker">QR Code</p>
+                        <h2 class="mt-2 text-2xl font-black text-[#14342f]">Tunjukkan kepada petugas</h2>
+                        <p class="mt-2 text-sm leading-6 text-[#62756f]">QR ini memuat kode antrean unik untuk verifikasi kunjungan.</p>
+                    </div>
 
-                    @if($antrean->status === 'Menunggu')
-                        <form action="{{ route('pasien.antrean.batal', $antrean->id) }}" method="POST"
-                              onsubmit="return confirm('Yakin ingin membatalkan antrean ini?')">
-                            @csrf @method('PATCH')
-                            <button type="submit"
-                                    id="btn-batal-dari-tiket"
-                                    class="w-full text-red-500 hover:text-red-700 text-sm py-2 rounded-lg hover:bg-red-50 transition">
-                                Batalkan Antrean Ini
-                            </button>
-                        </form>
-                    @endif
-                </div>
-            </div>
+                    <div class="mx-auto mt-6 flex max-w-[260px] justify-center rounded-lg border border-[#d6e7dd] bg-white p-4 shadow-[0_18px_40px_rgba(20,52,47,0.08)]">
+                        {!! QrCode::size(210)->format('svg')->generate($antrean->kode_antrean) !!}
+                    </div>
 
-            <div class="mt-4 text-center">
-                <a href="{{ route('pasien.antrean.index') }}"
-                   class="text-sm text-emerald-600 hover:text-emerald-700 font-medium">
-                    ← Kembali ke Riwayat Antrean
-                </a>
+                    <div class="mt-6 grid gap-3">
+                        <button onclick="window.print()" id="btn-print-tiket" class="clinic-btn-primary w-full" type="button">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8V4h10v4m-9 9H6a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2m-8 0h8v3H8v-3Z"/>
+                            </svg>
+                            Cetak / Simpan PDF
+                        </button>
+
+                        @if($antrean->status === 'Menunggu')
+                            <form action="{{ route('pasien.antrean.batal', $antrean->id) }}" method="POST" onsubmit="return confirm('Yakin ingin membatalkan antrean ini?')">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" id="btn-batal-dari-tiket" class="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-red-200 px-5 py-2.5 text-sm font-bold text-red-600 transition hover:bg-red-50">
+                                    Batalkan Antrean
+                                </button>
+                            </form>
+                        @endif
+
+                        <a href="{{ route('pasien.antrean.index') }}" class="clinic-btn-secondary w-full">
+                            Kembali
+                        </a>
+                    </div>
+                </aside>
             </div>
         </div>
     </div>
 
     <style>
         @media print {
-            header, nav, .no-print, button { display: none !important; }
-            body { background: white; }
-            #tiket-card { box-shadow: none; border: 1px solid #e5e7eb; }
+            nav,
+            header,
+            button,
+            a {
+                display: none !important;
+            }
+
+            body,
+            .clinic-page {
+                background: #ffffff !important;
+            }
+
+            #tiket-card {
+                display: block !important;
+                box-shadow: none !important;
+                border: 1px solid #d9e5df !important;
+            }
         }
     </style>
 </x-app-layout>

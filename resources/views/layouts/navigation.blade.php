@@ -1,98 +1,137 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
-    <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
-                    </a>
-                </div>
+@php
+    $isAdmin = Auth::user()->role === 'admin';
+    $portalHome = $isAdmin ? url('/admin') : route('pasien.dashboard');
+@endphp
 
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
-                </div>
+<nav x-data="{ open: false }" class="sticky top-0 z-40 border-b border-white/70 bg-white/80 backdrop-blur-xl">
+    <div class="clinic-section">
+        <div class="flex h-[72px] items-center justify-between gap-4 py-3">
+            <div class="flex items-center gap-8">
+                <a href="{{ $portalHome }}" class="flex items-center gap-3">
+                    <span class="flex h-11 w-11 items-center justify-center rounded-md bg-[#14342f] text-white shadow-sm">
+                        <x-application-logo class="h-8 w-8" />
+                    </span>
+                    <span class="hidden sm:block">
+                        <span class="block text-sm font-black leading-5 text-[#14342f]">Klinik Ar-Ridlo</span>
+                        <span class="block text-xs font-semibold text-[#62756f]">{{ $isAdmin ? 'Panel Admin' : 'Portal Pasien' }}</span>
+                    </span>
+                </a>
+
+                @unless($isAdmin)
+                    <div class="hidden items-center gap-1 lg:flex">
+                        <x-nav-link :href="route('pasien.dashboard')" :active="request()->routeIs('pasien.dashboard')">
+                            Dashboard
+                        </x-nav-link>
+                        <x-nav-link :href="route('pasien.antrean.index')" :active="request()->routeIs('pasien.antrean.*')">
+                            Antrean
+                        </x-nav-link>
+                        <x-nav-link :href="route('pasien.riwayat.index')" :active="request()->routeIs('pasien.riwayat.*')">
+                            Riwayat
+                        </x-nav-link>
+                        <x-nav-link :href="route('pasien.pembayaran.index')" :active="request()->routeIs('pasien.pembayaran.*')">
+                            Pembayaran
+                        </x-nav-link>
+                    </div>
+                @endunless
             </div>
 
-            <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
-                <x-dropdown align="right" width="48">
-                    <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->name }}</div>
+            <div class="hidden items-center gap-3 sm:flex">
+                @if($isAdmin)
+                    <a href="/admin" class="clinic-btn-primary min-h-10 px-4 py-2">
+                        Panel Admin
+                    </a>
+                @else
+                    <a href="{{ route('pasien.antrean.create') }}" class="clinic-btn-primary min-h-10 px-4 py-2">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14"/>
+                        </svg>
+                        Booking
+                    </a>
+                @endif
 
-                            <div class="ms-1">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
+                <x-dropdown align="right" width="56">
+                    <x-slot name="trigger">
+                        <button class="clinic-focus-ring inline-flex items-center gap-3 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-[#14342f] shadow-sm transition hover:bg-[#f3faf6]">
+                            <span class="flex h-8 w-8 items-center justify-center rounded-md bg-[#e1f1e8] text-sm font-black text-[#14342f]">
+                                {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                            </span>
+                            <span class="hidden max-w-36 truncate xl:inline">{{ Auth::user()->name }}</span>
+                            <svg class="h-4 w-4 text-[#62756f]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9 6 6 6-6"/>
+                            </svg>
                         </button>
                     </x-slot>
 
                     <x-slot name="content">
+                        <div class="border-b border-slate-100 px-4 py-3">
+                            <p class="truncate text-sm font-bold text-[#14342f]">{{ Auth::user()->name }}</p>
+                            <p class="truncate text-xs font-medium text-[#62756f]">{{ Auth::user()->email }}</p>
+                        </div>
                         <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profile') }}
+                            Profil dan keamanan
                         </x-dropdown-link>
 
-                        <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-
-                            <x-dropdown-link :href="route('logout')"
-                                    onclick="event.preventDefault();
-                                                this.closest('form').submit();">
-                                {{ __('Log Out') }}
+                            <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">
+                                Keluar
                             </x-dropdown-link>
                         </form>
                     </x-slot>
                 </x-dropdown>
             </div>
 
-            <!-- Hamburger -->
-            <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
+            <button @click="open = ! open" class="clinic-focus-ring inline-flex h-11 w-11 items-center justify-center rounded-md border border-slate-200 bg-white text-[#14342f] sm:hidden" aria-label="Buka menu">
+                <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                    <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16" />
+                    <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+            </button>
         </div>
     </div>
 
-    <!-- Responsive Navigation Menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-        <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
-        </div>
+    <div :class="{'block': open, 'hidden': ! open}" class="hidden border-t border-slate-100 bg-white sm:hidden">
+        @unless($isAdmin)
+            <div class="space-y-1 py-3">
+                <x-responsive-nav-link :href="route('pasien.dashboard')" :active="request()->routeIs('pasien.dashboard')">
+                    Dashboard
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('pasien.antrean.index')" :active="request()->routeIs('pasien.antrean.*')">
+                    Antrean
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('pasien.riwayat.index')" :active="request()->routeIs('pasien.riwayat.*')">
+                    Riwayat Medis
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('pasien.pembayaran.index')" :active="request()->routeIs('pasien.pembayaran.*')">
+                    Pembayaran
+                </x-responsive-nav-link>
+            </div>
+        @endunless
 
-        <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200">
-            <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+        <div class="border-t border-slate-100 px-4 py-4">
+            <div class="mb-3">
+                <div class="font-bold text-[#14342f]">{{ Auth::user()->name }}</div>
+                <div class="text-sm font-medium text-[#62756f]">{{ Auth::user()->email }}</div>
             </div>
 
-            <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')">
-                    {{ __('Profile') }}
-                </x-responsive-nav-link>
-
-                <!-- Authentication -->
+            <div class="grid gap-2">
+                @if($isAdmin)
+                    <a href="/admin" class="clinic-btn-primary w-full">
+                        Panel Admin
+                    </a>
+                @else
+                    <a href="{{ route('pasien.antrean.create') }}" class="clinic-btn-primary w-full">
+                        Booking Antrean
+                    </a>
+                @endif
+                <a href="{{ route('profile.edit') }}" class="clinic-btn-secondary w-full">
+                    Profil
+                </a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-
-                    <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault();
-                                        this.closest('form').submit();">
-                        {{ __('Log Out') }}
-                    </x-responsive-nav-link>
+                    <button type="submit" class="clinic-btn-quiet w-full justify-center">
+                        Keluar
+                    </button>
                 </form>
             </div>
         </div>

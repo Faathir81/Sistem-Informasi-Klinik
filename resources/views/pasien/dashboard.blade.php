@@ -1,129 +1,197 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard Pasien') }}
-        </h2>
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <p class="clinic-kicker">Portal pasien</p>
+                <h1 class="mt-1 text-2xl font-black text-[#14342f]">Dashboard Pasien</h1>
+            </div>
+            <p class="text-sm font-semibold text-[#62756f]">{{ now()->locale('id')->isoFormat('dddd, D MMMM Y') }}</p>
+        </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
+    <div class="py-8 sm:py-10">
+        <div class="clinic-section space-y-6">
+            @if(session('success'))
+                <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+                    {{ session('success') }}
+                </div>
+            @endif
 
-            {{-- Welcome Card --}}
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <div class="flex items-center gap-4">
-                        <div class="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-2xl">
-                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+            @if(session('error'))
+                <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            <section class="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
+                <div class="clinic-card overflow-hidden">
+                    <div class="grid min-h-[360px] gap-6 p-6 sm:p-8 lg:grid-cols-[1fr_0.72fr]">
+                        <div class="flex flex-col justify-between gap-8">
+                            <div>
+                                <span class="inline-flex h-14 w-14 items-center justify-center rounded-md bg-[#14342f] text-2xl font-black text-white">
+                                    {{ strtoupper(substr($user->name, 0, 1)) }}
+                                </span>
+                                <p class="mt-6 clinic-kicker">Selamat datang</p>
+                                <h2 class="mt-2 max-w-2xl text-4xl font-black leading-tight text-[#14342f]">
+                                    {{ $user->name }}
+                                </h2>
+                                <p class="mt-4 max-w-2xl text-base leading-7 text-[#62756f]">
+                                    Semua kebutuhan pasien ada di sini: booking antrean, tiket QR, riwayat medis, resep, dan pembayaran QRIS.
+                                </p>
+                            </div>
+
+                            <div class="flex flex-col gap-3 sm:flex-row">
+                                <a href="{{ route('pasien.antrean.create') }}" id="btn-booking-antrean-card" class="clinic-btn-primary">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V4m8 3V4M5 11h14M6 20h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2Z"/>
+                                    </svg>
+                                    Booking Antrean
+                                </a>
+                                <a href="{{ route('pasien.pembayaran.index') }}" id="btn-pembayaran-qris" class="clinic-btn-secondary">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M6 11h12M7 15h5m-6 4h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2Z"/>
+                                    </svg>
+                                    Pembayaran
+                                </a>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="text-lg font-bold text-gray-800">Selamat Datang, {{ auth()->user()->name }}! 👋</h3>
-                            <p class="text-sm text-gray-500">Kelola antrean, riwayat pengobatan, dan pembayaran Anda di sini.</p>
+
+                        <div class="rounded-lg border border-[#d6e7dd] bg-[#f3faf6] p-5">
+                            @if($antreanAktif)
+                                @php
+                                    $activeBadge = $antreanAktif->status === 'Dipanggil' ? 'clinic-badge-info' : 'clinic-badge-warning';
+                                @endphp
+                                <div class="flex items-start justify-between gap-3">
+                                    <div>
+                                        <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#62756f]">Antrean aktif</p>
+                                        <p class="mt-2 text-6xl font-black leading-none text-[#14342f]">
+                                            {{ str_pad($antreanAktif->nomor_antrean, 3, '0', STR_PAD_LEFT) }}
+                                        </p>
+                                    </div>
+                                    <span class="{{ $activeBadge }}">
+                                        <span class="h-2 w-2 rounded-full {{ $antreanAktif->status === 'Dipanggil' ? 'bg-sky-500' : 'bg-amber-500' }}"></span>
+                                        {{ $antreanAktif->status }}
+                                    </span>
+                                </div>
+
+                                <div class="mt-6 space-y-3 text-sm">
+                                    <div class="rounded-lg bg-white p-4">
+                                        <span class="text-xs font-bold text-[#62756f]">Dokter</span>
+                                        <p class="mt-1 font-black text-[#14342f]">{{ $antreanAktif->dokter->nama_dokter }}</p>
+                                        <p class="text-[#62756f]">{{ $antreanAktif->dokter->spesialisasi }}</p>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="rounded-lg bg-white p-4">
+                                            <span class="text-xs font-bold text-[#62756f]">Tanggal</span>
+                                            <p class="mt-1 font-black text-[#14342f]">{{ $antreanAktif->tanggal_kunjungan->format('d M Y') }}</p>
+                                        </div>
+                                        <div class="rounded-lg bg-white p-4">
+                                            <span class="text-xs font-bold text-[#62756f]">Jam</span>
+                                            <p class="mt-1 font-black text-[#14342f]">
+                                                {{ substr($antreanAktif->jadwalDokter->jam_mulai, 0, 5) }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <a href="{{ route('pasien.antrean.tiket', $antreanAktif->kode_antrean) }}" class="mt-5 inline-flex w-full items-center justify-center rounded-md bg-[#14342f] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#1f4b44]">
+                                    Lihat Tiket QR
+                                </a>
+                            @else
+                                <div class="flex h-full min-h-[280px] flex-col items-center justify-center text-center">
+                                    <div class="clinic-icon-box h-14 w-14">
+                                        <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V4m8 3V4M5 11h14M6 20h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2Z"/>
+                                        </svg>
+                                    </div>
+                                    <h3 class="mt-5 text-xl font-black text-[#14342f]">Belum ada antrean aktif</h3>
+                                    <p class="mt-2 max-w-xs text-sm leading-6 text-[#62756f]">Ambil jadwal kunjungan untuk mendapatkan nomor antrean dan QR Code.</p>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </div>
-            </div>
 
-            {{-- Quick Action Cards --}}
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-                {{-- Ambil Antrean --}}
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border-l-4 border-emerald-500 hover:-translate-y-1 transition-transform duration-300">
-                    <div class="p-6">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
-                                <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                </svg>
+                <aside class="grid gap-4">
+                    <div class="clinic-card-solid p-5">
+                        <p class="clinic-kicker">Ringkasan</p>
+                        <div class="mt-4 grid gap-3">
+                            <div class="flex items-center justify-between rounded-lg bg-[#f3faf6] p-4">
+                                <span class="text-sm font-bold text-[#62756f]">Total antrean</span>
+                                <span class="text-2xl font-black text-[#14342f]">{{ $jumlahAntrean }}</span>
                             </div>
-                            <h4 class="font-semibold text-gray-800">Booking Antrean</h4>
+                            <div class="flex items-center justify-between rounded-lg bg-[#fff7ed] p-4">
+                                <span class="text-sm font-bold text-[#62756f]">Riwayat medis</span>
+                                <span class="text-2xl font-black text-[#14342f]">{{ $jumlahRiwayat }}</span>
+                            </div>
+                            <div class="flex items-center justify-between rounded-lg bg-sky-50 p-4">
+                                <span class="text-sm font-bold text-[#62756f]">Tagihan aktif</span>
+                                <span class="text-2xl font-black text-[#14342f]">{{ $tagihanBelumLunas }}</span>
+                            </div>
                         </div>
-                        <p class="text-sm text-gray-500 mb-4">Ambil nomor antrean dan dapatkan QR Code digital Anda.</p>
-                        <a href="{{ route('pasien.antrean.create') }}" id="btn-booking-antrean-card"
-                           class="inline-flex items-center gap-1 text-xs font-medium text-white bg-emerald-600 hover:bg-emerald-700 px-4 py-1.5 rounded-full transition">
-                            📅 Booking Sekarang
+                    </div>
+
+                    <div class="clinic-card-solid p-5">
+                        <p class="clinic-kicker">Data akun</p>
+                        <div class="mt-4 space-y-3 text-sm">
+                            <div>
+                                <span class="font-bold text-[#62756f]">Email</span>
+                                <p class="mt-1 break-words font-semibold text-[#14342f]">{{ $user->email }}</p>
+                            </div>
+                            <div>
+                                <span class="font-bold text-[#62756f]">Nomor HP</span>
+                                <p class="mt-1 font-semibold text-[#14342f]">{{ $user->no_hp ?? '-' }}</p>
+                            </div>
+                            <div>
+                                <span class="font-bold text-[#62756f]">No. Rekam Medis</span>
+                                <p class="mt-1 font-mono text-sm font-semibold text-[#14342f]">{{ $pasien?->no_rekam_medis ?? 'Belum terhubung' }}</p>
+                            </div>
+                        </div>
+                        <a href="{{ route('profile.edit') }}" class="mt-5 inline-flex text-sm font-black text-[#ef7b2d] hover:text-[#c75f1d]" id="btn-edit-profile">
+                            Edit profil
                         </a>
                     </div>
-                </div>
+                </aside>
+            </section>
 
-                {{-- Status Antrean --}}
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border-l-4 border-blue-400 hover:-translate-y-1 transition-transform duration-300">
-                    <div class="p-6">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-                                <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                                </svg>
-                            </div>
-                            <h4 class="font-semibold text-gray-800">Status Antrean</h4>
-                        </div>
-                        <p class="text-sm text-gray-500 mb-4">Pantau posisi antrean dan status panggilan dokter Anda.</p>
-                        <a href="{{ route('pasien.antrean.index') }}" id="btn-status-antrean-card"
-                           class="inline-flex items-center gap-1 text-xs font-medium text-white bg-blue-500 hover:bg-blue-600 px-4 py-1.5 rounded-full transition">
-                            📋 Lihat Antrean Saya
-                        </a>
-                    </div>
-                </div>
+            <section class="grid gap-4 md:grid-cols-3">
+                @foreach ([
+                    ['title' => 'Status Antrean', 'body' => 'Pantau semua riwayat antrean dan buka tiket QR.', 'route' => route('pasien.antrean.index'), 'id' => 'btn-status-antrean-card'],
+                    ['title' => 'Riwayat Medis', 'body' => 'Lihat diagnosa, tindakan, dan resep obat Anda.', 'route' => route('pasien.riwayat.index'), 'id' => 'btn-riwayat-medis-card'],
+                    ['title' => 'Pembayaran QRIS', 'body' => 'Buat transaksi pembayaran melalui Midtrans.', 'route' => route('pasien.pembayaran.index'), 'id' => 'btn-pembayaran-card'],
+                ] as $action)
+                    <a href="{{ $action['route'] }}" id="{{ $action['id'] }}" class="clinic-card-solid clinic-hover-lift block p-6">
+                        <h3 class="text-lg font-black text-[#14342f]">{{ $action['title'] }}</h3>
+                        <p class="mt-2 min-h-12 text-sm leading-6 text-[#62756f]">{{ $action['body'] }}</p>
+                        <span class="mt-5 inline-flex items-center gap-2 text-sm font-black text-[#ef7b2d]">
+                            Buka
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7 7 7-7 7"/>
+                            </svg>
+                        </span>
+                    </a>
+                @endforeach
+            </section>
 
-                {{-- Riwayat Medis --}}
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border-l-4 border-orange-400 hover:-translate-y-1 transition-transform duration-300">
-                    <div class="p-6">
-                        <div class="flex items-center gap-3 mb-3">
-                            <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center">
-                                <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                </svg>
-                            </div>
-                            <h4 class="font-semibold text-gray-800">Riwayat Medis</h4>
-                        </div>
-                        <p class="text-sm text-gray-500 mb-4">Lihat riwayat pemeriksaan dan resep obat Anda.</p>
-                        <a href="{{ route('pasien.riwayat.index') }}" id="btn-riwayat-medis-card"
-                           class="inline-flex items-center gap-1 text-xs font-medium text-white bg-orange-500 hover:bg-orange-600 px-4 py-1.5 rounded-full transition">
-                            Lihat Riwayat
-                        </a>
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border-l-4 border-amber-400 hover:-translate-y-1 transition-transform duration-300">
-                <div class="p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <section class="clinic-card-solid p-6">
+                <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
-                        <h4 class="font-semibold text-gray-800">Pembayaran QRIS</h4>
-                        <p class="text-sm text-gray-500 mt-1">Bayar tagihan pemeriksaan dan obat dengan nominal manual melalui Midtrans.</p>
+                        <p class="clinic-kicker">Pemeriksaan terakhir</p>
+                        @if($pemeriksaanTerakhir)
+                            <h3 class="mt-2 text-xl font-black text-[#14342f]">{{ $pemeriksaanTerakhir->dokter->nama_dokter }}</h3>
+                            <p class="mt-1 text-sm leading-6 text-[#62756f]">
+                                {{ $pemeriksaanTerakhir->tgl_pemeriksaan->format('d M Y') }} - {{ $pemeriksaanTerakhir->diagnosa }}
+                            </p>
+                        @else
+                            <h3 class="mt-2 text-xl font-black text-[#14342f]">Belum ada pemeriksaan tercatat</h3>
+                            <p class="mt-1 text-sm leading-6 text-[#62756f]">Riwayat medis akan muncul setelah admin menyelesaikan pemeriksaan.</p>
+                        @endif
                     </div>
-                    <a href="{{ route('pasien.pembayaran.index') }}" id="btn-pembayaran-qris"
-                       class="inline-flex items-center justify-center text-xs font-medium text-white bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-full transition">
-                        Bayar QRIS
+                    <a href="{{ route('pasien.riwayat.index') }}" class="clinic-btn-secondary">
+                        Lihat Riwayat
                     </a>
                 </div>
-            </div>
-
-            {{-- Info Akun --}}
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <h3 class="font-semibold text-gray-800 mb-4">Informasi Akun Saya</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                        <div>
-                            <span class="text-gray-400">Nama Lengkap</span>
-                            <p class="font-medium text-gray-800 mt-1">{{ auth()->user()->name }}</p>
-                        </div>
-                        <div>
-                            <span class="text-gray-400">Alamat Email</span>
-                            <p class="font-medium text-gray-800 mt-1">{{ auth()->user()->email }}</p>
-                        </div>
-                        <div>
-                            <span class="text-gray-400">Nomor HP</span>
-                            <p class="font-medium text-gray-800 mt-1">{{ auth()->user()->no_hp ?? '-' }}</p>
-                        </div>
-                    </div>
-                    <div class="mt-4 pt-4 border-t border-gray-100">
-                        <a href="{{ route('profile.edit') }}" class="text-sm text-emerald-600 hover:text-emerald-700 font-medium" id="btn-edit-profile">
-                            ✏️ Edit Profil & Ganti Kata Sandi →
-                        </a>
-                    </div>
-                </div>
-            </div>
-
+            </section>
         </div>
     </div>
 </x-app-layout>

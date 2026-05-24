@@ -159,11 +159,11 @@ gantt
 
 - **Nama Cabang Git (Branch)**: `feature/uiux-frontend`
 - **Checklist Aktivitas**:
-    - [ ]   1. Menerapkan desain premium (tema Hijau Sage & Oranye) pada Landing Page utama.
-    - [ ]   2. Merombak halaman Login & Register (Breeze) menjadi tampilan modern sesuai identitas klinik.
-    - [ ]   3. Memoles UI/UX portal dashboard pasien agar lebih responsif, elegan, dan _user-friendly_.
-    - [ ]   4. Menambahkan animasi mikro (_micro-animations_) dan efek transisi (_hover states_) pada elemen interaktif.
-    - [ ]   5. Memastikan semua antarmuka (termasuk Filament panel) rapi secara estetika sebelum _deployment_ final.
+    - [x]   1. Menerapkan desain premium (tema Hijau Sage & Oranye) pada Landing Page utama.
+    - [x]   2. Merombak halaman Login & Register (Breeze) menjadi tampilan modern sesuai identitas klinik.
+    - [x]   3. Memoles UI/UX portal dashboard pasien agar lebih responsif, elegan, dan _user-friendly_.
+    - [x]   4. Menambahkan animasi mikro (_micro-animations_) dan efek transisi (_hover states_) pada elemen interaktif.
+    - [x]   5. Memastikan semua antarmuka (termasuk Filament panel) rapi secara estetika sebelum _deployment_ final.
 
 - **Fitur Utama**:
     - **Kesan Pertama (_First Impression_)**: Desain visual premium untuk memukau pengguna dan dosen penguji.

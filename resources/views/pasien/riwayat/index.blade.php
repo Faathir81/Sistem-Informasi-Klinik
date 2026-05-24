@@ -1,127 +1,130 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Riwayat Medis & Resep') }}
-        </h2>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <p class="clinic-kicker">Rekam medis</p>
+                <h1 class="mt-1 text-2xl font-black text-[#14342f]">Riwayat Medis & Resep</h1>
+            </div>
+            <a href="{{ route('pasien.dashboard') }}" class="clinic-btn-secondary">
+                Dashboard
+            </a>
+        </div>
     </x-slot>
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6">
-                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                        <div>
-                            <h3 class="text-lg font-bold text-gray-800">Riwayat Pengobatan</h3>
-                            <p class="text-sm text-gray-500 mt-1">
-                                Data pemeriksaan dan resep yang tercatat atas nama pasien login.
-                            </p>
-                        </div>
-                        <a href="{{ route('pasien.dashboard') }}"
-                           class="inline-flex items-center justify-center text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-4 py-2 rounded-lg transition">
-                            Kembali ke Dashboard
-                        </a>
+    <div class="py-8 sm:py-10">
+        <div class="clinic-section space-y-5">
+            <section class="clinic-card-solid p-6">
+                <div class="grid gap-5 md:grid-cols-[1fr_auto] md:items-center">
+                    <div>
+                        <p class="clinic-kicker">Data pengobatan</p>
+                        <h2 class="mt-2 text-2xl font-black text-[#14342f]">Pemeriksaan dan resep yang tercatat.</h2>
+                        <p class="mt-2 text-sm leading-6 text-[#62756f]">Riwayat hanya menampilkan data pasien yang terhubung dengan akun login saat ini.</p>
                     </div>
+                    @if($pasien)
+                        <div class="rounded-lg bg-[#f3faf6] p-4 text-sm">
+                            <span class="font-bold text-[#62756f]">No. Rekam Medis</span>
+                            <p class="mt-1 font-mono font-black text-[#14342f]">{{ $pasien->no_rekam_medis }}</p>
+                        </div>
+                    @endif
                 </div>
-            </div>
+            </section>
 
             @if (! $pasien)
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-sm text-gray-600">
-                        Akun Anda belum terhubung dengan data pasien. Silakan hubungi admin klinik untuk menghubungkan akun dengan nomor rekam medis.
-                    </div>
+                <div class="clinic-card-solid p-6 text-sm font-semibold leading-6 text-[#62756f]">
+                    Akun Anda belum terhubung dengan data pasien. Silakan hubungi admin klinik untuk menghubungkan akun dengan nomor rekam medis.
                 </div>
             @elseif ($pemeriksaans->isEmpty())
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-6 text-sm text-gray-600">
-                        Belum ada riwayat pemeriksaan dan resep yang tercatat.
+                <div class="clinic-card-solid p-10 text-center">
+                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-lg bg-[#eef8f2] text-[#386258]">
+                        <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l5 5v11a2 2 0 0 1-2 2Z"/>
+                        </svg>
                     </div>
+                    <h2 class="mt-5 text-xl font-black text-[#14342f]">Belum ada riwayat pemeriksaan</h2>
+                    <p class="mt-2 text-sm leading-6 text-[#62756f]">Data akan muncul setelah admin menyelesaikan pemeriksaan medis.</p>
                 </div>
             @else
                 @foreach ($pemeriksaans as $pemeriksaan)
-                    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                        <div class="p-6 space-y-5">
-                            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                    <article class="clinic-card-solid overflow-hidden">
+                        <div class="border-b border-slate-100 p-6">
+                            <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                                 <div>
-                                    <div class="text-sm text-gray-400">
-                                        {{ $pemeriksaan->tgl_pemeriksaan->format('d M Y') }}
-                                    </div>
-                                    <h3 class="text-lg font-bold text-gray-800 mt-1">
-                                        {{ $pemeriksaan->dokter->nama_dokter }}
-                                    </h3>
-                                    <p class="text-sm text-gray-500">{{ $pemeriksaan->dokter->spesialisasi }}</p>
+                                    <p class="text-sm font-bold text-[#62756f]">{{ $pemeriksaan->tgl_pemeriksaan->format('d M Y') }}</p>
+                                    <h2 class="mt-1 text-2xl font-black text-[#14342f]">{{ $pemeriksaan->dokter->nama_dokter }}</h2>
+                                    <p class="mt-1 text-sm font-semibold text-[#62756f]">{{ $pemeriksaan->dokter->spesialisasi }}</p>
                                 </div>
-                                <div class="flex flex-wrap gap-2 text-xs">
-                                    <span class="font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full">
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="clinic-badge-info">
                                         Konsultasi Rp {{ number_format($pemeriksaan->biaya_konsultasi, 0, ',', '.') }}
                                     </span>
-                                    <span class="font-semibold {{ $pemeriksaan->status_bayar === 'Lunas' ? 'text-green-700 bg-green-50' : 'text-amber-700 bg-amber-50' }} px-3 py-1 rounded-full">
+                                    <span class="{{ $pemeriksaan->status_bayar === 'Lunas' ? 'clinic-badge-success' : 'clinic-badge-warning' }}">
                                         {{ str_replace('_', ' ', $pemeriksaan->status_bayar) }}
                                     </span>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                                <div>
-                                    <span class="text-gray-400">Keluhan</span>
-                                    <p class="font-medium text-gray-800 mt-1">{{ $pemeriksaan->keluhan }}</p>
-                                </div>
-                                <div>
-                                    <span class="text-gray-400">Diagnosa</span>
-                                    <p class="font-medium text-gray-800 mt-1">{{ $pemeriksaan->diagnosa }}</p>
-                                </div>
-                                <div>
-                                    <span class="text-gray-400">Tindakan</span>
-                                    <p class="font-medium text-gray-800 mt-1">{{ $pemeriksaan->tindakan ?: '-' }}</p>
-                                </div>
+                        <div class="grid gap-4 p-6 md:grid-cols-3">
+                            <div class="rounded-lg bg-[#f3faf6] p-4">
+                                <span class="text-xs font-bold text-[#62756f]">Keluhan</span>
+                                <p class="mt-2 text-sm font-semibold leading-6 text-[#14342f]">{{ $pemeriksaan->keluhan }}</p>
                             </div>
-
-                            <div class="border-t border-gray-100 pt-5">
-                                <div class="flex items-center justify-between gap-4 mb-3">
-                                    <h4 class="font-semibold text-gray-800">Resep Obat</h4>
-                                    @if ($pemeriksaan->resep)
-                                        <span class="text-xs font-semibold text-orange-700 bg-orange-50 px-3 py-1 rounded-full">
-                                            {{ str_replace('_', ' ', $pemeriksaan->resep->status_ambil) }}
-                                        </span>
-                                    @endif
-                                </div>
-
-                                @if (! $pemeriksaan->resep || $pemeriksaan->resep->details->isEmpty())
-                                    <p class="text-sm text-gray-500">Tidak ada resep obat pada pemeriksaan ini.</p>
-                                @else
-                                    <div class="overflow-x-auto">
-                                        <table class="min-w-full text-sm">
-                                            <thead>
-                                                <tr class="text-left text-gray-400 border-b border-gray-100">
-                                                    <th class="py-2 pr-4 font-medium">Obat</th>
-                                                    <th class="py-2 pr-4 font-medium">Jumlah</th>
-                                                    <th class="py-2 pr-4 font-medium">Aturan Pakai</th>
-                                                    <th class="py-2 pr-4 font-medium text-right">Subtotal</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody class="divide-y divide-gray-100">
-                                                @foreach ($pemeriksaan->resep->details as $detail)
-                                                    <tr>
-                                                        <td class="py-3 pr-4 font-medium text-gray-800">{{ $detail->obat->nama_obat }}</td>
-                                                        <td class="py-3 pr-4 text-gray-600">{{ $detail->jumlah }} {{ $detail->obat->satuan }}</td>
-                                                        <td class="py-3 pr-4 text-gray-600">{{ $detail->aturan_pakai }}</td>
-                                                        <td class="py-3 pr-4 text-gray-800 text-right">Rp {{ number_format($detail->sub_total, 0, ',', '.') }}</td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                            <tfoot>
-                                                <tr>
-                                                    <td colspan="3" class="pt-4 pr-4 text-right font-semibold text-gray-700">Total Obat</td>
-                                                    <td class="pt-4 pr-4 text-right font-bold text-gray-900">
-                                                        Rp {{ number_format($pemeriksaan->resep->total_harga_obat, 0, ',', '.') }}
-                                                    </td>
-                                                </tr>
-                                            </tfoot>
-                                        </table>
-                                    </div>
-                                @endif
+                            <div class="rounded-lg bg-[#f3faf6] p-4">
+                                <span class="text-xs font-bold text-[#62756f]">Diagnosa</span>
+                                <p class="mt-2 text-sm font-semibold leading-6 text-[#14342f]">{{ $pemeriksaan->diagnosa }}</p>
+                            </div>
+                            <div class="rounded-lg bg-[#f3faf6] p-4">
+                                <span class="text-xs font-bold text-[#62756f]">Tindakan</span>
+                                <p class="mt-2 text-sm font-semibold leading-6 text-[#14342f]">{{ $pemeriksaan->tindakan ?: '-' }}</p>
                             </div>
                         </div>
-                    </div>
+
+                        <div class="border-t border-slate-100 p-6">
+                            <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <h3 class="text-lg font-black text-[#14342f]">Resep Obat</h3>
+                                @if ($pemeriksaan->resep)
+                                    <span class="clinic-badge-warning">
+                                        {{ str_replace('_', ' ', $pemeriksaan->resep->status_ambil) }}
+                                    </span>
+                                @endif
+                            </div>
+
+                            @if (! $pemeriksaan->resep || $pemeriksaan->resep->details->isEmpty())
+                                <p class="rounded-lg bg-slate-50 p-4 text-sm font-semibold text-[#62756f]">Tidak ada resep obat pada pemeriksaan ini.</p>
+                            @else
+                                <div class="overflow-x-auto">
+                                    <table class="clinic-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Obat</th>
+                                                <th>Jumlah</th>
+                                                <th>Aturan Pakai</th>
+                                                <th class="text-right">Subtotal</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($pemeriksaan->resep->details as $detail)
+                                                <tr>
+                                                    <td class="font-black text-[#14342f]">{{ $detail->obat->nama_obat }}</td>
+                                                    <td class="font-semibold text-[#62756f]">{{ $detail->jumlah }} {{ $detail->obat->satuan }}</td>
+                                                    <td class="font-semibold text-[#62756f]">{{ $detail->aturan_pakai }}</td>
+                                                    <td class="text-right font-black text-[#14342f]">Rp {{ number_format($detail->sub_total, 0, ',', '.') }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td colspan="3" class="pt-4 text-right font-black text-[#62756f]">Total Obat</td>
+                                                <td class="pt-4 text-right text-lg font-black text-[#14342f]">
+                                                    Rp {{ number_format($pemeriksaan->resep->total_harga_obat, 0, ',', '.') }}
+                                                </td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            @endif
+                        </div>
+                    </article>
                 @endforeach
             @endif
         </div>

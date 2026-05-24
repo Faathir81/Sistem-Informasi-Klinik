@@ -1,115 +1,110 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                📋 Riwayat Antrean Saya
-            </h2>
-            <a href="{{ route('pasien.antrean.create') }}"
-               id="btn-booking-baru"
-               class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <p class="clinic-kicker">Antrean</p>
+                <h1 class="mt-1 text-2xl font-black text-[#14342f]">Riwayat Antrean Saya</h1>
+            </div>
+            <a href="{{ route('pasien.antrean.create') }}" id="btn-booking-baru" class="clinic-btn-primary">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14"/>
                 </svg>
-                Booking Antrean Baru
+                Booking Baru
             </a>
         </div>
     </x-slot>
 
-    <div class="py-10">
-        <div class="max-w-5xl mx-auto sm:px-6 lg:px-8 space-y-4">
-
+    <div class="py-8 sm:py-10">
+        <div class="clinic-section max-w-5xl space-y-4">
             @if(session('success'))
-                <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-lg text-sm">
-                    ✅ {{ session('success') }}
+                <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-700">
+                    {{ session('success') }}
                 </div>
             @endif
 
             @if(session('error'))
-                <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg text-sm">
-                    ❌ {{ session('error') }}
+                <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+                    {{ session('error') }}
                 </div>
             @endif
 
             @forelse($antreans as $antrean)
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                        <div class="flex items-center gap-4">
-                            {{-- Nomor Antrean Badge --}}
-                            <div class="w-16 h-16 rounded-xl bg-emerald-600 text-white flex flex-col items-center justify-center flex-shrink-0 shadow">
-                                <span class="text-xs">No.</span>
-                                <span class="text-2xl font-bold leading-none">{{ $antrean->nomor_antrean }}</span>
+                @php
+                    $statusClass = match($antrean->status) {
+                        'Menunggu' => 'clinic-badge-warning',
+                        'Dipanggil' => 'clinic-badge-info',
+                        'Selesai' => 'clinic-badge-success',
+                        'Batal' => 'clinic-badge-muted',
+                        default => 'clinic-badge-muted',
+                    };
+                    $statusDot = match($antrean->status) {
+                        'Menunggu' => 'bg-amber-500',
+                        'Dipanggil' => 'bg-sky-500',
+                        'Selesai' => 'bg-emerald-500',
+                        'Batal' => 'bg-slate-400',
+                        default => 'bg-slate-400',
+                    };
+                @endphp
+
+                <article class="clinic-card-solid clinic-hover-lift overflow-hidden">
+                    <div class="grid gap-5 p-5 sm:grid-cols-[auto_1fr_auto] sm:items-center">
+                        <div class="flex h-20 w-20 flex-col items-center justify-center rounded-lg bg-[#14342f] text-white shadow-sm">
+                            <span class="text-xs font-bold uppercase tracking-[0.14em] text-white/60">No</span>
+                            <span class="text-3xl font-black leading-none">{{ str_pad($antrean->nomor_antrean, 3, '0', STR_PAD_LEFT) }}</span>
+                        </div>
+
+                        <div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <h2 class="text-lg font-black text-[#14342f]">{{ $antrean->dokter->nama_dokter }}</h2>
+                                <span class="{{ $statusClass }}">
+                                    <span class="h-2 w-2 rounded-full {{ $statusDot }}"></span>
+                                    {{ $antrean->status }}
+                                </span>
                             </div>
-                            <div>
-                                <p class="font-semibold text-gray-800">{{ $antrean->dokter->nama_dokter }}</p>
-                                <p class="text-sm text-gray-500">{{ $antrean->dokter->spesialisasi }}</p>
-                                <p class="text-xs text-gray-400 mt-1">
-                                    📅 {{ $antrean->tanggal_kunjungan->isoFormat('dddd, D MMMM Y') }} &bull;
-                                    🕐 {{ substr($antrean->jadwalDokter->jam_mulai, 0, 5) }} - {{ substr($antrean->jadwalDokter->jam_selesai, 0, 5) }}
-                                </p>
-                                <p class="text-xs text-gray-400 mt-0.5 font-mono">Kode: {{ $antrean->kode_antrean }}</p>
+                            <p class="mt-1 text-sm font-semibold text-[#62756f]">{{ $antrean->dokter->spesialisasi }}</p>
+                            <div class="mt-3 grid gap-2 text-sm text-[#46665f] md:grid-cols-3">
+                                <span class="rounded-md bg-[#f3faf6] px-3 py-2 font-semibold">{{ $antrean->tanggal_kunjungan->isoFormat('dddd, D MMMM Y') }}</span>
+                                <span class="rounded-md bg-[#f3faf6] px-3 py-2 font-semibold">{{ substr($antrean->jadwalDokter->jam_mulai, 0, 5) }} - {{ substr($antrean->jadwalDokter->jam_selesai, 0, 5) }} WIB</span>
+                                <span class="truncate rounded-md bg-[#f3faf6] px-3 py-2 font-mono text-xs font-bold">{{ $antrean->kode_antrean }}</span>
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-3 sm:flex-col sm:items-end">
-                            {{-- Status Badge --}}
-                            @php
-                                $statusColor = match($antrean->status) {
-                                    'Menunggu'  => 'bg-yellow-100 text-yellow-800 border-yellow-300',
-                                    'Dipanggil' => 'bg-blue-100 text-blue-800 border-blue-300',
-                                    'Selesai'   => 'bg-emerald-100 text-emerald-800 border-emerald-300',
-                                    'Batal'     => 'bg-gray-100 text-gray-500 border-gray-300',
-                                    default     => 'bg-gray-100 text-gray-500',
-                                };
-                                $statusIcon = match($antrean->status) {
-                                    'Menunggu'  => '⏳',
-                                    'Dipanggil' => '📢',
-                                    'Selesai'   => '✅',
-                                    'Batal'     => '❌',
-                                    default     => '❓',
-                                };
-                            @endphp
-                            <span class="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 rounded-full border {{ $statusColor }}">
-                                {{ $statusIcon }} {{ $antrean->status }}
-                            </span>
-
-                            <div class="flex gap-2">
-                                @if($antrean->status !== 'Batal')
-                                    <a href="{{ route('pasien.antrean.tiket', $antrean->kode_antrean) }}"
-                                       id="btn-lihat-tiket-{{ $antrean->id }}"
-                                       class="text-xs text-emerald-600 hover:text-emerald-800 font-medium border border-emerald-300 px-3 py-1 rounded-lg hover:bg-emerald-50 transition">
-                                        🎫 Lihat Tiket
-                                    </a>
-                                @endif
-                                @if($antrean->status === 'Menunggu')
-                                    <form action="{{ route('pasien.antrean.batal', $antrean->id) }}" method="POST"
-                                          onsubmit="return confirm('Yakin ingin membatalkan antrean ini?')">
-                                        @csrf @method('PATCH')
-                                        <button type="submit"
-                                                id="btn-batal-{{ $antrean->id }}"
-                                                class="text-xs text-red-500 hover:text-red-700 font-medium border border-red-200 px-3 py-1 rounded-lg hover:bg-red-50 transition">
-                                            Batalkan
-                                        </button>
-                                    </form>
-                                @endif
-                            </div>
+                        <div class="flex flex-wrap gap-2 sm:flex-col sm:items-stretch">
+                            @if($antrean->status !== 'Batal')
+                                <a href="{{ route('pasien.antrean.tiket', $antrean->kode_antrean) }}" id="btn-lihat-tiket-{{ $antrean->id }}" class="clinic-btn-secondary min-h-10 px-4 py-2">
+                                    Tiket QR
+                                </a>
+                            @endif
+                            @if($antrean->status === 'Menunggu')
+                                <form action="{{ route('pasien.antrean.batal', $antrean->id) }}" method="POST" onsubmit="return confirm('Yakin ingin membatalkan antrean ini?')">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" id="btn-batal-{{ $antrean->id }}" class="inline-flex min-h-10 w-full items-center justify-center rounded-md border border-red-200 px-4 py-2 text-sm font-bold text-red-600 transition hover:bg-red-50">
+                                        Batalkan
+                                    </button>
+                                </form>
+                            @endif
                         </div>
                     </div>
-                </div>
+                </article>
             @empty
-                <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="p-12 text-center">
-                        <div class="text-5xl mb-3">🗓️</div>
-                        <h3 class="text-gray-700 font-semibold text-lg">Belum ada riwayat antrean</h3>
-                        <p class="text-gray-400 text-sm mt-1 mb-5">Booking antrean sekarang untuk mendapatkan QR Code digital Anda.</p>
-                        <a href="{{ route('pasien.antrean.create') }}"
-                           class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition">
-                            + Booking Antrean Sekarang
-                        </a>
+                <div class="clinic-card-solid p-10 text-center">
+                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-lg bg-[#eef8f2] text-[#386258]">
+                        <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V4m8 3V4M5 11h14M6 20h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2Z"/>
+                        </svg>
                     </div>
+                    <h2 class="mt-5 text-xl font-black text-[#14342f]">Belum ada antrean</h2>
+                    <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-[#62756f]">Booking antrean untuk mendapatkan nomor kunjungan dan tiket QR Code digital.</p>
+                    <a href="{{ route('pasien.antrean.create') }}" class="clinic-btn-primary mt-6">
+                        Booking Antrean
+                    </a>
                 </div>
             @endforelse
 
-            {{ $antreans->links() }}
+            <div class="pt-2">
+                {{ $antreans->links() }}
+            </div>
         </div>
     </div>
 </x-app-layout>
