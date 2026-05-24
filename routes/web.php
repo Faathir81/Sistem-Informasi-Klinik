@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Pasien\DashboardController as PasienDashboard;
+use App\Http\Controllers\Pasien\AntreanController;
 use Illuminate\Support\Facades\Route;
 
 // ─────────────────────────────────────────────────────────────────────
@@ -26,6 +27,14 @@ Route::get('/dashboard', function () {
 // ─────────────────────────────────────────────────────────────────────
 Route::middleware(['auth', 'is.pasien'])->prefix('pasien')->name('pasien.')->group(function () {
     Route::get('/dashboard', [PasienDashboard::class, 'index'])->name('dashboard');
+
+    // ── Antrean ──────────────────────────────────────────────────────────
+    Route::get('/antrean',                   [AntreanController::class, 'index'])->name('antrean.index');
+    Route::get('/antrean/booking',           [AntreanController::class, 'create'])->name('antrean.create');
+    Route::post('/antrean/booking',          [AntreanController::class, 'store'])->name('antrean.store');
+    Route::get('/antrean/jadwal',            [AntreanController::class, 'getJadwal'])->name('antrean.jadwal');
+    Route::get('/antrean/tiket/{kode}',      [AntreanController::class, 'tiket'])->name('antrean.tiket');
+    Route::patch('/antrean/{antrean}/batal', [AntreanController::class, 'batal'])->name('antrean.batal');
 });
 
 // ─────────────────────────────────────────────────────────────────────

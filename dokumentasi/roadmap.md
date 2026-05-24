@@ -1,4 +1,4 @@
-# Peta Jalan Pengembangan (Development Roadmap)
+﻿# Peta Jalan Pengembangan (Development Roadmap)
 ## Sistem Informasi Klinik Ar-Ridlo (Laravel 12 + Filament v4 + MySQL 8.0+)
 
 Dokumen ini memetakan tahapan pengembangan sistem informasi klinik secara runut menggunakan alur kerja berbasis cabang Git (**Git Branching Strategy**). Roadmap ini disesuaikan untuk menggunakan pendekatan **Hibrida (Filament untuk Admin + Custom Blade untuk Pasien)** pada framework **Laravel 12** + **Filament v4** dan **MySQL 8.0+**.
@@ -28,7 +28,7 @@ gantt
 
 ---
 
-### 📌 Tahap 1: Inisialisasi Proyek & Sistem Autentikasi ✅
+### ðŸ“Œ Tahap 1: Inisialisasi Proyek & Sistem Autentikasi âœ…
 * **Nama Cabang Git (Branch)**: `feature/init-auth`
 * **Checklist Aktivitas**:
   - [x] 1. Menginisialisasi proyek **Laravel 12** menggunakan Composer.
@@ -41,14 +41,14 @@ gantt
 
 * **Fitur Utama**:
   * Pendaftaran akun pasien baru secara mandiri (via Breeze).
-  * Form Login pasien dengan redirect otomatis berdasarkan role (`admin` → `/admin`, `pasien` → `/pasien/dashboard`).
+  * Form Login pasien dengan redirect otomatis berdasarkan role (`admin` â†’ `/admin`, `pasien` â†’ `/pasien/dashboard`).
   * Proteksi halaman admin (via `FilamentUser::canAccessPanel`) dan dashboard pasien (via middleware `is.pasien`).
 * **Tabel Database**:
   * `users`
 
 ---
 
-### 📌 Tahap 2: Pengelolaan Data Master (Filament Resources) ✅
+### ðŸ“Œ Tahap 2: Pengelolaan Data Master (Filament Resources) âœ…
 * **Nama Cabang Git (Branch)**: `feature/master-data`
 * **Checklist Aktivitas**:
   - [x] 1. Membuat **Filament Resource** untuk kelola data Pasien (`PasienResource`).
@@ -70,24 +70,24 @@ gantt
 
 ---
 
-### 📌 Tahap 3: Pemesanan Antrean & Generator QR Code
+### ðŸ“Œ Tahap 3: Pemesanan Antrean & Generator QR Code âœ…
 * **Nama Cabang Git (Branch)**: `feature/booking-queue`
 * **Checklist Aktivitas**:
-  - [ ] 1. Membangun sistem booking nomor urut antrean harian secara otomatis (sisi Pasien - Custom Blade).
-  - [ ] 2. Mengintegrasikan package QR Code generator pada Laravel untuk merender data antrean menjadi gambar QR Code dinamis (sisi Pasien - Custom Blade).
-  - [ ] 3. Membuat antarmuka pemantauan antrean real-time untuk admin di Filament.
-  - [ ] 4. Membangun fitur pemanggilan antrean (panggil, lewatkan, selesaikan antrean) menggunakan Filament Custom Page / Custom Actions.
+  - [x] 1. Membangun sistem booking nomor urut antrean harian secara otomatis (sisi Pasien - Custom Blade).
+  - [x] 2. Mengintegrasikan package QR Code generator pada Laravel untuk merender data antrean menjadi gambar QR Code dinamis (sisi Pasien - Custom Blade).
+  - [x] 3. Membuat antarmuka pemantauan antrean real-time untuk admin di Filament.
+  - [x] 4. Membangun fitur pemanggilan antrean (panggil, lewatkan, selesaikan antrean) menggunakan Filament Custom Page / Custom Actions.
 
 * **Fitur Utama**:
   * **Pemesanan Antrean (Pasien)**: Pasien memilih tanggal kunjungan dan dokter di Custom Blade, sistem mengalokasikan nomor urut berikutnya secara otomatis.
   * **QR Code Antrean**: Pasien mendapatkan tanda bukti antrean digital berupa QR Code unik (`kode_antrean`) yang dapat diunduh di Custom Blade.
-  * **Panel Kontrol Antrean (Admin)**: Admin dapat memanggil antrean yang aktif, memperbarui status antrean (`Menunggu` ➔ `Dipanggil` ➔ `Selesai`/`Batal`) di Filament.
+  * **Panel Kontrol Antrean (Admin)**: Admin dapat memanggil antrean yang aktif, memperbarui status antrean (`Menunggu` âž” `Dipanggil` âž” `Selesai`/`Batal`) di Filament.
 * **Tabel Database**:
   * `antreans`
 
 ---
 
-### 📌 Tahap 4: Pelayanan Medis & Manajemen Apotek (Filament & Custom Blade)
+### ðŸ“Œ Tahap 4: Pelayanan Medis & Manajemen Apotek (Filament & Custom Blade)
 * **Nama Cabang Git (Branch)**: `feature/medical-apothecary`
 * **Checklist Aktivitas**:
   - [ ] 1. Membuat form input diagnosa rekam medis dan peracikan resep obat di Filament (`PemeriksaanResource` & `ResepResource`).
@@ -108,7 +108,7 @@ gantt
 
 ---
 
-### 📌 Tahap 5: Keuangan, Integrasi QRIS Midtrans & Penggajian (Filament & Custom Blade)
+### ðŸ“Œ Tahap 5: Keuangan, Integrasi QRIS Midtrans & Penggajian (Filament & Custom Blade)
 * **Nama Cabang Git (Branch)**: `feature/financial-qris`
 * **Checklist Aktivitas**:
   - [ ] 1. Mengintegrasikan **Midtrans Snap SDK** ke dalam form pembayaran pasien di portal Custom Blade.
@@ -119,7 +119,7 @@ gantt
   - [ ] 6. Membuat slip gaji format PDF yang bisa dicetak untuk pegawai & dokter.
 
 * **Fitur Utama**:
-  * **Pembayaran QRIS Mandiri (Pasien)**: Pasien mengetik nominal ➔ Sistem memanggil QRIS Midtrans ➔ Pembayaran divalidasi otomatis di Custom Blade.
+  * **Pembayaran QRIS Mandiri (Pasien)**: Pasien mengetik nominal âž” Sistem memanggil QRIS Midtrans âž” Pembayaran divalidasi otomatis di Custom Blade.
   * **Modul Penggajian (Admin)**: Perhitungan gaji bulanan dokter & pegawai beserta fitur cetak Slip Gaji format PDF di Filament.
   * **Monitoring Transaksi (Admin)**: Daftar rekonsiliasi seluruh invoice masuk (pembayaran dari pasien) dan pengeluaran umum klinik di Filament.
 * **Tabel Database**:
@@ -129,7 +129,7 @@ gantt
 
 ---
 
-### 📌 Tahap 6: Laporan Ekspor PDF & Visualisasi Dashboard
+### ðŸ“Œ Tahap 6: Laporan Ekspor PDF & Visualisasi Dashboard
 * **Nama Cabang Git (Branch)**: `feature/reporting-analytics`
 * **Checklist Aktivitas**:
   - [ ] 1. Mengintegrasikan package PDF (`Barryvdh-Dompdf`) dengan templat desain Kop Surat Resmi Klinik Ar-Ridlo.
@@ -145,3 +145,22 @@ gantt
     3. Laporan Mutasi & Nilai Stok Obat.
 * **Tabel Database**:
   * *Tidak ada tabel baru (tahap ini melakukan ekstraksi data/reporting dari seluruh tabel sebelumnya).*
+
+---
+
+### =ØÌÜ Tahap 7: UI/UX Redesign & Finalisasi Frontend (Landing Page, Auth, Portal)
+* **Nama Cabang Git (Branch)**: `feature/uiux-frontend`
+* **Checklist Aktivitas**:
+  - [ ] 1. Menerapkan desain premium (tema Hijau Sage & Oranye) pada Landing Page utama.
+  - [ ] 2. Merombak halaman Login & Register (Breeze) menjadi tampilan modern sesuai identitas klinik.
+  - [ ] 3. Memoles UI/UX portal dashboard pasien agar lebih responsif, elegan, dan *user-friendly*.
+  - [ ] 4. Menambahkan animasi mikro (*micro-animations*) dan efek transisi (*hover states*) pada elemen interaktif.
+  - [ ] 5. Memastikan semua antarmuka (termasuk Filament panel) rapi secara estetika sebelum *deployment* final.
+
+* **Fitur Utama**:
+  * **Kesan Pertama (*First Impression*)**: Desain visual premium untuk memukau pengguna dan dosen penguji.
+  * **Konsistensi Desain**: Semua halaman (*public*, *patient portal*, *admin*) menggunakan satu bahasa desain yang sama.
+* **Tabel Database**:
+  * *Hanya pembaruan visual, tidak ada perubahan struktur database.*
+
+

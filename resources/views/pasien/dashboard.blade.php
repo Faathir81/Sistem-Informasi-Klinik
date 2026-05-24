@@ -38,7 +38,10 @@
                             <h4 class="font-semibold text-gray-800">Booking Antrean</h4>
                         </div>
                         <p class="text-sm text-gray-500 mb-4">Ambil nomor antrean dan dapatkan QR Code digital Anda.</p>
-                        <span class="text-xs font-medium text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">🔜 Segera Hadir</span>
+                        <a href="{{ route('pasien.antrean.create') }}" id="btn-booking-antrean-card"
+                           class="inline-flex items-center gap-1 text-xs font-medium text-white bg-emerald-600 hover:bg-emerald-700 px-4 py-1.5 rounded-full transition">
+                            📅 Booking Sekarang
+                        </a>
                     </div>
                 </div>
 
@@ -54,7 +57,10 @@
                             <h4 class="font-semibold text-gray-800">Status Antrean</h4>
                         </div>
                         <p class="text-sm text-gray-500 mb-4">Pantau posisi antrean dan status panggilan dokter Anda.</p>
-                        <span class="text-xs font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full">🔜 Segera Hadir</span>
+                        <a href="{{ route('pasien.antrean.index') }}" id="btn-status-antrean-card"
+                           class="inline-flex items-center gap-1 text-xs font-medium text-white bg-blue-500 hover:bg-blue-600 px-4 py-1.5 rounded-full transition">
+                            📋 Lihat Antrean Saya
+                        </a>
                     </div>
                 </div>
 
