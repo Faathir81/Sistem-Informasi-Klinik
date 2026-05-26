@@ -30,6 +30,30 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect(route('pasien.dashboard', absolute: false));
     }
 
+    public function test_admins_can_authenticate_using_the_same_login_screen(): void
+    {
+        $admin = User::factory()->create([
+            'role' => 'admin',
+        ]);
+
+        $response = $this->post('/login', [
+            'email' => $admin->email,
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticatedAs($admin);
+        $response->assertRedirect('/admin');
+    }
+
+    public function test_admin_panel_uses_the_shared_login_url(): void
+    {
+        $this->get('/admin')
+            ->assertRedirect('/login');
+
+        $this->get('/admin/login')
+            ->assertRedirect('/login');
+    }
+
     public function test_users_can_not_authenticate_with_invalid_password(): void
     {
         $user = User::factory()->create();

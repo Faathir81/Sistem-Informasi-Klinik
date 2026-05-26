@@ -299,7 +299,7 @@
                     <p>&copy; {{ date('Y') }} Klinik Ar-Ridlo. Sistem informasi klinik.</p>
                     <div class="flex gap-4">
                         <a href="{{ route('login') }}" class="hover:text-[#14342f]">Login</a>
-                        <a href="/admin" class="hover:text-[#14342f]">Admin</a>
+                        <a href="{{ route('login') }}" class="hover:text-[#14342f]">Admin</a>
                     </div>
                 </div>
             </footer>

@@ -1,8 +1,8 @@
 <x-guest-layout>
     <div class="mb-6">
         <p class="clinic-kicker">Masuk portal</p>
-        <h1 class="mt-2 text-3xl font-black text-[#14342f]">Selamat datang kembali.</h1>
-        <p class="mt-2 text-sm leading-6 text-[#62756f]">Akses antrean, riwayat medis, dan pembayaran QRIS Anda.</p>
+        <h1 class="mt-2 text-3xl font-black text-[#14342f]">Login Klinik Ar-Ridlo</h1>
+        <p class="mt-2 text-sm leading-6 text-[#62756f]">Masuk sebagai pasien atau admin. Sistem akan membuka portal sesuai role akun.</p>
     </div>
 
     <x-auth-session-status class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-700" :status="session('status')" />
@@ -39,7 +39,7 @@
         </button>
 
         <div class="border-t border-slate-100 pt-5 text-center text-sm font-semibold text-[#62756f]">
-            Belum punya akun?
+            Akun baru hanya untuk pasien.
             <a href="{{ route('register') }}" class="font-black text-[#ef7b2d] hover:text-[#c75f1d]">Daftar pasien</a>
         </div>
     </form>

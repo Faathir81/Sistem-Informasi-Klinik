@@ -70,6 +70,8 @@ Route::get('/antrean/live-preview', function () use ($landingQueuePreview, $mask
     ]);
 })->name('antrean.live-preview');
 
+Route::redirect('/admin/login', '/login')->name('admin.login.redirect');
+
 // ─────────────────────────────────────────────────────────────────────
 // DEFAULT DASHBOARD — redirect berdasarkan role setelah login
 // ─────────────────────────────────────────────────────────────────────

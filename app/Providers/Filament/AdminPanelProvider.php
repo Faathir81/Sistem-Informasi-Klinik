@@ -6,7 +6,7 @@ use App\Filament\Widgets\ApotekAlertWidget;
 use App\Filament\Widgets\DailyVisitsChart;
 use App\Filament\Widgets\MonthlyRevenueChart;
 use App\Filament\Widgets\TopMedicineChart;
-use Filament\Http\Middleware\Authenticate;
+use App\Http\Middleware\AuthenticateAdminPanel;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -32,7 +32,6 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->brandName('Klinik Ar-Ridlo')
-            ->login()
             ->colors([
                 'primary' => Color::hex('#7ba891'),
                 'warning' => Color::hex('#ef7b2d'),
@@ -64,7 +63,7 @@ class AdminPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->authMiddleware([
-                Authenticate::class,
+                AuthenticateAdminPanel::class,
             ]);
     }
 }
