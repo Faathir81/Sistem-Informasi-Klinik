@@ -15,6 +15,7 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         $pasien = $user->pasien;
+        $pengajuanPasien = $user->latestPengajuanPasien;
 
         $antreanAktif = null;
         $pemeriksaanTerakhir = null;
@@ -47,6 +48,7 @@ class DashboardController extends Controller
         return view('pasien.dashboard', compact(
             'user',
             'pasien',
+            'pengajuanPasien',
             'antreanAktif',
             'pemeriksaanTerakhir',
             'jumlahAntrean',

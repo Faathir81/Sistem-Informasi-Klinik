@@ -23,6 +23,54 @@
                 </div>
             @endif
 
+            @if(! $pasien)
+                @php
+                    $pengajuanStatusClass = match($pengajuanPasien?->status) {
+                        'Menunggu' => 'clinic-badge-warning',
+                        'Ditolak' => 'inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold text-red-700',
+                        default => 'clinic-badge-muted',
+                    };
+                @endphp
+                <section class="clinic-card-solid overflow-hidden border-l-4 {{ $pengajuanPasien?->status === 'Ditolak' ? 'border-l-red-400' : 'border-l-[#ef7b2d]' }}">
+                    <div class="grid gap-5 p-6 md:grid-cols-[1fr_auto] md:items-center">
+                        <div>
+                            <div class="flex flex-wrap items-center gap-3">
+                                <p class="clinic-kicker">Verifikasi data pasien</p>
+                                <span class="{{ $pengajuanStatusClass }}">
+                                    {{ $pengajuanPasien?->status ?? 'Belum Mengajukan' }}
+                                </span>
+                            </div>
+                            @if($pengajuanPasien?->status === 'Menunggu')
+                                <h2 class="mt-2 text-2xl font-black text-[#14342f]">Pengajuan Anda sedang diverifikasi admin.</h2>
+                                <p class="mt-2 max-w-3xl text-sm leading-6 text-[#62756f]">
+                                    Setelah disetujui, sistem akan otomatis membuat nomor rekam medis dan fitur booking antrean akan aktif.
+                                </p>
+                            @elseif($pengajuanPasien?->status === 'Ditolak')
+                                <h2 class="mt-2 text-2xl font-black text-[#14342f]">Pengajuan perlu diperbaiki.</h2>
+                                <p class="mt-2 max-w-3xl text-sm leading-6 text-[#62756f]">
+                                    Alasan admin: <span class="font-bold text-red-700">{{ $pengajuanPasien->alasan_penolakan ?: 'Belum ada alasan tertulis.' }}</span>
+                                </p>
+                            @else
+                                <h2 class="mt-2 text-2xl font-black text-[#14342f]">Lengkapi data pasien untuk mengaktifkan fitur klinik.</h2>
+                                <p class="mt-2 max-w-3xl text-sm leading-6 text-[#62756f]">
+                                    Akun Anda sudah dibuat, tetapi belum terhubung dengan nomor rekam medis. Kirim pengajuan agar admin bisa memverifikasi data Anda.
+                                </p>
+                            @endif
+                        </div>
+
+                        @if($pengajuanPasien?->status !== 'Menunggu')
+                            <a href="{{ route('pasien.pengajuan-pasien.create') }}" class="clinic-btn-primary">
+                                {{ $pengajuanPasien?->status === 'Ditolak' ? 'Ajukan Ulang' : 'Ajukan Data Pasien' }}
+                            </a>
+                        @else
+                            <span class="rounded-lg bg-[#f3faf6] px-4 py-3 text-sm font-bold text-[#62756f]">
+                                Dikirim {{ $pengajuanPasien->created_at->format('d M Y H:i') }}
+                            </span>
+                        @endif
+                    </div>
+                </section>
+            @endif
+
             <section class="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
                 <div class="clinic-card overflow-hidden">
                     <div class="grid min-h-[360px] gap-6 p-6 sm:p-8 lg:grid-cols-[1fr_0.72fr]">
@@ -41,17 +89,17 @@
                             </div>
 
                             <div class="flex flex-col gap-3 sm:flex-row">
-                                <a href="{{ route('pasien.antrean.create') }}" id="btn-booking-antrean-card" class="clinic-btn-primary">
+                                <a href="{{ $pasien ? route('pasien.antrean.create') : route('pasien.pengajuan-pasien.create') }}" id="btn-booking-antrean-card" class="clinic-btn-primary">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V4m8 3V4M5 11h14M6 20h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2Z"/>
                                     </svg>
-                                    Booking Antrean
+                                    {{ $pasien ? 'Booking Antrean' : 'Ajukan Data Pasien' }}
                                 </a>
-                                <a href="{{ route('pasien.pembayaran.index') }}" id="btn-pembayaran-qris" class="clinic-btn-secondary">
+                                <a href="{{ $pasien ? route('pasien.pembayaran.index') : route('pasien.pengajuan-pasien.create') }}" id="btn-pembayaran-qris" class="clinic-btn-secondary">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M6 11h12M7 15h5m-6 4h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2Z"/>
                                     </svg>
-                                    Pembayaran
+                                    {{ $pasien ? 'Pembayaran' : 'Status Verifikasi' }}
                                 </a>
                             </div>
                         </div>
@@ -156,15 +204,15 @@
 
             <section class="grid gap-4 md:grid-cols-3">
                 @foreach ([
-                    ['title' => 'Status Antrean', 'body' => 'Pantau semua riwayat antrean dan buka tiket QR.', 'route' => route('pasien.antrean.index'), 'id' => 'btn-status-antrean-card'],
-                    ['title' => 'Riwayat Medis', 'body' => 'Lihat diagnosa, tindakan, dan resep obat Anda.', 'route' => route('pasien.riwayat.index'), 'id' => 'btn-riwayat-medis-card'],
-                    ['title' => 'Pembayaran QRIS', 'body' => 'Buat transaksi pembayaran melalui Midtrans.', 'route' => route('pasien.pembayaran.index'), 'id' => 'btn-pembayaran-card'],
+                    ['title' => 'Status Antrean', 'body' => 'Pantau semua riwayat antrean dan buka tiket QR.', 'route' => $pasien ? route('pasien.antrean.index') : route('pasien.pengajuan-pasien.create'), 'id' => 'btn-status-antrean-card'],
+                    ['title' => 'Riwayat Medis', 'body' => 'Lihat diagnosa, tindakan, dan resep obat Anda.', 'route' => $pasien ? route('pasien.riwayat.index') : route('pasien.pengajuan-pasien.create'), 'id' => 'btn-riwayat-medis-card'],
+                    ['title' => 'Pembayaran QRIS', 'body' => 'Buat transaksi pembayaran melalui Midtrans.', 'route' => $pasien ? route('pasien.pembayaran.index') : route('pasien.pengajuan-pasien.create'), 'id' => 'btn-pembayaran-card'],
                 ] as $action)
                     <a href="{{ $action['route'] }}" id="{{ $action['id'] }}" class="clinic-card-solid clinic-hover-lift block p-6">
                         <h3 class="text-lg font-black text-[#14342f]">{{ $action['title'] }}</h3>
                         <p class="mt-2 min-h-12 text-sm leading-6 text-[#62756f]">{{ $action['body'] }}</p>
                         <span class="mt-5 inline-flex items-center gap-2 text-sm font-black text-[#ef7b2d]">
-                            Buka
+                            {{ $pasien ? 'Buka' : 'Lengkapi Data' }}
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7 7 7-7 7"/>
                             </svg>
@@ -187,8 +235,8 @@
                             <p class="mt-1 text-sm leading-6 text-[#62756f]">Riwayat medis akan muncul setelah admin menyelesaikan pemeriksaan.</p>
                         @endif
                     </div>
-                    <a href="{{ route('pasien.riwayat.index') }}" class="clinic-btn-secondary">
-                        Lihat Riwayat
+                    <a href="{{ $pasien ? route('pasien.riwayat.index') : route('pasien.pengajuan-pasien.create') }}" class="clinic-btn-secondary">
+                        {{ $pasien ? 'Lihat Riwayat' : 'Lengkapi Data' }}
                     </a>
                 </div>
             </section>

@@ -173,31 +173,58 @@
                                 </div>
                             </div>
 
+                            @php
+                                $previewNumber = $previewAntrean ? str_pad((string) $previewAntrean->nomor_antrean, 3, '0', STR_PAD_LEFT) : '--';
+                                $previewStatus = $previewAntrean?->status ?? 'Belum Ada';
+                                $previewDoctor = $previewAntrean?->dokter?->nama_dokter ?? 'Belum ada antrean aktif';
+                                $previewSchedule = $previewAntrean?->jadwalDokter
+                                    ? substr($previewAntrean->jadwalDokter->jam_mulai, 0, 5).' - '.substr($previewAntrean->jadwalDokter->jam_selesai, 0, 5).' WIB'
+                                    : 'Booking antrean untuk hari ini';
+                                $previewCode = $previewAntrean ? $maskQueueCode($previewAntrean->kode_antrean) : 'Belum tersedia';
+                                $previewBadgeClass = match ($previewStatus) {
+                                    'Dipanggil' => 'clinic-badge-info',
+                                    'Menunggu' => 'clinic-badge-success',
+                                    default => 'clinic-badge-muted',
+                                };
+                                $previewDotClass = match ($previewStatus) {
+                                    'Dipanggil' => 'bg-sky-500',
+                                    'Menunggu' => 'bg-emerald-500',
+                                    default => 'bg-slate-400',
+                                };
+                            @endphp
+
                             <div class="clinic-card-solid overflow-hidden">
                                 <div class="border-b border-slate-100 bg-white p-5">
-                                    <p class="clinic-kicker">Preview dashboard</p>
-                                    <h3 class="mt-2 text-2xl font-black">Kartu antrean pasien</h3>
+                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                        <div>
+                                            <p class="clinic-kicker">Live antrean</p>
+                                            <h3 class="mt-2 text-2xl font-black">Monitor antrean hari ini</h3>
+                                        </div>
+                                        <span class="rounded-md bg-[#f3faf6] px-3 py-1 text-xs font-bold text-[#62756f]">
+                                            Update <span id="queue-preview-updated">{{ now()->format('H:i:s') }}</span>
+                                        </span>
+                                    </div>
                                 </div>
                                 <div class="p-5">
                                     <div class="rounded-lg border border-[#d6e7dd] bg-[#f7fbf7] p-5">
                                         <div class="flex items-start justify-between gap-4">
                                             <div>
                                                 <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#62756f]">Nomor antrean</p>
-                                                <p class="mt-2 text-6xl font-black text-[#14342f]">012</p>
+                                                <p id="queue-preview-number" class="mt-2 text-6xl font-black text-[#14342f]">{{ $previewNumber }}</p>
                                             </div>
-                                            <span class="clinic-badge-success">
-                                                <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
-                                                Menunggu
+                                            <span id="queue-preview-badge" class="{{ $previewBadgeClass }}">
+                                                <span id="queue-preview-dot" class="h-2 w-2 rounded-full {{ $previewDotClass }}"></span>
+                                                <span id="queue-preview-status">{{ $previewStatus }}</span>
                                             </span>
                                         </div>
                                         <div class="mt-5 grid gap-3 text-sm sm:grid-cols-2">
                                             <div class="rounded-lg bg-white p-3">
                                                 <span class="text-xs font-bold text-[#62756f]">Dokter</span>
-                                                <p class="mt-1 font-black">dr. Hana Putri</p>
+                                                <p id="queue-preview-doctor" class="mt-1 font-black">{{ $previewDoctor }}</p>
                                             </div>
                                             <div class="rounded-lg bg-white p-3">
                                                 <span class="text-xs font-bold text-[#62756f]">Jadwal</span>
-                                                <p class="mt-1 font-black">08:00 - 11:00 WIB</p>
+                                                <p id="queue-preview-schedule" class="mt-1 font-black">{{ $previewSchedule }}</p>
                                             </div>
                                         </div>
                                         <div class="mt-4 flex items-center justify-between rounded-lg bg-white p-4">
@@ -208,7 +235,7 @@
                                             </div>
                                             <div class="text-right">
                                                 <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#62756f]">Kode</p>
-                                                <p class="mt-1 font-mono text-sm font-black">20260524-A1B2C3</p>
+                                                <p id="queue-preview-code" class="mt-1 font-mono text-sm font-black">{{ $previewCode }}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -277,5 +304,65 @@
                 </div>
             </footer>
         </div>
+
+        <script>
+            const queuePreviewUrl = @json(route('antrean.live-preview'));
+            const queuePreviewClasses = {
+                badge: {
+                    Dipanggil: 'clinic-badge-info',
+                    Menunggu: 'clinic-badge-success',
+                    default: 'clinic-badge-muted',
+                },
+                dot: {
+                    Dipanggil: 'bg-sky-500',
+                    Menunggu: 'bg-emerald-500',
+                    default: 'bg-slate-400',
+                },
+            };
+
+            function setQueuePreviewClass(element, className) {
+                if (!element) {
+                    return;
+                }
+
+                element.className = className;
+            }
+
+            async function refreshQueuePreview() {
+                try {
+                    const response = await fetch(queuePreviewUrl, {
+                        headers: {
+                            Accept: 'application/json',
+                        },
+                    });
+
+                    if (!response.ok) {
+                        return;
+                    }
+
+                    const data = await response.json();
+                    const status = data.status || 'Belum Ada';
+                    const badgeClass = queuePreviewClasses.badge[status] || queuePreviewClasses.badge.default;
+                    const dotClass = queuePreviewClasses.dot[status] || queuePreviewClasses.dot.default;
+
+                    document.getElementById('queue-preview-number').textContent = data.number || '--';
+                    document.getElementById('queue-preview-status').textContent = status;
+                    document.getElementById('queue-preview-doctor').textContent = data.doctor || 'Belum ada antrean aktif';
+                    document.getElementById('queue-preview-schedule').textContent = data.schedule || 'Booking antrean untuk hari ini';
+                    document.getElementById('queue-preview-code').textContent = data.code || 'Belum tersedia';
+                    document.getElementById('queue-preview-updated').textContent = data.updated_at || '-';
+
+                    setQueuePreviewClass(document.getElementById('queue-preview-badge'), badgeClass);
+                    setQueuePreviewClass(document.getElementById('queue-preview-dot'), `h-2 w-2 rounded-full ${dotClass}`);
+                } catch (error) {
+                    return;
+                }
+            }
+
+            window.addEventListener('load', () => {
+                refreshQueuePreview();
+                window.setInterval(refreshQueuePreview, 20000);
+            });
+        </script>
     </body>
 </html>

@@ -6,15 +6,69 @@ use App\Http\Controllers\Midtrans\WebhookController;
 use App\Http\Controllers\Pasien\AntreanController;
 use App\Http\Controllers\Pasien\DashboardController as PasienDashboard;
 use App\Http\Controllers\Pasien\PembayaranController;
+use App\Http\Controllers\Pasien\PengajuanPasienController;
 use App\Http\Controllers\ProfileController;
+use App\Models\Antrean;
 use Illuminate\Support\Facades\Route;
+
+$landingQueuePreview = static function (): ?Antrean {
+    return Antrean::query()
+        ->with(['dokter', 'jadwalDokter'])
+        ->whereDate('tanggal_kunjungan', today())
+        ->whereIn('status', ['Dipanggil', 'Menunggu'])
+        ->orderByRaw("CASE WHEN status = 'Dipanggil' THEN 0 WHEN status = 'Menunggu' THEN 1 ELSE 2 END")
+        ->orderBy('nomor_antrean')
+        ->first();
+};
+
+$maskQueueCode = static function (?string $code): string {
+    if (! $code) {
+        return 'Belum tersedia';
+    }
+
+    $prefix = substr($code, 0, 9);
+    $suffix = substr($code, -2);
+
+    return $prefix.'****'.$suffix;
+};
 
 // ─────────────────────────────────────────────────────────────────────
 // Landing Page
 // ─────────────────────────────────────────────────────────────────────
-Route::get('/', function () {
-    return view('welcome');
+Route::get('/', function () use ($landingQueuePreview, $maskQueueCode) {
+    return view('welcome', [
+        'previewAntrean' => $landingQueuePreview(),
+        'maskQueueCode' => $maskQueueCode,
+    ]);
 })->name('home');
+
+Route::get('/antrean/live-preview', function () use ($landingQueuePreview, $maskQueueCode) {
+    $antrean = $landingQueuePreview();
+
+    if (! $antrean) {
+        return response()->json([
+            'active' => false,
+            'number' => '--',
+            'status' => 'Belum Ada',
+            'doctor' => 'Belum ada antrean aktif',
+            'schedule' => 'Booking antrean untuk hari ini',
+            'code' => 'Belum tersedia',
+            'updated_at' => now()->format('H:i:s'),
+        ]);
+    }
+
+    return response()->json([
+        'active' => true,
+        'number' => str_pad((string) $antrean->nomor_antrean, 3, '0', STR_PAD_LEFT),
+        'status' => $antrean->status,
+        'doctor' => $antrean->dokter?->nama_dokter ?? 'Dokter belum tersedia',
+        'schedule' => $antrean->jadwalDokter
+            ? substr($antrean->jadwalDokter->jam_mulai, 0, 5).' - '.substr($antrean->jadwalDokter->jam_selesai, 0, 5).' WIB'
+            : 'Jadwal belum tersedia',
+        'code' => $maskQueueCode($antrean->kode_antrean),
+        'updated_at' => now()->format('H:i:s'),
+    ]);
+})->name('antrean.live-preview');
 
 // ─────────────────────────────────────────────────────────────────────
 // DEFAULT DASHBOARD — redirect berdasarkan role setelah login
@@ -36,6 +90,8 @@ Route::middleware(['auth', 'is.pasien'])->prefix('pasien')->name('pasien.')->gro
     Route::get('/pembayaran', [PembayaranController::class, 'index'])->name('pembayaran.index');
     Route::post('/pembayaran/{pemeriksaan}', [PembayaranController::class, 'store'])->name('pembayaran.store');
     Route::get('/pembayaran/transaksi/{transaksi}', [PembayaranController::class, 'show'])->name('pembayaran.show');
+    Route::get('/pengajuan-pasien', [PengajuanPasienController::class, 'create'])->name('pengajuan-pasien.create');
+    Route::post('/pengajuan-pasien', [PengajuanPasienController::class, 'store'])->name('pengajuan-pasien.store');
 
     // ── Antrean ──────────────────────────────────────────────────────────
     Route::get('/antrean', [AntreanController::class, 'index'])->name('antrean.index');

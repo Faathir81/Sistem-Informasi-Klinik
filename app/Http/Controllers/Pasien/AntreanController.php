@@ -22,7 +22,7 @@ class AntreanController extends Controller
 
         if (!$pasien) {
             return redirect()->route('pasien.dashboard')
-                ->with('error', 'Data pasien Anda belum terdaftar. Hubungi petugas klinik.');
+                ->with('error', 'Data pasien Anda belum aktif. Ajukan data pasien terlebih dahulu agar admin dapat membuat nomor rekam medis.');
         }
 
         // Cek jika pasien sudah punya antrean aktif hari ini
@@ -139,7 +139,7 @@ class AntreanController extends Controller
 
         if (!$pasien) {
             return redirect()->route('pasien.dashboard')
-                ->with('error', 'Data pasien Anda belum terdaftar.');
+                ->with('error', 'Data pasien Anda belum aktif. Ajukan data pasien terlebih dahulu agar admin dapat membuat nomor rekam medis.');
         }
 
         $antreans = Antrean::with(['dokter', 'jadwalDokter'])
