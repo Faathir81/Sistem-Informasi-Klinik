@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Pasien;
 
+use App\Enums\AntreanStatus;
+use App\Enums\PaymentStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Antrean;
 use App\Models\Pemeriksaan;
@@ -15,7 +17,7 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         $pasien = $user->pasien;
-        $pengajuanPasien = $user->latestPengajuanPasien;
+        $pengajuanPasien = $user->latestPengajuanPasien?->load('transaksi');
 
         $antreanAktif = null;
         $pemeriksaanTerakhir = null;
@@ -27,7 +29,7 @@ class DashboardController extends Controller
             $antreanAktif = Antrean::query()
                 ->with(['dokter', 'jadwalDokter'])
                 ->where('pasien_id', $pasien->id)
-                ->whereIn('status', ['Menunggu', 'Dipanggil'])
+                ->whereIn('status', AntreanStatus::activeValues())
                 ->orderBy('tanggal_kunjungan')
                 ->orderBy('nomor_antrean')
                 ->first();
@@ -41,7 +43,7 @@ class DashboardController extends Controller
             $jumlahAntrean = Antrean::where('pasien_id', $pasien->id)->count();
             $jumlahRiwayat = Pemeriksaan::where('pasien_id', $pasien->id)->count();
             $tagihanBelumLunas = Pemeriksaan::where('pasien_id', $pasien->id)
-                ->where('status_bayar', '!=', 'Lunas')
+                ->where('status_bayar', '!=', PaymentStatus::Lunas->value)
                 ->count();
         }
 

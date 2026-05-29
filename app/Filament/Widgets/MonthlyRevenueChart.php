@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\TransaksiStatus;
 use App\Models\Transaksi;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Carbon;
@@ -19,7 +20,7 @@ class MonthlyRevenueChart extends ChartWidget
             ->map(fn (int $offset): Carbon => now()->startOfMonth()->subMonths(11 - $offset));
 
         $transaksis = Transaksi::query()
-            ->where('status', 'SETTLEMENT')
+            ->where('status', TransaksiStatus::Settlement->value)
             ->whereBetween('tgl_bayar', [$months->first()->copy()->startOfMonth(), $months->last()->copy()->endOfMonth()])
             ->get()
             ->groupBy(fn (Transaksi $transaksi): string => $transaksi->tgl_bayar?->format('Y-m') ?? '');

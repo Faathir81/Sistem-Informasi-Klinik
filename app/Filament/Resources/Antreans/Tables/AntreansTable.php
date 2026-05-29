@@ -2,11 +2,11 @@
 
 namespace App\Filament\Resources\Antreans\Tables;
 
+use App\Enums\AntreanStatus;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -42,13 +42,7 @@ class AntreansTable
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'Menunggu'  => 'warning',
-                        'Dipanggil' => 'info',
-                        'Selesai'   => 'success',
-                        'Batal'     => 'danger',
-                        default     => 'gray',
-                    }),
+                    ->color(fn (string $state): string => AntreanStatus::badgeColor($state)),
                 TextColumn::make('kode_antrean')
                     ->label('Kode QR')
                     ->fontFamily('mono')
@@ -64,48 +58,40 @@ class AntreansTable
             ->filters([
                 SelectFilter::make('status')
                     ->label('Status Antrean')
-                    ->options([
-                        'Menunggu'  => 'Menunggu',
-                        'Dipanggil' => 'Dipanggil',
-                        'Selesai'   => 'Selesai',
-                        'Batal'     => 'Batal',
-                    ]),
+                    ->options(AntreanStatus::options()),
                 SelectFilter::make('tanggal_kunjungan')
                     ->label('Hari Ini')
                     ->query(fn ($query) => $query->whereDate('tanggal_kunjungan', today()))
                     ->label('Hanya Hari Ini'),
             ])
             ->recordActions([
-                // Tombol PANGGIL — hanya muncul jika status Menunggu
                 Action::make('panggil')
                     ->label('📢 Panggil')
                     ->color('info')
                     ->icon('heroicon-o-megaphone')
-                    ->visible(fn (Model $record) => $record->status === 'Menunggu')
+                    ->visible(fn (Model $record) => $record->status === AntreanStatus::Menunggu->value)
                     ->requiresConfirmation()
                     ->modalHeading('Panggil Pasien?')
                     ->modalDescription(fn (Model $record) => "Panggil nomor #{$record->nomor_antrean} - {$record->pasien->nama_pasien}?")
-                    ->action(fn (Model $record) => $record->update(['status' => 'Dipanggil'])),
+                    ->action(fn (Model $record) => $record->update(['status' => AntreanStatus::Dipanggil->value])),
 
-                // Tombol SELESAI — hanya muncul jika status Dipanggil
                 Action::make('selesai')
                     ->label('✅ Selesai')
                     ->color('success')
                     ->icon('heroicon-o-check-circle')
-                    ->visible(fn (Model $record) => $record->status === 'Dipanggil')
+                    ->visible(fn (Model $record) => $record->status === AntreanStatus::Dipanggil->value)
                     ->requiresConfirmation()
                     ->modalHeading('Tandai Selesai?')
-                    ->action(fn (Model $record) => $record->update(['status' => 'Selesai'])),
+                    ->action(fn (Model $record) => $record->update(['status' => AntreanStatus::Selesai->value])),
 
-                // Tombol BATAL — hanya muncul jika status Menunggu
                 Action::make('batal')
                     ->label('Batalkan')
                     ->color('danger')
                     ->icon('heroicon-o-x-circle')
-                    ->visible(fn (Model $record) => $record->status === 'Menunggu')
+                    ->visible(fn (Model $record) => $record->status === AntreanStatus::Menunggu->value)
                     ->requiresConfirmation()
                     ->modalHeading('Batalkan Antrean?')
-                    ->action(fn (Model $record) => $record->update(['status' => 'Batal'])),
+                    ->action(fn (Model $record) => $record->update(['status' => AntreanStatus::Batal->value])),
 
                 EditAction::make()->label('Edit'),
             ])

@@ -19,8 +19,8 @@ return new class extends Migration
             $table->enum('status', ['Menunggu', 'Dipanggil', 'Selesai', 'Batal'])->default('Menunggu');
             $table->timestamps();
 
-            // Satu pasien tidak bisa booking dua kali di dokter yang sama pada hari yang sama
-            $table->unique(['pasien_id', 'dokter_id', 'tanggal_kunjungan']);
+            $table->index(['pasien_id', 'dokter_id', 'tanggal_kunjungan', 'status'], 'antreans_patient_doctor_date_status_index');
+            $table->unique(['dokter_id', 'tanggal_kunjungan', 'nomor_antrean'], 'antreans_doctor_date_number_unique');
         });
     }
 

@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Pasien;
 
+use App\Enums\AntreanStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Antrean;
 use App\Models\Dokter;
-use App\Models\JadwalDokter;
 use App\Models\Pasien;
+use App\Services\Antrean\AntreanBookingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -20,7 +21,7 @@ class AntreanController extends Controller
         $user = Auth::user();
         $pasien = Pasien::where('user_id', $user->id)->first();
 
-        if (!$pasien) {
+        if (! $pasien) {
             return redirect()->route('pasien.dashboard')
                 ->with('error', 'Data pasien Anda belum aktif. Ajukan data pasien terlebih dahulu agar admin dapat membuat nomor rekam medis.');
         }
@@ -28,7 +29,7 @@ class AntreanController extends Controller
         // Cek jika pasien sudah punya antrean aktif hari ini
         $antreanHariIni = Antrean::where('pasien_id', $pasien->id)
             ->where('tanggal_kunjungan', today())
-            ->whereIn('status', ['Menunggu', 'Dipanggil'])
+            ->whereIn('status', AntreanStatus::activeValues())
             ->first();
 
         $dokters = Dokter::where('status_aktif', true)->get();
@@ -40,70 +41,34 @@ class AntreanController extends Controller
     /**
      * Ambil jadwal tersedia berdasarkan dokter yang dipilih (AJAX).
      */
-    public function getJadwal(Request $request)
+    public function getJadwal(Request $request, AntreanBookingService $booking)
     {
-        $dokterId = $request->dokter_id;
-        $tanggal  = $request->tanggal ?? today()->toDateString();
-        $hari     = now()->parse($tanggal)->locale('id')->isoFormat('dddd');
+        $request->validate([
+            'dokter_id' => ['required', 'integer', 'exists:dokters,id'],
+            'tanggal' => ['nullable', 'date', 'after_or_equal:today'],
+        ]);
 
-        $jadwals = JadwalDokter::with('dokter')
-            ->where('dokter_id', $dokterId)
-            ->where('hari', $hari)
-            ->get()
-            ->map(function ($j) use ($tanggal) {
-                $terpakai = Antrean::where('jadwal_dokter_id', $j->id)
-                    ->where('tanggal_kunjungan', $tanggal)
-                    ->whereNotIn('status', ['Batal'])
-                    ->count();
-                $j->sisa_kuota = $j->kuota - $terpakai;
-                return $j;
-            });
-
-        return response()->json($jadwals);
+        return response()->json($booking->availableSchedules(
+            (int) $request->dokter_id,
+            $request->tanggal ?? today()->toDateString(),
+        ));
     }
 
     /**
      * Simpan booking antrean baru.
      */
-    public function store(Request $request)
+    public function store(Request $request, AntreanBookingService $booking)
     {
-        $request->validate([
-            'dokter_id'        => 'required|exists:dokters,id',
-            'jadwal_dokter_id' => 'required|exists:jadwal_dokters,id',
-            'tanggal_kunjungan' => 'required|date|after_or_equal:today',
+        $data = $request->validate([
+            'dokter_id' => ['required', 'exists:dokters,id'],
+            'jadwal_dokter_id' => ['required', 'exists:jadwal_dokters,id'],
+            'tanggal_kunjungan' => ['required', 'date', 'after_or_equal:today'],
         ]);
 
-        $user   = Auth::user();
+        $user = Auth::user();
         $pasien = Pasien::where('user_id', $user->id)->firstOrFail();
 
-        // Pastikan kuota belum penuh
-        $jadwal   = JadwalDokter::findOrFail($request->jadwal_dokter_id);
-        $terpakai = Antrean::where('jadwal_dokter_id', $jadwal->id)
-            ->where('tanggal_kunjungan', $request->tanggal_kunjungan)
-            ->whereNotIn('status', ['Batal'])
-            ->count();
-
-        if ($terpakai >= $jadwal->kuota) {
-            return back()->with('error', 'Maaf, kuota antrean untuk jadwal ini sudah penuh.');
-        }
-
-        // Cek duplikasi
-        $sudahAda = Antrean::where('pasien_id', $pasien->id)
-            ->where('dokter_id', $request->dokter_id)
-            ->where('tanggal_kunjungan', $request->tanggal_kunjungan)
-            ->whereNotIn('status', ['Batal'])
-            ->exists();
-
-        if ($sudahAda) {
-            return back()->with('error', 'Anda sudah memiliki antrean untuk dokter ini pada tanggal tersebut.');
-        }
-
-        $antrean = Antrean::create([
-            'pasien_id'         => $pasien->id,
-            'dokter_id'         => $request->dokter_id,
-            'jadwal_dokter_id'  => $request->jadwal_dokter_id,
-            'tanggal_kunjungan' => $request->tanggal_kunjungan,
-        ]);
+        $antrean = $booking->create($pasien, $data);
 
         return redirect()->route('pasien.antrean.tiket', $antrean->kode_antrean)
             ->with('success', 'Antrean berhasil dibooking!');
@@ -119,10 +84,10 @@ class AntreanController extends Controller
             ->firstOrFail();
 
         // Pastikan hanya pasien yang bersangkutan bisa melihat tiketnya
-        $user   = Auth::user();
+        $user = Auth::user();
         $pasien = Pasien::where('user_id', $user->id)->first();
 
-        if (!$pasien || $antrean->pasien_id !== $pasien->id) {
+        if (! $pasien || $antrean->pasien_id !== $pasien->id) {
             abort(403, 'Anda tidak berhak mengakses tiket ini.');
         }
 
@@ -134,10 +99,10 @@ class AntreanController extends Controller
      */
     public function index()
     {
-        $user    = Auth::user();
-        $pasien  = Pasien::where('user_id', $user->id)->first();
+        $user = Auth::user();
+        $pasien = Pasien::where('user_id', $user->id)->first();
 
-        if (!$pasien) {
+        if (! $pasien) {
             return redirect()->route('pasien.dashboard')
                 ->with('error', 'Data pasien Anda belum aktif. Ajukan data pasien terlebih dahulu agar admin dapat membuat nomor rekam medis.');
         }
@@ -156,18 +121,18 @@ class AntreanController extends Controller
      */
     public function batal(Antrean $antrean)
     {
-        $user   = Auth::user();
+        $user = Auth::user();
         $pasien = Pasien::where('user_id', $user->id)->firstOrFail();
 
         if ($antrean->pasien_id !== $pasien->id) {
             abort(403);
         }
 
-        if ($antrean->status !== 'Menunggu') {
+        if ($antrean->status !== AntreanStatus::Menunggu->value) {
             return back()->with('error', 'Antrean tidak dapat dibatalkan karena statusnya sudah berubah.');
         }
 
-        $antrean->update(['status' => 'Batal']);
+        $antrean->update(['status' => AntreanStatus::Batal->value]);
 
         return back()->with('success', 'Antrean berhasil dibatalkan.');
     }

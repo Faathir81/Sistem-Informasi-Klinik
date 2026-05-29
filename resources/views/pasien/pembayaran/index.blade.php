@@ -17,8 +17,8 @@
                 <div class="grid gap-5 md:grid-cols-[1fr_auto] md:items-center">
                     <div>
                         <p class="clinic-kicker">Tagihan pemeriksaan</p>
-                        <h2 class="mt-2 text-2xl font-black text-[#14342f]">Buat pembayaran QRIS Midtrans.</h2>
-                        <p class="mt-2 text-sm leading-6 text-[#62756f]">Masukkan nominal manual sesuai tagihan klinik, lalu lanjutkan pembayaran lewat Snap Midtrans.</p>
+                        <h2 class="mt-2 text-2xl font-black text-[#14342f]">Buat pembayaran QRIS.</h2>
+                        <p class="mt-2 text-sm leading-6 text-[#62756f]">Masukkan nominal sesuai tagihan klinik, lalu lanjutkan pembayaran secara online.</p>
                     </div>
                     <div class="rounded-lg bg-[#fff7ed] p-4 text-sm">
                         <span class="font-bold text-[#a4531b]">Mode</span>
@@ -59,9 +59,7 @@
                                 <div class="rounded-lg bg-[#f3faf6] p-4 lg:min-w-64">
                                     <p class="text-sm font-bold text-[#62756f]">Estimasi tagihan</p>
                                     <p class="mt-1 text-2xl font-black text-[#14342f]">Rp {{ number_format($tagihan, 0, ',', '.') }}</p>
-                                    <span class="mt-3 {{ $pemeriksaan->status_bayar === 'Lunas' ? 'clinic-badge-success' : 'clinic-badge-warning' }}">
-                                        {{ str_replace('_', ' ', $pemeriksaan->status_bayar) }}
-                                    </span>
+                                    <x-status-badge class="mt-3" type="payment" :value="$pemeriksaan->status_bayar" />
                                 </div>
                             </div>
 
@@ -69,12 +67,12 @@
                                 <div class="mx-6 rounded-lg border border-slate-100 bg-slate-50 p-4 text-sm font-semibold text-[#62756f]">
                                     Transaksi terakhir:
                                     <span class="font-mono text-[#14342f]">{{ $transaksi->order_id }}</span>
-                                    <span class="font-black text-[#14342f]">({{ $transaksi->status }})</span>
+                                    <x-status-badge class="ml-2" type="transaction" :value="$transaksi->status" :dot="false" />
                                     <a href="{{ route('pasien.pembayaran.show', $transaksi) }}" class="ml-2 font-black text-[#ef7b2d] hover:text-[#c75f1d]">Detail</a>
                                 </div>
                             @endif
 
-                            @if ($pemeriksaan->status_bayar !== 'Lunas')
+                            @if ($pemeriksaan->status_bayar !== \App\Enums\PaymentStatus::Lunas->value)
                                 <form method="POST" action="{{ route('pasien.pembayaran.store', $pemeriksaan) }}" class="grid gap-4 p-6 md:grid-cols-[1fr_auto] md:items-end">
                                     @csrf
                                     <div>

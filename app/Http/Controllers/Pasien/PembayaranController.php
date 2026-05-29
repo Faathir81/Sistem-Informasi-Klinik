@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Pasien;
 
+use App\Enums\TransaksiStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Pemeriksaan;
 use App\Models\Transaksi;
@@ -37,6 +38,12 @@ class PembayaranController extends Controller
             'amount' => ['required', 'numeric', 'min:1000'],
         ]);
 
+        if ($pemeriksaan->transaksi?->status === TransaksiStatus::Settlement->value) {
+            return redirect()
+                ->route('pasien.pembayaran.show', $pemeriksaan->transaksi)
+                ->with('status', 'Tagihan ini sudah lunas.');
+        }
+
         try {
             $transaksi = $midtrans->createTransaction($pemeriksaan->load(['pasien.user', 'resep']), (float) $data['amount']);
         } catch (\Throwable $exception) {
@@ -47,14 +54,17 @@ class PembayaranController extends Controller
 
         return redirect()
             ->route('pasien.pembayaran.show', $transaksi)
-            ->with('status', 'QRIS Midtrans berhasil dibuat. Silakan lanjutkan pembayaran.');
+            ->with('status', 'Transaksi pembayaran berhasil dibuat. Silakan lanjutkan pembayaran.');
     }
 
     public function show(Transaksi $transaksi, MidtransSnapService $midtrans): View
     {
-        $transaksi->load('pemeriksaan.pasien', 'pemeriksaan.dokter', 'pemeriksaan.resep');
+        $transaksi->load('pemeriksaan.pasien', 'pemeriksaan.dokter', 'pemeriksaan.resep', 'pengajuanPasien.user');
 
-        abort_unless($transaksi->pemeriksaan->pasien?->user_id === auth()->id(), 403);
+        $ownerId = $transaksi->pemeriksaan?->pasien?->user_id
+            ?? $transaksi->pengajuanPasien?->user_id;
+
+        abort_unless($ownerId === auth()->id(), 403);
 
         return view('pasien.pembayaran.show', [
             'transaksi' => $transaksi,

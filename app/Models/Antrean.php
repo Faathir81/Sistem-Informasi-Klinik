@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Str;
 
 class Antrean extends Model
 {
@@ -23,28 +22,6 @@ class Antrean extends Model
         'tanggal_kunjungan' => 'date',
     ];
 
-    /**
-     * Auto-generate nomor antrean urut & kode unik QR saat antrean baru dibuat.
-     */
-    protected static function booted(): void
-    {
-        static::creating(function (Antrean $antrean) {
-            // Hitung nomor urut: ambil antrean terakhir untuk dokter + tanggal yang sama
-            $lastNomor = self::where('dokter_id', $antrean->dokter_id)
-                ->where('tanggal_kunjungan', $antrean->tanggal_kunjungan)
-                ->whereNotIn('status', ['Batal'])
-                ->max('nomor_antrean') ?? 0;
-
-            $antrean->nomor_antrean = $lastNomor + 1;
-
-            // Generate kode unik untuk QR Code: YYYYMMDD-XXXX (e.g., 20260524-A1B2)
-            $antrean->kode_antrean = strtoupper(
-                now()->format('Ymd').'-'.Str::random(6)
-            );
-        });
-    }
-
-    // Relasi
     public function pasien(): BelongsTo
     {
         return $this->belongsTo(Pasien::class);

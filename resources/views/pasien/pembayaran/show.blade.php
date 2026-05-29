@@ -2,7 +2,9 @@
     <x-slot name="header">
         <div>
             <p class="clinic-kicker">Detail transaksi</p>
-            <h1 class="mt-1 text-2xl font-black text-[#14342f]">Pembayaran QRIS</h1>
+            <h1 class="mt-1 text-2xl font-black text-[#14342f]">
+                {{ $transaksi->pengajuanPasien ? 'Pembayaran Pendaftaran' : 'Pembayaran QRIS' }}
+            </h1>
         </div>
     </x-slot>
 
@@ -21,37 +23,45 @@
                 </div>
 
                 <div class="grid gap-4 p-6 sm:p-8 md:grid-cols-2">
-                    <div class="rounded-lg bg-[#f3faf6] p-4">
-                        <span class="text-xs font-bold text-[#62756f]">Pasien</span>
-                        <p class="mt-1 font-black text-[#14342f]">{{ $transaksi->pemeriksaan->pasien->nama_pasien }}</p>
-                    </div>
-                    <div class="rounded-lg bg-[#f3faf6] p-4">
-                        <span class="text-xs font-bold text-[#62756f]">Dokter</span>
-                        <p class="mt-1 font-black text-[#14342f]">{{ $transaksi->pemeriksaan->dokter->nama_dokter }}</p>
-                    </div>
+                    @if ($transaksi->pengajuanPasien)
+                        <div class="rounded-lg bg-[#f3faf6] p-4">
+                            <span class="text-xs font-bold text-[#62756f]">Pasien</span>
+                            <p class="mt-1 font-black text-[#14342f]">{{ $transaksi->pengajuanPasien->nama_pasien }}</p>
+                        </div>
+                        <div class="rounded-lg bg-[#f3faf6] p-4">
+                            <span class="text-xs font-bold text-[#62756f]">Jenis pembayaran</span>
+                            <p class="mt-1 font-black text-[#14342f]">Biaya pendaftaran pasien</p>
+                        </div>
+                    @else
+                        <div class="rounded-lg bg-[#f3faf6] p-4">
+                            <span class="text-xs font-bold text-[#62756f]">Pasien</span>
+                            <p class="mt-1 font-black text-[#14342f]">{{ $transaksi->pemeriksaan->pasien->nama_pasien }}</p>
+                        </div>
+                        <div class="rounded-lg bg-[#f3faf6] p-4">
+                            <span class="text-xs font-bold text-[#62756f]">Dokter</span>
+                            <p class="mt-1 font-black text-[#14342f]">{{ $transaksi->pemeriksaan->dokter->nama_dokter }}</p>
+                        </div>
+                    @endif
                     <div class="rounded-lg bg-[#fff7ed] p-4">
                         <span class="text-xs font-bold text-[#a4531b]">Nominal</span>
                         <p class="mt-1 text-2xl font-black text-[#14342f]">Rp {{ number_format($transaksi->amount, 0, ',', '.') }}</p>
                     </div>
                     <div class="rounded-lg bg-sky-50 p-4">
                         <span class="text-xs font-bold text-sky-700">Status</span>
-                        <p class="mt-1 text-2xl font-black text-[#14342f]">{{ $transaksi->status }}</p>
+                        <x-status-badge class="mt-2" type="transaction" :value="$transaksi->status" />
                     </div>
                 </div>
 
                 <div class="border-t border-slate-100 p-6 sm:p-8">
-                    @if ($transaksi->status === 'SETTLEMENT')
+                    @if ($transaksi->status === \App\Enums\TransaksiStatus::Settlement->value)
                         <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm font-bold text-emerald-700">
-                            Pembayaran sudah lunas.
+                            {{ $transaksi->pengajuanPasien ? 'Pembayaran lunas. Akun pasien otomatis aktif.' : 'Pembayaran sudah lunas.' }}
                         </div>
                     @elseif ($transaksi->snap_token && $clientKey)
                         <div class="grid gap-3">
-                            <button id="pay-button" type="button" class="clinic-btn-primary w-full">
-                                Bayar dengan QRIS Midtrans
+                            <button id="pay-button" type="button" class="clinic-btn-primary w-full" data-snap-token="{{ $transaksi->snap_token }}">
+                                Bayar Sekarang
                             </button>
-                            <a href="{{ $transaksi->snap_url }}" target="_blank" class="clinic-btn-secondary w-full">
-                                Buka Halaman Midtrans
-                            </a>
                         </div>
                     @else
                         <div class="rounded-lg border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-700">
@@ -59,25 +69,15 @@
                         </div>
                     @endif
 
-                    <a href="{{ route('pasien.pembayaran.index') }}" class="mt-6 inline-flex text-sm font-black text-[#ef7b2d] hover:text-[#c75f1d]">
-                        Kembali ke daftar pembayaran
+                    <a href="{{ $transaksi->pengajuanPasien ? route('pasien.dashboard') : route('pasien.pembayaran.index') }}" class="mt-6 inline-flex text-sm font-black text-[#ef7b2d] hover:text-[#c75f1d]">
+                        {{ $transaksi->pengajuanPasien ? 'Kembali ke dashboard' : 'Kembali ke daftar pembayaran' }}
                     </a>
                 </div>
             </div>
         </div>
     </div>
 
-    @if ($transaksi->snap_token && $clientKey && $transaksi->status !== 'SETTLEMENT')
+    @if ($transaksi->snap_token && $clientKey && $transaksi->status !== \App\Enums\TransaksiStatus::Settlement->value)
         <script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ $clientKey }}"></script>
-        <script>
-            document.getElementById('pay-button').addEventListener('click', function () {
-                window.snap.pay('{{ $transaksi->snap_token }}', {
-                    onSuccess: function () { window.location.reload(); },
-                    onPending: function () { window.location.reload(); },
-                    onError: function () { window.location.reload(); },
-                    onClose: function () {}
-                });
-            });
-        </script>
     @endif
 </x-app-layout>

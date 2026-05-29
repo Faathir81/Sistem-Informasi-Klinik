@@ -2,15 +2,11 @@
 
 namespace App\Filament\Resources\PengajuanPasiens\Tables;
 
-use App\Models\PengajuanPasien;
-use Filament\Actions\Action;
+use App\Enums\PengajuanPasienStatus;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\Textarea;
-use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Model;
 
 class PengajuanPasiensTable
 {
@@ -39,12 +35,12 @@ class PengajuanPasiensTable
                     ->searchable(),
                 TextColumn::make('status')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'Menunggu' => 'warning',
-                        'Disetujui' => 'success',
-                        'Ditolak' => 'danger',
-                        default => 'gray',
-                    }),
+                    ->color(fn (string $state): string => PengajuanPasienStatus::badgeColor($state)),
+                TextColumn::make('transaksi.status')
+                    ->label('Pembayaran')
+                    ->badge()
+                    ->placeholder('-')
+                    ->toggleable(),
                 TextColumn::make('pasien.no_rekam_medis')
                     ->label('No. RM')
                     ->placeholder('-')
@@ -59,68 +55,9 @@ class PengajuanPasiensTable
             ->defaultSort('created_at', 'desc')
             ->filters([
                 SelectFilter::make('status')
-                    ->options([
-                        'Menunggu' => 'Menunggu',
-                        'Disetujui' => 'Disetujui',
-                        'Ditolak' => 'Ditolak',
-                    ]),
+                    ->options(PengajuanPasienStatus::options()),
             ])
             ->recordActions([
-                Action::make('setujui')
-                    ->label('Setujui')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->visible(fn (Model $record): bool => $record->status === 'Menunggu')
-                    ->requiresConfirmation()
-                    ->modalHeading('Setujui pengajuan pasien?')
-                    ->modalDescription(fn (PengajuanPasien $record): string => "Nomor rekam medis akan dibuat untuk {$record->nama_pasien}.")
-                    ->action(function (PengajuanPasien $record): void {
-                        try {
-                            $pasien = $record->approve(auth()->user());
-
-                            Notification::make()
-                                ->title('Pengajuan disetujui')
-                                ->body("No. rekam medis {$pasien->no_rekam_medis} berhasil dibuat.")
-                                ->success()
-                                ->send();
-                        } catch (\Throwable $exception) {
-                            Notification::make()
-                                ->title('Gagal menyetujui pengajuan')
-                                ->body($exception->getMessage())
-                                ->danger()
-                                ->send();
-                        }
-                    }),
-                Action::make('tolak')
-                    ->label('Tolak')
-                    ->icon('heroicon-o-x-circle')
-                    ->color('danger')
-                    ->visible(fn (Model $record): bool => $record->status === 'Menunggu')
-                    ->form([
-                        Textarea::make('alasan_penolakan')
-                            ->label('Alasan Penolakan')
-                            ->required()
-                            ->rows(4)
-                            ->maxLength(1000),
-                    ])
-                    ->requiresConfirmation()
-                    ->modalHeading('Tolak pengajuan pasien?')
-                    ->action(function (PengajuanPasien $record, array $data): void {
-                        try {
-                            $record->reject(auth()->user(), $data['alasan_penolakan']);
-
-                            Notification::make()
-                                ->title('Pengajuan ditolak')
-                                ->success()
-                                ->send();
-                        } catch (\Throwable $exception) {
-                            Notification::make()
-                                ->title('Gagal menolak pengajuan')
-                                ->body($exception->getMessage())
-                                ->danger()
-                                ->send();
-                        }
-                    }),
                 EditAction::make()
                     ->label('Detail'),
             ]);

@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('transaksis', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('pemeriksaan_id')->unique()->constrained('pemeriksaans')->cascadeOnDelete();
+            $table->foreignId('pemeriksaan_id')->nullable()->unique()->constrained('pemeriksaans')->cascadeOnDelete();
             $table->string('order_id')->unique();
             $table->decimal('amount', 10, 2);
             $table->enum('status', ['PENDING', 'SETTLEMENT', 'EXPIRE', 'CANCEL'])->default('PENDING');

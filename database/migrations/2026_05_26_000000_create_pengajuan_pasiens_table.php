@@ -20,7 +20,7 @@ return new class extends Migration
             $table->text('alamat');
             $table->string('no_hp', 20);
             $table->text('catatan_pasien')->nullable();
-            $table->enum('status', ['Menunggu', 'Disetujui', 'Ditolak'])->default('Menunggu');
+            $table->string('status')->default('Menunggu Pembayaran');
             $table->text('alasan_penolakan')->nullable();
             $table->timestamp('reviewed_at')->nullable();
             $table->timestamps();

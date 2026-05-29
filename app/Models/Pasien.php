@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
+use App\Services\Pasien\MedicalRecordNumberService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Carbon;
 
 class Pasien extends Model
 {
@@ -25,29 +25,15 @@ class Pasien extends Model
         'tgl_lahir' => 'date',
     ];
 
-    /**
-     * Auto-generate Nomor Rekam Medis (RM-YYYYMMDD-XXXX) saat pasien baru dibuat.
-     */
     protected static function booted(): void
     {
         static::creating(function (Pasien $pasien) {
-            $prefix = 'RM-'.Carbon::now()->format('Ymd').'-';
-            $last = self::where('no_rekam_medis', 'like', $prefix.'%')
-                ->orderByDesc('no_rekam_medis')
-                ->first();
-
-            if ($last) {
-                $lastNumber = (int) substr($last->no_rekam_medis, -4);
-                $nextNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
-            } else {
-                $nextNumber = '0001';
+            if (! $pasien->no_rekam_medis) {
+                $pasien->no_rekam_medis = app(MedicalRecordNumberService::class)->next();
             }
-
-            $pasien->no_rekam_medis = $prefix.$nextNumber;
         });
     }
 
-    // Relasi
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

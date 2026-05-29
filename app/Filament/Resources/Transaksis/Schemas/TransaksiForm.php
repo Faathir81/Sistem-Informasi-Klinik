@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Transaksis\Schemas;
 
+use App\Enums\TransaksiStatus;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
@@ -21,12 +22,7 @@ class TransaksiForm
                 ->numeric()
                 ->required(),
             Select::make('status')
-                ->options([
-                    'PENDING' => 'PENDING',
-                    'SETTLEMENT' => 'SETTLEMENT',
-                    'EXPIRE' => 'EXPIRE',
-                    'CANCEL' => 'CANCEL',
-                ])
+                ->options(TransaksiStatus::options())
                 ->required(),
             TextInput::make('payment_type')
                 ->label('Tipe Pembayaran')

@@ -13,23 +13,6 @@
         </div>
     </x-slot>
 
-    @php
-        $statusClass = match($antrean->status) {
-            'Menunggu' => 'clinic-badge-warning',
-            'Dipanggil' => 'clinic-badge-info',
-            'Selesai' => 'clinic-badge-success',
-            'Batal' => 'clinic-badge-muted',
-            default => 'clinic-badge-muted',
-        };
-        $statusDot = match($antrean->status) {
-            'Menunggu' => 'bg-amber-500',
-            'Dipanggil' => 'bg-sky-500',
-            'Selesai' => 'bg-emerald-500',
-            'Batal' => 'bg-slate-400',
-            default => 'bg-slate-400',
-        };
-    @endphp
-
     <div class="py-8 sm:py-10">
         <div class="clinic-section max-w-5xl">
             @if(session('success'))
@@ -47,10 +30,7 @@
                                 <h2 class="mt-2 text-3xl font-black">Tiket Antrean</h2>
                                 <p class="mt-2 text-sm font-semibold text-white/70">{{ $antrean->tanggal_kunjungan->isoFormat('dddd, D MMMM Y') }}</p>
                             </div>
-                            <span class="{{ $statusClass }} bg-white/10 text-white border-white/20">
-                                <span class="h-2 w-2 rounded-full {{ $statusDot }}"></span>
-                                {{ $antrean->status }}
-                            </span>
+                            <x-status-badge type="antrean" :value="$antrean->status" contrast />
                         </div>
                     </div>
 
@@ -110,7 +90,7 @@
                             Cetak / Simpan PDF
                         </button>
 
-                        @if($antrean->status === 'Menunggu')
+                        @if($antrean->status === \App\Enums\AntreanStatus::Menunggu->value)
                             <form action="{{ route('pasien.antrean.batal', $antrean->id) }}" method="POST" onsubmit="return confirm('Yakin ingin membatalkan antrean ini?')">
                                 @csrf
                                 @method('PATCH')

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\TransaksiStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Obat;
 use App\Models\Pemeriksaan;
@@ -21,7 +22,7 @@ class ReportController extends Controller
 
         $transaksis = Transaksi::query()
             ->with('pemeriksaan.pasien')
-            ->where('status', 'SETTLEMENT')
+            ->where('status', TransaksiStatus::Settlement->value)
             ->whereBetween('tgl_bayar', [$startDate->startOfDay(), $endDate->endOfDay()])
             ->latest('tgl_bayar')
             ->get();

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Gajis\Schemas;
 
+use App\Enums\PayrollPaymentStatus;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -57,11 +58,8 @@ class GajiForm
                 ->required(),
             Select::make('status_bayar')
                 ->label('Status Bayar')
-                ->options([
-                    'Pending' => 'Pending',
-                    'Lunas' => 'Lunas',
-                ])
-                ->default('Pending')
+                ->options(PayrollPaymentStatus::options())
+                ->default(PayrollPaymentStatus::Pending->value)
                 ->required(),
             DatePicker::make('tgl_bayar')
                 ->label('Tanggal Bayar')

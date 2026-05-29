@@ -24,43 +24,38 @@
             @endif
 
             @if(! $pasien)
-                @php
-                    $pengajuanStatusClass = match($pengajuanPasien?->status) {
-                        'Menunggu' => 'clinic-badge-warning',
-                        'Ditolak' => 'inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold text-red-700',
-                        default => 'clinic-badge-muted',
-                    };
-                @endphp
-                <section class="clinic-card-solid overflow-hidden border-l-4 {{ $pengajuanPasien?->status === 'Ditolak' ? 'border-l-red-400' : 'border-l-[#ef7b2d]' }}">
+                <section class="clinic-card-solid overflow-hidden border-l-4 {{ $pengajuanPasien?->status === \App\Enums\PengajuanPasienStatus::PembayaranGagal->value ? 'border-l-red-400' : 'border-l-[#ef7b2d]' }}">
                     <div class="grid gap-5 p-6 md:grid-cols-[1fr_auto] md:items-center">
                         <div>
                             <div class="flex flex-wrap items-center gap-3">
                                 <p class="clinic-kicker">Verifikasi data pasien</p>
-                                <span class="{{ $pengajuanStatusClass }}">
-                                    {{ $pengajuanPasien?->status ?? 'Belum Mengajukan' }}
-                                </span>
+                                <x-status-badge type="pengajuan" :value="$pengajuanPasien?->status" />
                             </div>
-                            @if($pengajuanPasien?->status === 'Menunggu')
-                                <h2 class="mt-2 text-2xl font-black text-[#14342f]">Pengajuan Anda sedang diverifikasi admin.</h2>
+                            @if(in_array($pengajuanPasien?->status, [\App\Enums\PengajuanPasienStatus::MenungguPembayaran->value, \App\Enums\PengajuanPasienStatus::Menunggu->value], true))
+                                <h2 class="mt-2 text-2xl font-black text-[#14342f]">Pengajuan Anda menunggu pembayaran pendaftaran.</h2>
                                 <p class="mt-2 max-w-3xl text-sm leading-6 text-[#62756f]">
-                                    Setelah disetujui, sistem akan otomatis membuat nomor rekam medis dan fitur booking antrean akan aktif.
+                                    Selesaikan pembayaran Rp1.000 agar nomor rekam medis dibuat otomatis dan fitur booking antrean aktif.
                                 </p>
-                            @elseif($pengajuanPasien?->status === 'Ditolak')
-                                <h2 class="mt-2 text-2xl font-black text-[#14342f]">Pengajuan perlu diperbaiki.</h2>
+                            @elseif($pengajuanPasien?->status === \App\Enums\PengajuanPasienStatus::PembayaranGagal->value)
+                                <h2 class="mt-2 text-2xl font-black text-[#14342f]">Pembayaran pendaftaran belum berhasil.</h2>
                                 <p class="mt-2 max-w-3xl text-sm leading-6 text-[#62756f]">
-                                    Alasan admin: <span class="font-bold text-red-700">{{ $pengajuanPasien->alasan_penolakan ?: 'Belum ada alasan tertulis.' }}</span>
+                                    Kirim ulang data pasien untuk membuat transaksi pembayaran baru.
                                 </p>
                             @else
                                 <h2 class="mt-2 text-2xl font-black text-[#14342f]">Lengkapi data pasien untuk mengaktifkan fitur klinik.</h2>
                                 <p class="mt-2 max-w-3xl text-sm leading-6 text-[#62756f]">
-                                    Akun Anda sudah dibuat, tetapi belum terhubung dengan nomor rekam medis. Kirim pengajuan agar admin bisa memverifikasi data Anda.
+                                    Akun Anda sudah dibuat, tetapi belum terhubung dengan nomor rekam medis. Kirim data pasien dan selesaikan pembayaran pendaftaran.
                                 </p>
                             @endif
                         </div>
 
-                        @if($pengajuanPasien?->status !== 'Menunggu')
+                        @if(in_array($pengajuanPasien?->status, [\App\Enums\PengajuanPasienStatus::MenungguPembayaran->value, \App\Enums\PengajuanPasienStatus::Menunggu->value], true) && $pengajuanPasien?->transaksi)
+                            <a href="{{ route('pasien.pembayaran.show', $pengajuanPasien->transaksi) }}" class="clinic-btn-primary">
+                                Bayar Rp1.000
+                            </a>
+                        @elseif(! in_array($pengajuanPasien?->status, [\App\Enums\PengajuanPasienStatus::MenungguPembayaran->value, \App\Enums\PengajuanPasienStatus::Menunggu->value], true))
                             <a href="{{ route('pasien.pengajuan-pasien.create') }}" class="clinic-btn-primary">
-                                {{ $pengajuanPasien?->status === 'Ditolak' ? 'Ajukan Ulang' : 'Ajukan Data Pasien' }}
+                                {{ $pengajuanPasien?->status === \App\Enums\PengajuanPasienStatus::PembayaranGagal->value ? 'Ajukan Ulang' : 'Ajukan Data Pasien' }}
                             </a>
                         @else
                             <span class="rounded-lg bg-[#f3faf6] px-4 py-3 text-sm font-bold text-[#62756f]">
@@ -106,9 +101,6 @@
 
                         <div class="rounded-lg border border-[#d6e7dd] bg-[#f3faf6] p-5">
                             @if($antreanAktif)
-                                @php
-                                    $activeBadge = $antreanAktif->status === 'Dipanggil' ? 'clinic-badge-info' : 'clinic-badge-warning';
-                                @endphp
                                 <div class="flex items-start justify-between gap-3">
                                     <div>
                                         <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#62756f]">Antrean aktif</p>
@@ -116,10 +108,7 @@
                                             {{ str_pad($antreanAktif->nomor_antrean, 3, '0', STR_PAD_LEFT) }}
                                         </p>
                                     </div>
-                                    <span class="{{ $activeBadge }}">
-                                        <span class="h-2 w-2 rounded-full {{ $antreanAktif->status === 'Dipanggil' ? 'bg-sky-500' : 'bg-amber-500' }}"></span>
-                                        {{ $antreanAktif->status }}
-                                    </span>
+                                    <x-status-badge type="antrean" :value="$antreanAktif->status" />
                                 </div>
 
                                 <div class="mt-6 space-y-3 text-sm">
@@ -206,7 +195,7 @@
                 @foreach ([
                     ['title' => 'Status Antrean', 'body' => 'Pantau semua riwayat antrean dan buka tiket QR.', 'route' => $pasien ? route('pasien.antrean.index') : route('pasien.pengajuan-pasien.create'), 'id' => 'btn-status-antrean-card'],
                     ['title' => 'Riwayat Medis', 'body' => 'Lihat diagnosa, tindakan, dan resep obat Anda.', 'route' => $pasien ? route('pasien.riwayat.index') : route('pasien.pengajuan-pasien.create'), 'id' => 'btn-riwayat-medis-card'],
-                    ['title' => 'Pembayaran QRIS', 'body' => 'Buat transaksi pembayaran melalui Midtrans.', 'route' => $pasien ? route('pasien.pembayaran.index') : route('pasien.pengajuan-pasien.create'), 'id' => 'btn-pembayaran-card'],
+                    ['title' => 'Pembayaran QRIS', 'body' => 'Buat transaksi pembayaran secara online.', 'route' => $pasien ? route('pasien.pembayaran.index') : route('pasien.pengajuan-pasien.create'), 'id' => 'btn-pembayaran-card'],
                 ] as $action)
                     <a href="{{ $action['route'] }}" id="{{ $action['id'] }}" class="clinic-card-solid clinic-hover-lift block p-6">
                         <h3 class="text-lg font-black text-[#14342f]">{{ $action['title'] }}</h3>

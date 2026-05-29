@@ -32,20 +32,19 @@
                         </div>
                     </div>
 
-                    @if($pengajuan?->status === 'Ditolak')
+                    @if($pengajuan?->status === \App\Enums\PengajuanPasienStatus::PembayaranGagal->value)
                         <div class="rounded-lg border border-red-200 bg-red-50 p-5">
-                            <p class="font-black text-red-700">Pengajuan sebelumnya ditolak</p>
-                            <p class="mt-2 text-sm leading-6 text-red-700">{{ $pengajuan->alasan_penolakan ?: 'Admin belum menuliskan alasan.' }}</p>
-                            <p class="mt-3 text-xs font-semibold text-red-600">Perbaiki data pada form ini lalu kirim ulang.</p>
+                            <p class="font-black text-red-700">Pembayaran sebelumnya belum berhasil</p>
+                            <p class="mt-2 text-sm leading-6 text-red-700">Kirim ulang data untuk membuat transaksi pembayaran pendaftaran baru.</p>
                         </div>
                     @endif
                 </aside>
 
                 <section class="clinic-card-solid overflow-hidden">
                     <div class="border-b border-slate-100 bg-white p-6">
-                        <p class="clinic-kicker">Data medis resmi</p>
+                        <p class="clinic-kicker">Data pasien</p>
                         <h2 class="mt-2 text-2xl font-black text-[#14342f]">Lengkapi identitas pasien.</h2>
-                        <p class="mt-2 text-sm leading-6 text-[#62756f]">Data ini akan diverifikasi admin sebelum nomor rekam medis dibuat.</p>
+                        <p class="mt-2 text-sm leading-6 text-[#62756f]">Setelah data dikirim, Anda akan diarahkan ke pembayaran pendaftaran Rp1.000. Nomor rekam medis dibuat otomatis setelah pembayaran berhasil.</p>
                     </div>
 
                     <form action="{{ route('pasien.pengajuan-pasien.store') }}" method="POST" class="space-y-6 p-6">
@@ -117,9 +116,9 @@
                         </div>
 
                         <div class="flex flex-col gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
-                            <p class="text-sm font-semibold leading-6 text-[#62756f]">Admin akan membuat nomor rekam medis setelah data disetujui.</p>
+                            <p class="text-sm font-semibold leading-6 text-[#62756f]">Biaya pendaftaran: <span class="font-black text-[#14342f]">Rp1.000</span></p>
                             <button type="submit" class="clinic-btn-primary">
-                                Kirim Pengajuan
+                                Kirim & Bayar Pendaftaran
                             </button>
                         </div>
                     </form>

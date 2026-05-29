@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Pemeriksaans\Tables;
 
+use App\Enums\PaymentStatus;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -39,7 +40,7 @@ class PemeriksaansTable
                     ->label('Bayar')
                     ->badge()
                     ->formatStateUsing(fn (string $state): string => str_replace('_', ' ', $state))
-                    ->color(fn (string $state): string => $state === 'Lunas' ? 'success' : 'warning'),
+                    ->color(fn (string $state): string => $state === PaymentStatus::Lunas->value ? 'success' : 'warning'),
                 TextColumn::make('resep.total_harga_obat')
                     ->label('Obat')
                     ->money('IDR')
@@ -49,10 +50,7 @@ class PemeriksaansTable
             ->filters([
                 SelectFilter::make('status_bayar')
                     ->label('Status Bayar')
-                    ->options([
-                        'Belum_Bayar' => 'Belum Bayar',
-                        'Lunas' => 'Lunas',
-                    ]),
+                    ->options(PaymentStatus::options()),
             ])
             ->recordActions([
                 EditAction::make(),

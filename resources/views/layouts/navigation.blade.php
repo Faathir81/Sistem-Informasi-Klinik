@@ -1,5 +1,5 @@
 @php
-    $isAdmin = Auth::user()->role === 'admin';
+    $isAdmin = request()->user()?->isAdmin() ?? false;
     $portalHome = $isAdmin ? url('/admin') : route('pasien.dashboard');
 @endphp
 

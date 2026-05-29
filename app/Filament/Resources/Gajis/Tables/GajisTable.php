@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Gajis\Tables;
 
+use App\Enums\PayrollPaymentStatus;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -31,7 +32,7 @@ class GajisTable
                     ->sortable(),
                 TextColumn::make('status_bayar')
                     ->badge()
-                    ->color(fn (string $state): string => $state === 'Lunas' ? 'success' : 'warning'),
+                    ->color(fn (string $state): string => $state === PayrollPaymentStatus::Lunas->value ? 'success' : 'warning'),
                 TextColumn::make('tgl_bayar')
                     ->label('Tanggal Bayar')
                     ->date('d M Y')
@@ -45,20 +46,17 @@ class GajisTable
                         'Pegawai' => 'Pegawai',
                     ]),
                 SelectFilter::make('status_bayar')
-                    ->options([
-                        'Pending' => 'Pending',
-                        'Lunas' => 'Lunas',
-                    ]),
+                    ->options(PayrollPaymentStatus::options()),
             ])
             ->recordActions([
                 Action::make('bayar')
                     ->label('Bayar')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
-                    ->visible(fn (Model $record): bool => $record->status_bayar !== 'Lunas')
+                    ->visible(fn (Model $record): bool => $record->status_bayar !== PayrollPaymentStatus::Lunas->value)
                     ->requiresConfirmation()
                     ->action(fn (Model $record) => $record->update([
-                        'status_bayar' => 'Lunas',
+                        'status_bayar' => PayrollPaymentStatus::Lunas->value,
                         'tgl_bayar' => now()->toDateString(),
                     ])),
                 Action::make('slip')

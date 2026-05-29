@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PengajuanPasiens\Schemas;
 
+use App\Enums\PengajuanPasienStatus;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
@@ -45,11 +46,7 @@ class PengajuanPasienForm
                     ->dehydrated(false),
                 Select::make('status')
                     ->label('Status')
-                    ->options([
-                        'Menunggu' => 'Menunggu',
-                        'Disetujui' => 'Disetujui',
-                        'Ditolak' => 'Ditolak',
-                    ])
+                    ->options(PengajuanPasienStatus::options())
                     ->disabled()
                     ->dehydrated(false),
                 Textarea::make('alamat')
@@ -64,18 +61,15 @@ class PengajuanPasienForm
                     ->columnSpanFull()
                     ->disabled()
                     ->dehydrated(false),
-                Textarea::make('alasan_penolakan')
-                    ->label('Alasan Penolakan')
-                    ->rows(3)
-                    ->columnSpanFull()
-                    ->disabled()
-                    ->dehydrated(false),
+                Placeholder::make('transaction_order')
+                    ->label('Order ID Pembayaran')
+                    ->content(fn ($record): string => $record?->transaksi?->order_id ?? '-'),
+                Placeholder::make('transaction_status')
+                    ->label('Status Pembayaran')
+                    ->content(fn ($record): string => $record?->transaksi?->status ?? '-'),
                 Placeholder::make('no_rekam_medis')
                     ->label('No. Rekam Medis')
                     ->content(fn ($record): string => $record?->pasien?->no_rekam_medis ?? 'Belum dibuat'),
-                Placeholder::make('reviewer_name')
-                    ->label('Diverifikasi Oleh')
-                    ->content(fn ($record): string => $record?->reviewer?->name ?? 'Belum diverifikasi'),
             ]);
     }
 }

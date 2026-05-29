@@ -57,9 +57,7 @@
                                     <span class="clinic-badge-info">
                                         Konsultasi Rp {{ number_format($pemeriksaan->biaya_konsultasi, 0, ',', '.') }}
                                     </span>
-                                    <span class="{{ $pemeriksaan->status_bayar === 'Lunas' ? 'clinic-badge-success' : 'clinic-badge-warning' }}">
-                                        {{ str_replace('_', ' ', $pemeriksaan->status_bayar) }}
-                                    </span>
+                                    <x-status-badge type="payment" :value="$pemeriksaan->status_bayar" />
                                 </div>
                             </div>
                         </div>
@@ -83,9 +81,7 @@
                             <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                 <h3 class="text-lg font-black text-[#14342f]">Resep Obat</h3>
                                 @if ($pemeriksaan->resep)
-                                    <span class="clinic-badge-warning">
-                                        {{ str_replace('_', ' ', $pemeriksaan->resep->status_ambil) }}
-                                    </span>
+                                    <x-status-badge type="pickup" :value="$pemeriksaan->resep->status_ambil" />
                                 @endif
                             </div>
 

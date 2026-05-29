@@ -99,6 +99,10 @@
         @apply inline-flex items-center gap-2 rounded-md border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-bold text-sky-700;
     }
 
+    .clinic-badge-danger {
+        @apply inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold text-red-700;
+    }
+
     .clinic-badge-muted {
         @apply inline-flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-600;
     }

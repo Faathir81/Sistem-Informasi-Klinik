@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Antreans\Schemas;
 
+use App\Enums\AntreanStatus;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -30,13 +31,8 @@ class AntreanForm
                 TextInput::make('kode_antrean')
                     ->required(),
                 Select::make('status')
-                    ->options([
-            'Menunggu' => 'Menunggu',
-            'Dipanggil' => 'Dipanggil',
-            'Selesai' => 'Selesai',
-            'Batal' => 'Batal',
-        ])
-                    ->default('Menunggu')
+                    ->options(AntreanStatus::options())
+                    ->default(AntreanStatus::Menunggu->value)
                     ->required(),
             ]);
     }

@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use App\Services\Resep\ResepDetailStockService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Validation\ValidationException;
 
 class ResepDetail extends Model
 {
@@ -24,54 +24,27 @@ class ResepDetail extends Model
     protected static function booted(): void
     {
         static::saving(function (ResepDetail $detail) {
-            $obat = Obat::find($detail->obat_id);
-
-            if (! $obat) {
-                return;
-            }
-
-            $detail->sub_total = $obat->harga_jual * $detail->jumlah;
+            app(ResepDetailStockService::class)->prepareForSave($detail);
         });
 
         static::creating(function (ResepDetail $detail) {
-            static::ensureStock($detail->obat_id, $detail->jumlah);
+            app(ResepDetailStockService::class)->reserveForCreate($detail);
         });
 
         static::created(function (ResepDetail $detail) {
-            static::adjustStock($detail->obat_id, -$detail->jumlah);
-            $detail->resep?->recalculateTotal();
+            app(ResepDetailStockService::class)->applyCreated($detail);
         });
 
         static::updating(function (ResepDetail $detail) {
-            $oldObatId = (int) $detail->getOriginal('obat_id');
-            $oldJumlah = (int) $detail->getOriginal('jumlah');
-            $newObatId = (int) $detail->obat_id;
-            $newJumlah = (int) $detail->jumlah;
-
-            if ($oldObatId === $newObatId) {
-                $delta = $newJumlah - $oldJumlah;
-
-                if ($delta > 0) {
-                    static::ensureStock($newObatId, $delta);
-                }
-
-                static::adjustStock($newObatId, -$delta);
-
-                return;
-            }
-
-            static::ensureStock($newObatId, $newJumlah);
-            static::adjustStock($oldObatId, $oldJumlah);
-            static::adjustStock($newObatId, -$newJumlah);
+            app(ResepDetailStockService::class)->applyUpdating($detail);
         });
 
         static::updated(function (ResepDetail $detail) {
-            $detail->resep?->recalculateTotal();
+            app(ResepDetailStockService::class)->applyUpdated($detail);
         });
 
         static::deleted(function (ResepDetail $detail) {
-            static::adjustStock($detail->obat_id, $detail->jumlah);
-            $detail->resep?->recalculateTotal();
+            app(ResepDetailStockService::class)->applyDeleted($detail);
         });
     }
 
@@ -83,25 +56,5 @@ class ResepDetail extends Model
     public function obat(): BelongsTo
     {
         return $this->belongsTo(Obat::class);
-    }
-
-    private static function ensureStock(int $obatId, int $jumlah): void
-    {
-        $obat = Obat::find($obatId);
-
-        if (! $obat || $obat->stok < $jumlah) {
-            throw ValidationException::withMessages([
-                'obat_id' => 'Stok obat tidak mencukupi untuk jumlah resep yang diminta.',
-            ]);
-        }
-    }
-
-    private static function adjustStock(int $obatId, int $delta): void
-    {
-        if ($delta === 0) {
-            return;
-        }
-
-        Obat::whereKey($obatId)->increment('stok', $delta);
     }
 }

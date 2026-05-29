@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PayrollPaymentStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -44,7 +45,7 @@ class Gaji extends Model
                 (float) $gaji->gaji_pokok + (float) $gaji->tunjangan - (float) $gaji->potongan
             );
 
-            if ($gaji->status_bayar === 'Lunas' && ! $gaji->tgl_bayar) {
+            if ($gaji->status_bayar === PayrollPaymentStatus::Lunas->value && ! $gaji->tgl_bayar) {
                 $gaji->tgl_bayar = now()->toDateString();
             }
         });

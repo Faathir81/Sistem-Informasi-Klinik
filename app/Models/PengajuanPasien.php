@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\PengajuanPasienStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\DB;
 
 class PengajuanPasien extends Model
@@ -11,7 +13,6 @@ class PengajuanPasien extends Model
     protected $fillable = [
         'user_id',
         'pasien_id',
-        'reviewed_by',
         'nik',
         'nama_pasien',
         'tgl_lahir',
@@ -20,7 +21,6 @@ class PengajuanPasien extends Model
         'no_hp',
         'catatan_pasien',
         'status',
-        'alasan_penolakan',
         'reviewed_at',
     ];
 
@@ -29,15 +29,31 @@ class PengajuanPasien extends Model
         'reviewed_at' => 'datetime',
     ];
 
-    public function approve(User $admin): Pasien
+    public function approveFromPayment(): Pasien
     {
-        return DB::transaction(function () use ($admin) {
-            if ($this->status !== 'Menunggu') {
-                throw new \RuntimeException('Pengajuan ini sudah diverifikasi.');
+        return DB::transaction(function () {
+            $this->refresh();
+
+            if ($this->status === PengajuanPasienStatus::Disetujui->value && $this->pasien) {
+                return $this->pasien;
+            }
+
+            if (! in_array($this->status, [
+                PengajuanPasienStatus::MenungguPembayaran->value,
+                PengajuanPasienStatus::PembayaranGagal->value,
+                PengajuanPasienStatus::Menunggu->value,
+            ], true)) {
+                throw new \RuntimeException('Pengajuan ini tidak dapat diproses otomatis.');
             }
 
             if ($this->user->pasien) {
-                throw new \RuntimeException('Akun pasien ini sudah memiliki nomor rekam medis.');
+                $this->update([
+                    'status' => PengajuanPasienStatus::Disetujui->value,
+                    'pasien_id' => $this->user->pasien->id,
+                    'reviewed_at' => now(),
+                ]);
+
+                return $this->user->pasien;
             }
 
             if (Pasien::where('nik', $this->nik)->exists()) {
@@ -55,29 +71,18 @@ class PengajuanPasien extends Model
             ]);
 
             $this->update([
-                'status' => 'Disetujui',
+                'status' => PengajuanPasienStatus::Disetujui->value,
                 'pasien_id' => $pasien->id,
-                'reviewed_by' => $admin->id,
                 'reviewed_at' => now(),
-                'alasan_penolakan' => null,
             ]);
 
             return $pasien;
         });
     }
 
-    public function reject(User $admin, string $reason): void
+    public function markPaymentFailed(): void
     {
-        if ($this->status !== 'Menunggu') {
-            throw new \RuntimeException('Pengajuan ini sudah diverifikasi.');
-        }
-
-        $this->update([
-            'status' => 'Ditolak',
-            'reviewed_by' => $admin->id,
-            'reviewed_at' => now(),
-            'alasan_penolakan' => $reason,
-        ]);
+        $this->update(['status' => PengajuanPasienStatus::PembayaranGagal->value]);
     }
 
     public function user(): BelongsTo
@@ -90,8 +95,8 @@ class PengajuanPasien extends Model
         return $this->belongsTo(Pasien::class);
     }
 
-    public function reviewer(): BelongsTo
+    public function transaksi(): HasOne
     {
-        return $this->belongsTo(User::class, 'reviewed_by');
+        return $this->hasOne(Transaksi::class);
     }
 }

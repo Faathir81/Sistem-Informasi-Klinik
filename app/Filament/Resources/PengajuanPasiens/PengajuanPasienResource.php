@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PengajuanPasiens;
 
+use App\Enums\PengajuanPasienStatus;
 use App\Filament\Resources\PengajuanPasiens\Pages\EditPengajuanPasien;
 use App\Filament\Resources\PengajuanPasiens\Pages\ListPengajuanPasiens;
 use App\Filament\Resources\PengajuanPasiens\Schemas\PengajuanPasienForm;
@@ -34,7 +35,7 @@ class PengajuanPasienResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        $count = PengajuanPasien::where('status', 'Menunggu')->count();
+        $count = PengajuanPasien::where('status', PengajuanPasienStatus::MenungguPembayaran->value)->count();
 
         return $count > 0 ? (string) $count : null;
     }

@@ -12,6 +12,11 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
+        @php
+            $authUser = request()->user();
+            $authPortalUrl = $authUser?->isAdmin() ? url('/admin') : route('pasien.antrean.create');
+        @endphp
+
         <div class="min-h-screen bg-white text-[#14342f]">
             <header class="fixed inset-x-0 top-0 z-50">
                 <div class="clinic-section pt-4">
@@ -35,7 +40,7 @@
 
                         <div class="flex items-center gap-2">
                             @auth
-                                @if (auth()->user()->role === 'admin')
+                                @if ($authUser?->isAdmin())
                                     <a href="/admin" class="clinic-btn-secondary min-h-10 px-4 py-2">Panel Admin</a>
                                 @else
                                     <a href="{{ route('pasien.dashboard') }}" class="clinic-btn-primary min-h-10 px-4 py-2">Dashboard</a>
@@ -59,11 +64,11 @@
                             <p class="clinic-kicker text-[#f8b37d]">Portal klinik digital</p>
                             <h1 class="mt-4 text-5xl font-black leading-none sm:text-6xl lg:text-7xl">Klinik Ar-Ridlo</h1>
                             <p class="mt-6 max-w-2xl text-lg leading-8 text-white/80">
-                                Booking antrean online, tiket QR Code, riwayat pemeriksaan, resep obat, dan pembayaran QRIS Midtrans dalam satu pengalaman pasien yang rapi.
+                                Booking antrean online, tiket QR Code, riwayat pemeriksaan, resep obat, dan pembayaran QRIS dalam satu pengalaman pasien yang rapi.
                             </p>
                             <div class="mt-8 flex flex-col gap-3 sm:flex-row">
                                 @auth
-                                    <a href="{{ auth()->user()->role === 'admin' ? url('/admin') : route('pasien.antrean.create') }}" class="clinic-btn-primary">
+                                    <a href="{{ $authPortalUrl }}" class="clinic-btn-primary">
                                         Mulai Sekarang
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7 7 7-7 7"/>
@@ -117,7 +122,7 @@
                             </span>
                             <div>
                                 <p class="text-sm font-black">Pembayaran QRIS</p>
-                                <p class="text-xs font-semibold text-[#62756f]">Tagihan via Midtrans Sandbox.</p>
+                                <p class="text-xs font-semibold text-[#62756f]">Tagihan dan pembayaran online.</p>
                             </div>
                         </div>
                     </div>
@@ -181,19 +186,9 @@
                                     ? substr($previewAntrean->jadwalDokter->jam_mulai, 0, 5).' - '.substr($previewAntrean->jadwalDokter->jam_selesai, 0, 5).' WIB'
                                     : 'Booking antrean untuk hari ini';
                                 $previewCode = $previewAntrean ? $maskQueueCode($previewAntrean->kode_antrean) : 'Belum tersedia';
-                                $previewBadgeClass = match ($previewStatus) {
-                                    'Dipanggil' => 'clinic-badge-info',
-                                    'Menunggu' => 'clinic-badge-success',
-                                    default => 'clinic-badge-muted',
-                                };
-                                $previewDotClass = match ($previewStatus) {
-                                    'Dipanggil' => 'bg-sky-500',
-                                    'Menunggu' => 'bg-emerald-500',
-                                    default => 'bg-slate-400',
-                                };
                             @endphp
 
-                            <div class="clinic-card-solid overflow-hidden">
+                            <div class="clinic-card-solid overflow-hidden" data-queue-preview-url="{{ route('antrean.live-preview') }}">
                                 <div class="border-b border-slate-100 bg-white p-5">
                                     <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                                         <div>
@@ -212,10 +207,9 @@
                                                 <p class="text-xs font-bold uppercase tracking-[0.16em] text-[#62756f]">Nomor antrean</p>
                                                 <p id="queue-preview-number" class="mt-2 text-6xl font-black text-[#14342f]">{{ $previewNumber }}</p>
                                             </div>
-                                            <span id="queue-preview-badge" class="{{ $previewBadgeClass }}">
-                                                <span id="queue-preview-dot" class="h-2 w-2 rounded-full {{ $previewDotClass }}"></span>
+                                            <x-status-badge id="queue-preview-badge" type="antrean" :value="$previewStatus" dot-id="queue-preview-dot">
                                                 <span id="queue-preview-status">{{ $previewStatus }}</span>
-                                            </span>
+                                            </x-status-badge>
                                         </div>
                                         <div class="mt-5 grid gap-3 text-sm sm:grid-cols-2">
                                             <div class="rounded-lg bg-white p-3">
@@ -256,7 +250,7 @@
                         </div>
                         <div class="flex flex-col gap-3 sm:flex-row md:flex-col">
                             @auth
-                                <a href="{{ auth()->user()->role === 'admin' ? url('/admin') : route('pasien.antrean.create') }}" class="clinic-btn-primary whitespace-nowrap">Buka Portal</a>
+                                <a href="{{ $authPortalUrl }}" class="clinic-btn-primary whitespace-nowrap">Buka Portal</a>
                             @else
                                 <a href="{{ route('register') }}" class="clinic-btn-primary whitespace-nowrap">Daftar Akun</a>
                                 <a href="{{ route('login') }}" class="clinic-btn-secondary whitespace-nowrap border-white/30 bg-white/10 text-white hover:bg-white/20">Masuk</a>
@@ -275,7 +269,7 @@
                             @foreach ([
                                 ['q' => 'Bagaimana cara mendaftar antrean online?', 'a' => 'Buat akun pasien, masuk ke dashboard, pilih tanggal kunjungan dan dokter, lalu sistem membuat nomor antrean beserta QR Code.'],
                                 ['q' => 'Apakah tiket antrean bisa dicetak?', 'a' => 'Bisa. Tiket antrean menampilkan nomor, jadwal dokter, kode antrean, dan QR Code yang dapat dicetak atau disimpan sebagai PDF.'],
-                                ['q' => 'Kapan pasien bisa membayar QRIS?', 'a' => 'Pembayaran dibuat setelah admin mencatat pemeriksaan dan resep. Pasien memasukkan nominal, lalu sistem membuat transaksi Midtrans.'],
+                                ['q' => 'Kapan pasien bisa membayar QRIS?', 'a' => 'Pembayaran dibuat setelah admin mencatat pemeriksaan dan resep. Pasien memasukkan nominal, lalu sistem membuat transaksi pembayaran.'],
                             ] as $faq)
                                 <details class="clinic-card-solid group p-5">
                                     <summary class="flex cursor-pointer list-none items-center justify-between gap-4 text-left font-black text-[#14342f]">
@@ -305,64 +299,5 @@
             </footer>
         </div>
 
-        <script>
-            const queuePreviewUrl = @json(route('antrean.live-preview'));
-            const queuePreviewClasses = {
-                badge: {
-                    Dipanggil: 'clinic-badge-info',
-                    Menunggu: 'clinic-badge-success',
-                    default: 'clinic-badge-muted',
-                },
-                dot: {
-                    Dipanggil: 'bg-sky-500',
-                    Menunggu: 'bg-emerald-500',
-                    default: 'bg-slate-400',
-                },
-            };
-
-            function setQueuePreviewClass(element, className) {
-                if (!element) {
-                    return;
-                }
-
-                element.className = className;
-            }
-
-            async function refreshQueuePreview() {
-                try {
-                    const response = await fetch(queuePreviewUrl, {
-                        headers: {
-                            Accept: 'application/json',
-                        },
-                    });
-
-                    if (!response.ok) {
-                        return;
-                    }
-
-                    const data = await response.json();
-                    const status = data.status || 'Belum Ada';
-                    const badgeClass = queuePreviewClasses.badge[status] || queuePreviewClasses.badge.default;
-                    const dotClass = queuePreviewClasses.dot[status] || queuePreviewClasses.dot.default;
-
-                    document.getElementById('queue-preview-number').textContent = data.number || '--';
-                    document.getElementById('queue-preview-status').textContent = status;
-                    document.getElementById('queue-preview-doctor').textContent = data.doctor || 'Belum ada antrean aktif';
-                    document.getElementById('queue-preview-schedule').textContent = data.schedule || 'Booking antrean untuk hari ini';
-                    document.getElementById('queue-preview-code').textContent = data.code || 'Belum tersedia';
-                    document.getElementById('queue-preview-updated').textContent = data.updated_at || '-';
-
-                    setQueuePreviewClass(document.getElementById('queue-preview-badge'), badgeClass);
-                    setQueuePreviewClass(document.getElementById('queue-preview-dot'), `h-2 w-2 rounded-full ${dotClass}`);
-                } catch (error) {
-                    return;
-                }
-            }
-
-            window.addEventListener('load', () => {
-                refreshQueuePreview();
-                window.setInterval(refreshQueuePreview, 20000);
-            });
-        </script>
     </body>
 </html>

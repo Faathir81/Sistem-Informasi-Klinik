@@ -2,10 +2,14 @@
 
 namespace Tests\Feature\Pasien;
 
+use App\Enums\PengajuanPasienStatus;
+use App\Enums\TransaksiStatus;
 use App\Models\Pasien;
 use App\Models\PengajuanPasien;
+use App\Models\Transaksi;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class PengajuanPasienTest extends TestCase
@@ -19,15 +23,30 @@ class PengajuanPasienTest extends TestCase
             'no_hp' => '081234567890',
         ]);
 
+        Http::fake(['*' => Http::response([
+            'token' => 'snap-token',
+            'redirect_url' => 'https://midtrans.test/pay',
+        ])]);
+        config(['services.midtrans.server_key' => 'server-key']);
+
         $response = $this->actingAs($user)
             ->post(route('pasien.pengajuan-pasien.store'), $this->validPayload());
 
-        $response->assertRedirect(route('pasien.dashboard', absolute: false));
+        $pengajuan = PengajuanPasien::firstOrFail();
+        $transaksi = $pengajuan->transaksi;
+
+        $response->assertRedirect(route('pasien.pembayaran.show', $transaksi, absolute: false));
 
         $this->assertDatabaseHas('pengajuan_pasiens', [
             'user_id' => $user->id,
             'nik' => '3201010101010001',
-            'status' => 'Menunggu',
+            'status' => PengajuanPasienStatus::MenungguPembayaran->value,
+        ]);
+
+        $this->assertDatabaseHas('transaksis', [
+            'pengajuan_pasien_id' => $pengajuan->id,
+            'amount' => 1000,
+            'status' => TransaksiStatus::Pending->value,
         ]);
 
         $this->assertDatabaseMissing('pasiens', [
@@ -42,7 +61,7 @@ class PengajuanPasienTest extends TestCase
 
         PengajuanPasien::create($this->validPayload([
             'user_id' => $user->id,
-            'status' => 'Menunggu',
+            'status' => PengajuanPasienStatus::MenungguPembayaran->value,
         ]));
 
         $response = $this->actingAs($user)
@@ -54,16 +73,22 @@ class PengajuanPasienTest extends TestCase
         $this->assertDatabaseCount('pengajuan_pasiens', 1);
     }
 
-    public function test_admin_approval_creates_patient_record_and_links_reviewer(): void
+    public function test_settled_registration_payment_creates_patient_record(): void
     {
         $user = User::factory()->create(['role' => 'pasien']);
-        $admin = User::factory()->create(['role' => 'admin']);
         $pengajuan = PengajuanPasien::create($this->validPayload([
             'user_id' => $user->id,
-            'status' => 'Menunggu',
+            'status' => PengajuanPasienStatus::MenungguPembayaran->value,
         ]));
+        $transaksi = Transaksi::create([
+            'pengajuan_pasien_id' => $pengajuan->id,
+            'order_id' => 'REG-TEST',
+            'amount' => 1000,
+            'status' => TransaksiStatus::Pending->value,
+        ]);
 
-        $pasien = $pengajuan->approve($admin);
+        $transaksi->markSettled('qris');
+        $pasien = $pengajuan->refresh()->pasien;
 
         $this->assertNotNull($pasien->no_rekam_medis);
 
@@ -76,22 +101,26 @@ class PengajuanPasienTest extends TestCase
 
         $this->assertDatabaseHas('pengajuan_pasiens', [
             'id' => $pengajuan->id,
-            'status' => 'Disetujui',
+            'status' => PengajuanPasienStatus::Disetujui->value,
             'pasien_id' => $pasien->id,
-            'reviewed_by' => $admin->id,
         ]);
     }
 
-    public function test_rejected_pengajuan_can_be_submitted_again(): void
+    public function test_failed_payment_pengajuan_can_be_submitted_again(): void
     {
         $user = User::factory()->create(['role' => 'pasien']);
-        $admin = User::factory()->create(['role' => 'admin']);
         $pengajuan = PengajuanPasien::create($this->validPayload([
             'user_id' => $user->id,
-            'status' => 'Menunggu',
+            'status' => PengajuanPasienStatus::MenungguPembayaran->value,
         ]));
 
-        $pengajuan->reject($admin, 'NIK kurang jelas.');
+        $pengajuan->markPaymentFailed();
+
+        Http::fake(['*' => Http::response([
+            'token' => 'snap-token',
+            'redirect_url' => 'https://midtrans.test/pay',
+        ])]);
+        config(['services.midtrans.server_key' => 'server-key']);
 
         $response = $this->actingAs($user)
             ->post(route('pasien.pengajuan-pasien.store'), $this->validPayload([
@@ -99,13 +128,13 @@ class PengajuanPasienTest extends TestCase
                 'catatan_pasien' => 'Data sudah diperbaiki.',
             ]));
 
-        $response->assertRedirect(route('pasien.dashboard', absolute: false));
+        $response->assertRedirect();
 
         $this->assertDatabaseCount('pengajuan_pasiens', 2);
         $this->assertDatabaseHas('pengajuan_pasiens', [
             'user_id' => $user->id,
             'nik' => '3201010101010001',
-            'status' => 'Menunggu',
+            'status' => PengajuanPasienStatus::MenungguPembayaran->value,
             'alamat' => 'Jl. Sehat No. 2',
         ]);
     }

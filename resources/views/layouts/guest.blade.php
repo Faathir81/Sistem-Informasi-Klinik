@@ -40,7 +40,7 @@
                                 </div>
                                 <div class="rounded-lg border border-white/20 bg-white/10 p-3 backdrop-blur">
                                     <span class="block text-2xl font-black">QRIS</span>
-                                    <span class="text-white/75">Midtrans</span>
+                                    <span class="text-white/75">Pembayaran</span>
                                 </div>
                             </div>
                         </div>

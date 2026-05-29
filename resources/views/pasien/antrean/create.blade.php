@@ -36,8 +36,9 @@
                         <div class="rounded-lg border border-amber-200 bg-amber-50 p-5">
                             <p class="font-black text-amber-800">Anda sudah memiliki antrean aktif hari ini</p>
                             <p class="mt-2 text-sm leading-6 text-amber-700">
-                                Nomor {{ str_pad($antreanHariIni->nomor_antrean, 3, '0', STR_PAD_LEFT) }} dengan {{ $antreanHariIni->dokter->nama_dokter }}. Status saat ini: {{ $antreanHariIni->status }}.
+                                Nomor {{ str_pad($antreanHariIni->nomor_antrean, 3, '0', STR_PAD_LEFT) }} dengan {{ $antreanHariIni->dokter->nama_dokter }}.
                             </p>
+                            <x-status-badge class="mt-3" type="antrean" :value="$antreanHariIni->status" />
                             <a href="{{ route('pasien.antrean.tiket', $antreanHariIni->kode_antrean) }}" class="mt-4 inline-flex rounded-md border border-amber-300 px-4 py-2 text-sm font-bold text-amber-800 transition hover:bg-amber-100">
                                 Lihat Tiket
                             </a>
@@ -58,7 +59,7 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('pasien.antrean.store') }}" method="POST" class="space-y-6 p-6" id="form-booking">
+                    <form action="{{ route('pasien.antrean.store') }}" method="POST" class="space-y-6 p-6" id="form-booking" data-schedule-url="{{ route('pasien.antrean.jadwal') }}">
                         @csrf
 
                         <div class="grid gap-5 md:grid-cols-2">
@@ -117,83 +118,4 @@
         </div>
     </div>
 
-    <script>
-        const dokterSelect = document.getElementById('dokter_id');
-        const tanggalInput = document.getElementById('tanggal_kunjungan');
-        const jadwalWrapper = document.getElementById('jadwal-wrapper');
-        const jadwalList = document.getElementById('jadwal-list');
-        const jadwalKosong = document.getElementById('jadwal-kosong');
-        const jadwalHidden = document.getElementById('jadwal_dokter_id');
-
-        function resetJadwal() {
-            jadwalList.innerHTML = '';
-            jadwalHidden.value = '';
-        }
-
-        function loadJadwal() {
-            const dokterId = dokterSelect.value;
-            const tanggal = tanggalInput.value;
-
-            if (!dokterId || !tanggal) {
-                jadwalWrapper.classList.add('hidden');
-                jadwalKosong.classList.add('hidden');
-                resetJadwal();
-                return;
-            }
-
-            fetch(`/pasien/antrean/jadwal?dokter_id=${dokterId}&tanggal=${tanggal}`)
-                .then(response => response.json())
-                .then(data => {
-                    resetJadwal();
-                    jadwalKosong.textContent = 'Tidak ada jadwal praktek untuk dokter ini pada tanggal yang dipilih.';
-
-                    if (data.length === 0) {
-                        jadwalWrapper.classList.add('hidden');
-                        jadwalKosong.classList.remove('hidden');
-                        return;
-                    }
-
-                    jadwalKosong.classList.add('hidden');
-                    jadwalWrapper.classList.remove('hidden');
-
-                    data.forEach(jadwal => {
-                        const disabled = jadwal.sisa_kuota <= 0;
-                        const label = document.createElement('label');
-                        label.className = `flex cursor-pointer items-center justify-between gap-4 rounded-lg border p-4 transition ${disabled ? 'border-slate-200 bg-slate-50 opacity-60' : 'border-[#d6e7dd] bg-white hover:border-[#7ba891] hover:bg-[#f3faf6]'}`;
-                        label.innerHTML = `
-                            <span class="flex items-center gap-3">
-                                <input type="radio" name="_jadwal_pick" value="${jadwal.id}" class="text-[#7ba891] focus:ring-[#7ba891]" ${disabled ? 'disabled' : ''}>
-                                <span>
-                                    <span class="block text-sm font-black text-[#14342f]">${jadwal.hari}</span>
-                                    <span class="block text-sm font-semibold text-[#62756f]">${jadwal.jam_mulai.substring(0, 5)} - ${jadwal.jam_selesai.substring(0, 5)} WIB</span>
-                                </span>
-                            </span>
-                            <span class="rounded-md px-3 py-1 text-xs font-black ${disabled ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700'}">
-                                ${disabled ? 'Penuh' : 'Sisa ' + jadwal.sisa_kuota + ' slot'}
-                            </span>
-                        `;
-
-                        const radio = label.querySelector('input[type="radio"]');
-                        radio?.addEventListener('change', () => {
-                            jadwalHidden.value = radio.value;
-                        });
-
-                        jadwalList.appendChild(label);
-                    });
-                })
-                .catch(() => {
-                    resetJadwal();
-                    jadwalWrapper.classList.add('hidden');
-                    jadwalKosong.classList.remove('hidden');
-                    jadwalKosong.textContent = 'Jadwal belum bisa dimuat. Coba pilih ulang dokter atau tanggal.';
-                });
-        }
-
-        dokterSelect.addEventListener('change', loadJadwal);
-        tanggalInput.addEventListener('change', loadJadwal);
-
-        if (dokterSelect.value && tanggalInput.value) {
-            loadJadwal();
-        }
-    </script>
 </x-app-layout>

@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Pemeriksaans\Schemas;
 
+use App\Enums\AntreanStatus;
+use App\Enums\PaymentStatus;
 use App\Models\Antrean;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -24,7 +26,7 @@ class PemeriksaanForm
                         'kode_antrean',
                         fn (Builder $query) => $query
                             ->with(['pasien', 'dokter'])
-                            ->whereIn('status', ['Dipanggil', 'Selesai'])
+                            ->whereIn('status', AntreanStatus::billableValues())
                     )
                     ->getOptionLabelFromRecordUsing(fn (Antrean $record): string => "#{$record->nomor_antrean} - {$record->pasien->nama_pasien} ({$record->dokter->nama_dokter})")
                     ->searchable()
@@ -86,11 +88,8 @@ class PemeriksaanForm
                     ->required(),
                 Select::make('status_bayar')
                     ->label('Status Bayar')
-                    ->options([
-                        'Belum_Bayar' => 'Belum Bayar',
-                        'Lunas' => 'Lunas',
-                    ])
-                    ->default('Belum_Bayar')
+                    ->options(PaymentStatus::options())
+                    ->default(PaymentStatus::BelumBayar->value)
                     ->required(),
             ]);
     }

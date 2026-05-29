@@ -29,23 +29,6 @@
             @endif
 
             @forelse($antreans as $antrean)
-                @php
-                    $statusClass = match($antrean->status) {
-                        'Menunggu' => 'clinic-badge-warning',
-                        'Dipanggil' => 'clinic-badge-info',
-                        'Selesai' => 'clinic-badge-success',
-                        'Batal' => 'clinic-badge-muted',
-                        default => 'clinic-badge-muted',
-                    };
-                    $statusDot = match($antrean->status) {
-                        'Menunggu' => 'bg-amber-500',
-                        'Dipanggil' => 'bg-sky-500',
-                        'Selesai' => 'bg-emerald-500',
-                        'Batal' => 'bg-slate-400',
-                        default => 'bg-slate-400',
-                    };
-                @endphp
-
                 <article class="clinic-card-solid clinic-hover-lift overflow-hidden">
                     <div class="grid gap-5 p-5 sm:grid-cols-[auto_1fr_auto] sm:items-center">
                         <div class="flex h-20 w-20 flex-col items-center justify-center rounded-lg bg-[#14342f] text-white shadow-sm">
@@ -56,10 +39,7 @@
                         <div>
                             <div class="flex flex-wrap items-center gap-2">
                                 <h2 class="text-lg font-black text-[#14342f]">{{ $antrean->dokter->nama_dokter }}</h2>
-                                <span class="{{ $statusClass }}">
-                                    <span class="h-2 w-2 rounded-full {{ $statusDot }}"></span>
-                                    {{ $antrean->status }}
-                                </span>
+                                <x-status-badge type="antrean" :value="$antrean->status" />
                             </div>
                             <p class="mt-1 text-sm font-semibold text-[#62756f]">{{ $antrean->dokter->spesialisasi }}</p>
                             <div class="mt-3 grid gap-2 text-sm text-[#46665f] md:grid-cols-3">
@@ -70,12 +50,12 @@
                         </div>
 
                         <div class="flex flex-wrap gap-2 sm:flex-col sm:items-stretch">
-                            @if($antrean->status !== 'Batal')
+                            @if($antrean->status !== \App\Enums\AntreanStatus::Batal->value)
                                 <a href="{{ route('pasien.antrean.tiket', $antrean->kode_antrean) }}" id="btn-lihat-tiket-{{ $antrean->id }}" class="clinic-btn-secondary min-h-10 px-4 py-2">
                                     Tiket QR
                                 </a>
                             @endif
-                            @if($antrean->status === 'Menunggu')
+                            @if($antrean->status === \App\Enums\AntreanStatus::Menunggu->value)
                                 <form action="{{ route('pasien.antrean.batal', $antrean->id) }}" method="POST" onsubmit="return confirm('Yakin ingin membatalkan antrean ini?')">
                                     @csrf
                                     @method('PATCH')
