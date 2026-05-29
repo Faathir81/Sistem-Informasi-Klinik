@@ -291,10 +291,6 @@
             <footer class="border-t border-slate-100 bg-[#f7fbf7] py-8">
                 <div class="clinic-section flex flex-col justify-between gap-4 text-sm font-semibold text-[#62756f] sm:flex-row">
                     <p>&copy; {{ date('Y') }} Klinik Ar-Ridlo. Sistem informasi klinik.</p>
-                    <div class="flex gap-4">
-                        <a href="{{ route('login') }}" class="hover:text-[#14342f]">Login</a>
-                        <a href="{{ route('login') }}" class="hover:text-[#14342f]">Admin</a>
-                    </div>
                 </div>
             </footer>
         </div>
