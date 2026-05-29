@@ -24,19 +24,19 @@
             @endif
 
             @if(! $pasien)
-                <section class="clinic-card-solid overflow-hidden border-l-4 {{ $pengajuanPasien?->status === \App\Enums\PengajuanPasienStatus::PembayaranGagal->value ? 'border-l-red-400' : 'border-l-[#ef7b2d]' }}">
+                <section class="clinic-card-solid overflow-hidden border-l-4 {{ $pengajuanPasien?->isPembayaranGagal() ? 'border-l-red-400' : 'border-l-[#ef7b2d]' }}">
                     <div class="grid gap-5 p-6 md:grid-cols-[1fr_auto] md:items-center">
                         <div>
                             <div class="flex flex-wrap items-center gap-3">
                                 <p class="clinic-kicker">Verifikasi data pasien</p>
                                 <x-status-badge type="pengajuan" :value="$pengajuanPasien?->status" />
                             </div>
-                            @if(in_array($pengajuanPasien?->status, [\App\Enums\PengajuanPasienStatus::MenungguPembayaran->value, \App\Enums\PengajuanPasienStatus::Menunggu->value], true))
+                            @if($pengajuanPasien?->isMenungguPembayaran())
                                 <h2 class="mt-2 text-2xl font-black text-[#14342f]">Pengajuan Anda menunggu pembayaran pendaftaran.</h2>
                                 <p class="mt-2 max-w-3xl text-sm leading-6 text-[#62756f]">
                                     Selesaikan pembayaran Rp1.000 agar nomor rekam medis dibuat otomatis dan fitur booking antrean aktif.
                                 </p>
-                            @elseif($pengajuanPasien?->status === \App\Enums\PengajuanPasienStatus::PembayaranGagal->value)
+                            @elseif($pengajuanPasien?->isPembayaranGagal())
                                 <h2 class="mt-2 text-2xl font-black text-[#14342f]">Pembayaran pendaftaran belum berhasil.</h2>
                                 <p class="mt-2 max-w-3xl text-sm leading-6 text-[#62756f]">
                                     Kirim ulang data pasien untuk membuat transaksi pembayaran baru.
@@ -49,13 +49,13 @@
                             @endif
                         </div>
 
-                        @if(in_array($pengajuanPasien?->status, [\App\Enums\PengajuanPasienStatus::MenungguPembayaran->value, \App\Enums\PengajuanPasienStatus::Menunggu->value], true) && $pengajuanPasien?->transaksi)
+                        @if($pengajuanPasien?->isMenungguPembayaran() && $pengajuanPasien?->transaksi)
                             <a href="{{ route('pasien.pembayaran.show', $pengajuanPasien->transaksi) }}" class="clinic-btn-primary">
                                 Bayar Rp1.000
                             </a>
-                        @elseif(! in_array($pengajuanPasien?->status, [\App\Enums\PengajuanPasienStatus::MenungguPembayaran->value, \App\Enums\PengajuanPasienStatus::Menunggu->value], true))
+                        @elseif(! $pengajuanPasien?->isMenungguPembayaran())
                             <a href="{{ route('pasien.pengajuan-pasien.create') }}" class="clinic-btn-primary">
-                                {{ $pengajuanPasien?->status === \App\Enums\PengajuanPasienStatus::PembayaranGagal->value ? 'Ajukan Ulang' : 'Ajukan Data Pasien' }}
+                                {{ $pengajuanPasien?->isPembayaranGagal() ? 'Ajukan Ulang' : 'Ajukan Data Pasien' }}
                             </a>
                         @else
                             <span class="rounded-lg bg-[#f3faf6] px-4 py-3 text-sm font-bold text-[#62756f]">
@@ -192,16 +192,12 @@
             </section>
 
             <section class="grid gap-4 md:grid-cols-3">
-                @foreach ([
-                    ['title' => 'Status Antrean', 'body' => 'Pantau semua riwayat antrean dan buka tiket QR.', 'route' => $pasien ? route('pasien.antrean.index') : route('pasien.pengajuan-pasien.create'), 'id' => 'btn-status-antrean-card'],
-                    ['title' => 'Riwayat Medis', 'body' => 'Lihat diagnosa, tindakan, dan resep obat Anda.', 'route' => $pasien ? route('pasien.riwayat.index') : route('pasien.pengajuan-pasien.create'), 'id' => 'btn-riwayat-medis-card'],
-                    ['title' => 'Pembayaran QRIS', 'body' => 'Buat transaksi pembayaran secara online.', 'route' => $pasien ? route('pasien.pembayaran.index') : route('pasien.pengajuan-pasien.create'), 'id' => 'btn-pembayaran-card'],
-                ] as $action)
+                @foreach ($quickActions as $action)
                     <a href="{{ $action['route'] }}" id="{{ $action['id'] }}" class="clinic-card-solid clinic-hover-lift block p-6">
                         <h3 class="text-lg font-black text-[#14342f]">{{ $action['title'] }}</h3>
                         <p class="mt-2 min-h-12 text-sm leading-6 text-[#62756f]">{{ $action['body'] }}</p>
                         <span class="mt-5 inline-flex items-center gap-2 text-sm font-black text-[#ef7b2d]">
-                            {{ $pasien ? 'Buka' : 'Lengkapi Data' }}
+                            {{ $action['action_text'] }}
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7 7 7-7 7"/>
                             </svg>

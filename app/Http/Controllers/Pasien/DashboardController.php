@@ -47,6 +47,30 @@ class DashboardController extends Controller
                 ->count();
         }
 
+        $quickActions = [
+            [
+                'title' => 'Status Antrean',
+                'body' => 'Pantau semua riwayat antrean dan buka tiket QR.',
+                'route' => $pasien ? route('pasien.antrean.index') : route('pasien.pengajuan-pasien.create'),
+                'id' => 'btn-status-antrean-card',
+                'action_text' => $pasien ? 'Buka' : 'Lengkapi Data',
+            ],
+            [
+                'title' => 'Riwayat Medis',
+                'body' => 'Lihat diagnosa, tindakan, dan resep obat Anda.',
+                'route' => $pasien ? route('pasien.riwayat.index') : route('pasien.pengajuan-pasien.create'),
+                'id' => 'btn-riwayat-medis-card',
+                'action_text' => $pasien ? 'Buka' : 'Lengkapi Data',
+            ],
+            [
+                'title' => 'Pembayaran QRIS',
+                'body' => 'Buat transaksi pembayaran secara online.',
+                'route' => $pasien ? route('pasien.pembayaran.index') : route('pasien.pengajuan-pasien.create'),
+                'id' => 'btn-pembayaran-card',
+                'action_text' => $pasien ? 'Buka' : 'Lengkapi Data',
+            ],
+        ];
+
         return view('pasien.dashboard', compact(
             'user',
             'pasien',
@@ -56,6 +80,7 @@ class DashboardController extends Controller
             'jumlahAntrean',
             'jumlahRiwayat',
             'tagihanBelumLunas',
+            'quickActions',
         ));
     }
 

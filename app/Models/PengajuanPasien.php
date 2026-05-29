@@ -85,6 +85,19 @@ class PengajuanPasien extends Model
         $this->update(['status' => PengajuanPasienStatus::PembayaranGagal->value]);
     }
 
+    public function isMenungguPembayaran(): bool
+    {
+        return in_array($this->status, [
+            PengajuanPasienStatus::MenungguPembayaran->value,
+            PengajuanPasienStatus::Menunggu->value,
+        ], true);
+    }
+
+    public function isPembayaranGagal(): bool
+    {
+        return $this->status === PengajuanPasienStatus::PembayaranGagal->value;
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
