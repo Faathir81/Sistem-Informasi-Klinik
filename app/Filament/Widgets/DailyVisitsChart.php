@@ -10,12 +10,25 @@ class DailyVisitsChart extends ChartWidget
 {
     protected ?string $heading = 'Kunjungan Pasien 14 Hari Terakhir';
 
-    protected string $color = 'info';
+    protected string $color = 'warning';
+
+    public ?string $filter = '14';
+
+    protected function getFilters(): ?array
+    {
+        return [
+            '7' => '7 Hari Terakhir',
+            '14' => '14 Hari Terakhir',
+            '30' => '30 Hari Terakhir',
+        ];
+    }
 
     protected function getData(): array
     {
-        $days = collect(range(0, 13))
-            ->map(fn (int $offset): Carbon => now()->startOfDay()->subDays(13 - $offset));
+        $daysCount = (int) $this->filter;
+
+        $days = collect(range(0, $daysCount - 1))
+            ->map(fn (int $offset): Carbon => now()->startOfDay()->subDays(($daysCount - 1) - $offset));
 
         $pemeriksaans = Pemeriksaan::query()
             ->whereBetween('tgl_pemeriksaan', [$days->first()->toDateString(), $days->last()->toDateString()])
@@ -27,8 +40,9 @@ class DailyVisitsChart extends ChartWidget
                 [
                     'label' => 'Kunjungan',
                     'data' => $days->map(fn (Carbon $day): int => $pemeriksaans->get($day->format('Y-m-d'), collect())->count())->all(),
-                    'backgroundColor' => '#38bdf8',
-                    'borderColor' => '#0284c7',
+                    'backgroundColor' => '#ef7b2d', // Oranye tema
+                    'borderColor' => '#c75f1d',
+                    'borderRadius' => 4,
                 ],
             ],
             'labels' => $days->map(fn (Carbon $day): string => $day->format('d M'))->all(),

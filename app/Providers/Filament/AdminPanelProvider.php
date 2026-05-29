@@ -32,10 +32,13 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->brandName('Klinik Ar-Ridlo')
+            ->font('Figtree')
             ->colors([
-                'primary' => Color::hex('#7ba891'),
+                'primary' => Color::hex('#14342f'),
+                'secondary' => Color::hex('#7ba891'),
                 'warning' => Color::hex('#ef7b2d'),
                 'success' => Color::Emerald,
+                'gray' => Color::Slate,
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')

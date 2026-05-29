@@ -1,47 +1,63 @@
 <x-filament-panels::page>
-    <div class="grid gap-6 lg:grid-cols-3">
+    <div style="display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
         @foreach ([
             [
-                'title' => 'Laporan Pemasukan & Pengeluaran Kas',
-                'description' => 'Rekap pembayaran pasien yang sudah lunas dan pengeluaran operasional klinik.',
+                'title' => 'Laporan Pemasukan & Kas',
+                'description' => 'Rekap pembayaran lunas dan pengeluaran operasional.',
                 'route' => route('admin.reports.keuangan'),
-                'accent' => 'amber',
             ],
             [
-                'title' => 'Laporan Kunjungan Konsultasi',
-                'description' => 'Daftar aktivitas pemeriksaan, diagnosa, biaya konsultasi, dan nilai resep.',
+                'title' => 'Laporan Kunjungan',
+                'description' => 'Aktivitas pemeriksaan, diagnosa, dan resep.',
                 'route' => route('admin.reports.kunjungan'),
-                'accent' => 'emerald',
             ],
             [
-                'title' => 'Laporan Mutasi Stok Obat',
-                'description' => 'Rekap pemakaian obat dari resep dan posisi nilai stok obat saat ini.',
+                'title' => 'Laporan Stok Obat',
+                'description' => 'Rekap pemakaian dan nilai sisa stok obat saat ini.',
                 'route' => route('admin.reports.stok-obat'),
-                'accent' => 'sky',
             ],
         ] as $report)
-            <form method="GET" action="{{ $report['route'] }}" target="_blank" class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg dark:border-gray-800 dark:bg-gray-900">
-                <div class="space-y-2">
-                    <h2 class="text-base font-semibold text-gray-950 dark:text-white">{{ $report['title'] }}</h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ $report['description'] }}</p>
-                </div>
+            <x-filament::section>
+                <x-slot name="heading">
+                    {{ $report['title'] }}
+                </x-slot>
+                
+                <x-slot name="description">
+                    <span style="display: block; min-height: 2.5rem;">
+                        {{ $report['description'] }}
+                    </span>
+                </x-slot>
 
-                <div class="mt-5 space-y-4">
+                <form method="GET" action="{{ $report['route'] }}" target="_blank" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
                     <div>
-                        <label class="text-sm font-medium text-gray-700 dark:text-gray-200" for="tanggal_mulai_{{ $loop->index }}">Tanggal Mulai</label>
-                        <input id="tanggal_mulai_{{ $loop->index }}" name="tanggal_mulai" type="date" value="{{ now()->startOfMonth()->toDateString() }}" class="mt-1 block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white">
+                        <label style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; display: block;">Tanggal Mulai</label>
+                        <x-filament::input.wrapper>
+                            <x-filament::input
+                                type="date"
+                                name="tanggal_mulai"
+                                value="{{ now()->startOfMonth()->toDateString() }}"
+                            />
+                        </x-filament::input.wrapper>
                     </div>
 
                     <div>
-                        <label class="text-sm font-medium text-gray-700 dark:text-gray-200" for="tanggal_selesai_{{ $loop->index }}">Tanggal Selesai</label>
-                        <input id="tanggal_selesai_{{ $loop->index }}" name="tanggal_selesai" type="date" value="{{ now()->toDateString() }}" class="mt-1 block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-700 dark:bg-gray-950 dark:text-white">
+                        <label style="font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; display: block;">Tanggal Selesai</label>
+                        <x-filament::input.wrapper>
+                            <x-filament::input
+                                type="date"
+                                name="tanggal_selesai"
+                                value="{{ now()->toDateString() }}"
+                            />
+                        </x-filament::input.wrapper>
                     </div>
-                </div>
 
-                <button type="submit" class="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-700">
-                    Ekspor PDF
-                </button>
-            </form>
+                    <div style="margin-top: 0.5rem;">
+                        <x-filament::button type="submit" size="md" style="width: 100%; justify-content: center;">
+                            Ekspor PDF
+                        </x-filament::button>
+                    </div>
+                </form>
+            </x-filament::section>
         @endforeach
     </div>
 </x-filament-panels::page>

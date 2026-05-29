@@ -12,12 +12,26 @@ class MonthlyRevenueChart extends ChartWidget
 {
     protected ?string $heading = 'Tren Pemasukan Bulanan';
 
-    protected string $color = 'success';
+    protected string $color = 'primary';
+
+    public ?string $filter = '12';
+
+    protected function getFilters(): ?array
+    {
+        return [
+            '3' => '3 Bulan Terakhir',
+            '6' => '6 Bulan Terakhir',
+            '12' => '12 Bulan Terakhir',
+            '24' => '24 Bulan Terakhir',
+        ];
+    }
 
     protected function getData(): array
     {
-        $months = collect(range(0, 11))
-            ->map(fn (int $offset): Carbon => now()->startOfMonth()->subMonths(11 - $offset));
+        $monthsCount = (int) $this->filter;
+
+        $months = collect(range(0, $monthsCount - 1))
+            ->map(fn (int $offset): Carbon => now()->startOfMonth()->subMonths(($monthsCount - 1) - $offset));
 
         $transaksis = Transaksi::query()
             ->where('status', TransaksiStatus::Settlement->value)
@@ -30,10 +44,10 @@ class MonthlyRevenueChart extends ChartWidget
                 [
                     'label' => 'Pemasukan',
                     'data' => $months->map(fn (Carbon $month): float => $this->sumAmount($transaksis->get($month->format('Y-m'), collect())))->all(),
-                    'borderColor' => '#10b981',
-                    'backgroundColor' => 'rgba(16, 185, 129, 0.16)',
+                    'borderColor' => '#14342f', // Hijau gelap
+                    'backgroundColor' => 'rgba(20, 52, 47, 0.15)',
                     'fill' => true,
-                    'tension' => 0.35,
+                    'tension' => 0.4,
                 ],
             ],
             'labels' => $months->map(fn (Carbon $month): string => $month->format('M Y'))->all(),
