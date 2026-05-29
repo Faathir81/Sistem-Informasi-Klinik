@@ -21,14 +21,14 @@ class JadwalDokterForm
                     ->required(),
                 Select::make('hari')
                     ->options([
-            'Senin' => 'Senin',
-            'Selasa' => 'Selasa',
-            'Rabu' => 'Rabu',
-            'Kamis' => 'Kamis',
-            'Jumat' => 'Jumat',
-            'Sabtu' => 'Sabtu',
-            'Minggu' => 'Minggu',
-        ])
+                        'Senin' => 'Senin',
+                        'Selasa' => 'Selasa',
+                        'Rabu' => 'Rabu',
+                        'Kamis' => 'Kamis',
+                        'Jumat' => 'Jumat',
+                        'Sabtu' => 'Sabtu',
+                        'Minggu' => 'Minggu',
+                    ])
                     ->required(),
                 TimePicker::make('jam_mulai')
                     ->required(),

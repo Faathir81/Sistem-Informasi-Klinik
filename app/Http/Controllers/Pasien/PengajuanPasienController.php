@@ -4,12 +4,10 @@ namespace App\Http\Controllers\Pasien;
 
 use App\Enums\PengajuanPasienStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StorePengajuanPasienRequest;
 use App\Models\PengajuanPasien;
-use App\Models\Pasien;
 use App\Services\MidtransSnapService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class PengajuanPasienController extends Controller
@@ -43,7 +41,7 @@ class PengajuanPasienController extends Controller
         return view('pasien.pengajuan.create', compact('user', 'pengajuan'));
     }
 
-    public function store(Request $request, MidtransSnapService $midtrans): RedirectResponse
+    public function store(StorePengajuanPasienRequest $request, MidtransSnapService $midtrans): RedirectResponse
     {
         $user = auth()->user()->load('pasien', 'latestPengajuanPasien.transaksi');
 
@@ -68,19 +66,7 @@ class PengajuanPasienController extends Controller
                 : redirect()->route('pasien.dashboard')->with('error', 'Pengajuan Anda masih menunggu pembayaran.');
         }
 
-        $data = $request->validate([
-            'nik' => [
-                'required',
-                'digits:16',
-                Rule::unique(Pasien::class, 'nik'),
-            ],
-            'nama_pasien' => ['required', 'string', 'max:255'],
-            'tgl_lahir' => ['required', 'date', 'before:today'],
-            'jenis_kelamin' => ['required', Rule::in(['Laki-laki', 'Perempuan'])],
-            'alamat' => ['required', 'string', 'max:1000'],
-            'no_hp' => ['required', 'string', 'max:20'],
-            'catatan_pasien' => ['nullable', 'string', 'max:1000'],
-        ]);
+        $data = $request->validated();
 
         $nikSedangDiajukan = PengajuanPasien::where('nik', $data['nik'])
             ->whereIn('status', [

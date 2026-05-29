@@ -14,7 +14,7 @@ class IsAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check() || auth()->user()->role !== 'admin') {
+        if (! auth()->check() || auth()->user()->role !== 'admin') {
             return redirect()->route('login')
                 ->with('error', 'Anda tidak memiliki akses ke halaman tersebut.');
         }

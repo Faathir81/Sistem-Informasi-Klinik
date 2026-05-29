@@ -18,8 +18,8 @@ class AntreanController extends Controller
      */
     public function create()
     {
-        $user = Auth::user();
-        $pasien = Pasien::where('user_id', $user->id)->first();
+        $user = Auth::user()->load('pasien');
+        $pasien = $user->pasien;
 
         if (! $pasien) {
             return redirect()->route('pasien.dashboard')
@@ -65,8 +65,12 @@ class AntreanController extends Controller
             'tanggal_kunjungan' => ['required', 'date', 'after_or_equal:today'],
         ]);
 
-        $user = Auth::user();
-        $pasien = Pasien::where('user_id', $user->id)->firstOrFail();
+        $user = Auth::user()->load('pasien');
+        $pasien = $user->pasien;
+
+        if (! $pasien) {
+            abort(403, 'Data pasien tidak ditemukan.');
+        }
 
         $antrean = $booking->create($pasien, $data);
 
@@ -84,8 +88,8 @@ class AntreanController extends Controller
             ->firstOrFail();
 
         // Pastikan hanya pasien yang bersangkutan bisa melihat tiketnya
-        $user = Auth::user();
-        $pasien = Pasien::where('user_id', $user->id)->first();
+        $user = Auth::user()->load('pasien');
+        $pasien = $user->pasien;
 
         if (! $pasien || $antrean->pasien_id !== $pasien->id) {
             abort(403, 'Anda tidak berhak mengakses tiket ini.');
@@ -99,8 +103,8 @@ class AntreanController extends Controller
      */
     public function index()
     {
-        $user = Auth::user();
-        $pasien = Pasien::where('user_id', $user->id)->first();
+        $user = Auth::user()->load('pasien');
+        $pasien = $user->pasien;
 
         if (! $pasien) {
             return redirect()->route('pasien.dashboard')
@@ -121,8 +125,12 @@ class AntreanController extends Controller
      */
     public function batal(Antrean $antrean)
     {
-        $user = Auth::user();
-        $pasien = Pasien::where('user_id', $user->id)->firstOrFail();
+        $user = Auth::user()->load('pasien');
+        $pasien = $user->pasien;
+
+        if (! $pasien) {
+            abort(403, 'Data pasien tidak ditemukan.');
+        }
 
         if ($antrean->pasien_id !== $pasien->id) {
             abort(403);

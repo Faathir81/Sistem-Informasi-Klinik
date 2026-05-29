@@ -38,7 +38,7 @@ class AntreansTable
                     ->sortable(),
                 TextColumn::make('jadwalDokter.jam_mulai')
                     ->label('Jam')
-                    ->formatStateUsing(fn ($record) => substr($record->jadwalDokter->jam_mulai, 0, 5) . ' – ' . substr($record->jadwalDokter->jam_selesai, 0, 5)),
+                    ->formatStateUsing(fn ($record) => substr($record->jadwalDokter->jam_mulai, 0, 5).' – '.substr($record->jadwalDokter->jam_selesai, 0, 5)),
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()

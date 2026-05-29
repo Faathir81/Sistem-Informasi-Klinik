@@ -16,11 +16,11 @@ class AdminSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'admin@klinikarridlo.com'],
             [
-                'name'     => 'Administrator Klinik',
-                'email'    => 'admin@klinikarridlo.com',
+                'name' => 'Administrator Klinik',
+                'email' => 'admin@klinikarridlo.com',
                 'password' => Hash::make('Admin@Klinik123'),
-                'role'     => 'admin',
-                'no_hp'    => '081234567890',
+                'role' => 'admin',
+                'no_hp' => '081234567890',
             ]
         );
 

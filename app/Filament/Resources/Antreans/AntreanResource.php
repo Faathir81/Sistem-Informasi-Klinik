@@ -53,9 +53,9 @@ class AntreanResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => ListAntreans::route('/'),
+            'index' => ListAntreans::route('/'),
             'create' => CreateAntrean::route('/create'),
-            'edit'   => EditAntrean::route('/{record}/edit'),
+            'edit' => EditAntrean::route('/{record}/edit'),
         ];
     }
 }

@@ -14,7 +14,7 @@ class IsPasien
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!auth()->check() || auth()->user()->role !== 'pasien') {
+        if (! auth()->check() || auth()->user()->role !== 'pasien') {
             return redirect()->route('login')
                 ->with('error', 'Silakan login terlebih dahulu dengan akun pasien Anda.');
         }
