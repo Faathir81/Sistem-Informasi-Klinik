@@ -21,7 +21,7 @@ class PembayaranController extends Controller
 
         if ($pasien) {
             $pemeriksaans = Pemeriksaan::query()
-                ->with(['dokter', 'resep.details.obat', 'transaksi'])
+                ->with(['dokter', 'resep.details.obat', 'tindakanDetails', 'transaksi'])
                 ->where('pasien_id', $pasien->id)
                 ->latest('tgl_pemeriksaan')
                 ->get();
@@ -35,7 +35,7 @@ class PembayaranController extends Controller
         abort_unless($pemeriksaan->pasien?->user_id === auth()->id(), 403);
 
         $data = $request->validate([
-            'amount' => ['required', 'numeric', 'min:1000'],
+            'biaya_konsultasi' => ['required', 'numeric', 'min:0'],
         ]);
 
         if ($pemeriksaan->transaksi?->status === TransaksiStatus::Settlement->value) {
@@ -44,11 +44,28 @@ class PembayaranController extends Controller
                 ->with('status', 'Tagihan ini sudah lunas.');
         }
 
+        $biayaKonsultasi = (int) round((float) $data['biaya_konsultasi']);
+        $totalObat = (int) round((float) ($pemeriksaan->loadMissing('resep')->resep?->total_harga_obat ?? 0));
+        $totalTindakan = (int) round($pemeriksaan->loadMissing('tindakanDetails')->totalTindakan());
+        $totalPembayaran = $biayaKonsultasi + $totalObat + $totalTindakan;
+
+        if ($totalPembayaran < 1000) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'biaya_konsultasi' => 'Total pembayaran minimal Rp 1.000.',
+                ]);
+        }
+
+        $pemeriksaan->update([
+            'biaya_konsultasi' => $biayaKonsultasi,
+        ]);
+
         try {
-            $transaksi = $midtrans->createTransaction($pemeriksaan->load(['pasien.user', 'resep']), (float) $data['amount']);
+            $transaksi = $midtrans->createTransaction($pemeriksaan->load(['pasien.user', 'resep', 'tindakanDetails']), $biayaKonsultasi);
         } catch (\Throwable $exception) {
             return back()->withErrors([
-                'amount' => $exception->getMessage(),
+                'biaya_konsultasi' => $exception->getMessage(),
             ]);
         }
 

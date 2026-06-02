@@ -34,7 +34,8 @@ class GajiForm
                 ->preload()
                 ->visible(fn (Get $get): bool => $get('role') === 'Pegawai'),
             TextInput::make('bulan_tahun')
-                ->label('Bulan Tahun')
+                ->label('Periode Gaji')
+                ->type('month')
                 ->placeholder('2026-05')
                 ->required()
                 ->maxLength(7),

@@ -79,6 +79,40 @@
 
                         <div class="border-t border-slate-100 p-6">
                             <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                <h3 class="text-lg font-black text-[#14342f]">Tindakan Klinik</h3>
+                                @if ($pemeriksaan->tindakanDetails->isNotEmpty())
+                                    <span class="clinic-badge-info">
+                                        Total Rp {{ number_format($pemeriksaan->totalTindakan(), 0, ',', '.') }}
+                                    </span>
+                                @endif
+                            </div>
+
+                            @if ($pemeriksaan->tindakanDetails->isEmpty())
+                                <p class="rounded-lg bg-slate-50 p-4 text-sm font-semibold text-[#62756f]">Tidak ada tindakan klinik berbayar pada pemeriksaan ini.</p>
+                            @else
+                                <div class="mb-6 overflow-x-auto">
+                                    <table class="clinic-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Tindakan</th>
+                                                <th>Catatan</th>
+                                                <th class="text-right">Tarif</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($pemeriksaan->tindakanDetails as $tindakan)
+                                                <tr>
+                                                    <td class="font-black text-[#14342f]">{{ $tindakan->nama_layanan }}</td>
+                                                    <td class="font-semibold text-[#62756f]">{{ $tindakan->catatan ?: '-' }}</td>
+                                                    <td class="text-right font-black text-[#14342f]">Rp {{ number_format($tindakan->tarif, 0, ',', '.') }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @endif
+
+                            <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                 <h3 class="text-lg font-black text-[#14342f]">Resep Obat</h3>
                                 @if ($pemeriksaan->resep)
                                     <x-status-badge type="pickup" :value="$pemeriksaan->resep->status_ambil" />

@@ -13,6 +13,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class AntreanResource extends Resource
 {
@@ -41,6 +42,12 @@ class AntreanResource extends Resource
     public static function table(Table $table): Table
     {
         return AntreansTable::configure($table);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['pasien', 'dokter', 'jadwalDokter']);
     }
 
     public static function getRelations(): array

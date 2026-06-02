@@ -7,10 +7,14 @@ use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class AntreansTable
 {
@@ -38,7 +42,9 @@ class AntreansTable
                     ->sortable(),
                 TextColumn::make('jadwalDokter.jam_mulai')
                     ->label('Jam')
-                    ->formatStateUsing(fn ($record) => substr($record->jadwalDokter->jam_mulai, 0, 5).' – '.substr($record->jadwalDokter->jam_selesai, 0, 5)),
+                    ->formatStateUsing(fn ($record): string => $record->jadwalDokter
+                        ? substr($record->jadwalDokter->jam_mulai, 0, 5).' - '.substr($record->jadwalDokter->jam_selesai, 0, 5)
+                        : '-'),
                 TextColumn::make('status')
                     ->label('Status')
                     ->badge()
@@ -59,17 +65,25 @@ class AntreansTable
                 SelectFilter::make('status')
                     ->label('Status Antrean')
                     ->options(AntreanStatus::options()),
-                SelectFilter::make('tanggal_kunjungan')
-                    ->label('Hari Ini')
-                    ->query(fn ($query) => $query->whereDate('tanggal_kunjungan', today()))
-                    ->label('Hanya Hari Ini'),
+                Filter::make('hari_ini')
+                    ->label('Hanya Hari Ini')
+                    ->query(fn (Builder $query): Builder => $query->whereDate('tanggal_kunjungan', now(config('app.timezone'))->toDateString())),
+                Filter::make('tanggal_spesifik')
+                    ->label('Tanggal Kunjungan')
+                    ->schema([
+                        DatePicker::make('tanggal')
+                            ->label('Tanggal')
+                            ->native(false),
+                    ])
+                    ->query(fn (Builder $query, array $data): Builder => $query
+                        ->when($data['tanggal'] ?? null, fn (Builder $query, string $tanggal): Builder => $query->whereDate('tanggal_kunjungan', $tanggal))),
             ])
             ->recordActions([
                 Action::make('panggil')
                     ->label('📢 Panggil')
                     ->color('info')
                     ->icon('heroicon-o-megaphone')
-                    ->visible(fn (Model $record) => $record->status === AntreanStatus::Menunggu->value)
+                    ->visible(fn (Model $record): bool => $record->status === AntreanStatus::Menunggu->value && self::canCallQueue($record))
                     ->requiresConfirmation()
                     ->modalHeading('Panggil Pasien?')
                     ->modalDescription(fn (Model $record) => "Panggil nomor #{$record->nomor_antrean} - {$record->pasien->nama_pasien}?")
@@ -100,5 +114,24 @@ class AntreansTable
                     DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    private static function canCallQueue(Model $record): bool
+    {
+        if (! $record->tanggal_kunjungan?->isSameDay(now(config('app.timezone')))) {
+            return false;
+        }
+
+        if (! $record->jadwalDokter) {
+            return false;
+        }
+
+        $tanggal = $record->tanggal_kunjungan->toDateString();
+        $timezone = config('app.timezone', 'Asia/Jakarta');
+        $now = now($timezone);
+        $jamMulai = Carbon::parse($tanggal.' '.$record->jadwalDokter->jam_mulai, $timezone);
+        $jamSelesai = Carbon::parse($tanggal.' '.$record->jadwalDokter->jam_selesai, $timezone);
+
+        return $now->between($jamMulai, $jamSelesai);
     }
 }

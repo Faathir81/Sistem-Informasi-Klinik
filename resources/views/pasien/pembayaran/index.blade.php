@@ -18,7 +18,7 @@
                     <div>
                         <p class="clinic-kicker">Tagihan pemeriksaan</p>
                         <h2 class="mt-2 text-2xl font-black text-[#14342f]">Buat pembayaran QRIS.</h2>
-                        <p class="mt-2 text-sm leading-6 text-[#62756f]">Masukkan nominal sesuai tagihan klinik, lalu lanjutkan pembayaran secara online.</p>
+                        <p class="mt-2 text-sm leading-6 text-[#62756f]">Tentukan biaya konsultasi, lalu sistem akan menjumlahkannya dengan total resep obat dan tindakan klinik.</p>
                     </div>
                     <div class="rounded-lg bg-[#fff7ed] p-4 text-sm">
                         <span class="font-bold text-[#a4531b]">Mode</span>
@@ -45,7 +45,10 @@
                 <div class="grid gap-5">
                     @foreach ($pemeriksaans as $pemeriksaan)
                         @php
-                            $tagihan = $pemeriksaan->totalTagihan();
+                            $totalObat = (float) ($pemeriksaan->resep?->total_harga_obat ?? 0);
+                            $totalTindakan = $pemeriksaan->totalTindakan();
+                            $biayaKonsultasi = old('biaya_konsultasi', (int) $pemeriksaan->biaya_konsultasi);
+                            $tagihan = (float) $biayaKonsultasi + $totalObat + $totalTindakan;
                             $transaksi = $pemeriksaan->transaksi;
                         @endphp
 
@@ -57,8 +60,8 @@
                                     <p class="mt-1 text-sm leading-6 text-[#62756f]">{{ $pemeriksaan->diagnosa }}</p>
                                 </div>
                                 <div class="rounded-lg bg-[#f3faf6] p-4 lg:min-w-64">
-                                    <p class="text-sm font-bold text-[#62756f]">Estimasi tagihan</p>
-                                    <p class="mt-1 text-2xl font-black text-[#14342f]">Rp {{ number_format($tagihan, 0, ',', '.') }}</p>
+                                    <p class="text-sm font-bold text-[#62756f]">Total pembayaran</p>
+                                    <p class="mt-1 text-2xl font-black text-[#14342f]" data-total-payment-summary>Rp {{ number_format($tagihan, 0, ',', '.') }}</p>
                                     <x-status-badge class="mt-3" type="payment" :value="$pemeriksaan->status_bayar" />
                                 </div>
                             </div>
@@ -73,13 +76,33 @@
                             @endif
 
                             @if ($pemeriksaan->status_bayar !== \App\Enums\PaymentStatus::Lunas->value)
-                                <form method="POST" action="{{ route('pasien.pembayaran.store', $pemeriksaan) }}" class="grid gap-4 p-6 md:grid-cols-[1fr_auto] md:items-end">
+                                <form method="POST" action="{{ route('pasien.pembayaran.store', $pemeriksaan) }}" class="grid gap-4 p-6 md:grid-cols-[1fr_auto] md:items-end" data-payment-form data-total-obat="{{ (int) round($totalObat) }}" data-total-tindakan="{{ (int) round($totalTindakan) }}">
                                     @csrf
-                                    <div>
-                                        <label for="amount-{{ $pemeriksaan->id }}" class="clinic-label block">Nominal yang dibayarkan</label>
-                                        <input id="amount-{{ $pemeriksaan->id }}" name="amount" type="number" min="1000" value="{{ old('amount', (int) $tagihan) }}" class="clinic-field mt-2">
-                                        @error('amount')
-                                            <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
+                                    <div class="grid gap-4 md:grid-cols-4">
+                                        <div>
+                                            <label for="biaya-konsultasi-{{ $pemeriksaan->id }}" class="clinic-label block">Biaya konsultasi</label>
+                                            <input id="biaya-konsultasi-{{ $pemeriksaan->id }}" name="biaya_konsultasi" type="number" min="0" step="1" value="{{ $biayaKonsultasi }}" class="clinic-field mt-2" data-consultation-input>
+                                        </div>
+                                        <div>
+                                            <span class="clinic-label block">Total resep obat</span>
+                                            <div class="mt-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-bold text-[#14342f]">
+                                                Rp {{ number_format($totalObat, 0, ',', '.') }}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span class="clinic-label block">Total tindakan</span>
+                                            <div class="mt-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-bold text-[#14342f]">
+                                                Rp {{ number_format($totalTindakan, 0, ',', '.') }}
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <span class="clinic-label block">Total dibayarkan</span>
+                                            <div class="mt-2 rounded-md border border-[#b8cec3] bg-[#f3faf6] px-3 py-2.5 text-sm font-black text-[#14342f]" data-total-payment>
+                                                Rp {{ number_format($tagihan, 0, ',', '.') }}
+                                            </div>
+                                        </div>
+                                        @error('biaya_konsultasi')
+                                            <p class="md:col-span-3 text-sm font-semibold text-red-600">{{ $message }}</p>
                                         @enderror
                                     </div>
                                     <button type="submit" class="clinic-btn-primary">
@@ -93,4 +116,25 @@
             @endif
         </div>
     </div>
+
+    <script>
+        document.querySelectorAll('[data-payment-form]').forEach((form) => {
+            const input = form.querySelector('[data-consultation-input]');
+            const output = form.querySelector('[data-total-payment]');
+            const summary = form.closest('article').querySelector('[data-total-payment-summary]');
+            const totalObat = Number(form.dataset.totalObat || 0);
+            const totalTindakan = Number(form.dataset.totalTindakan || 0);
+            const formatter = new Intl.NumberFormat('id-ID');
+
+            const updateTotal = () => {
+                const biayaKonsultasi = Math.max(Number(input.value || 0), 0);
+                const totalText = `Rp ${formatter.format(biayaKonsultasi + totalObat + totalTindakan)}`;
+                output.textContent = totalText;
+                summary.textContent = totalText;
+            };
+
+            input.addEventListener('input', updateTotal);
+            updateTotal();
+        });
+    </script>
 </x-app-layout>

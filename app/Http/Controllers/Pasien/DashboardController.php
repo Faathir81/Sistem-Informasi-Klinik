@@ -35,7 +35,7 @@ class DashboardController extends Controller
                 ->first();
 
             $pemeriksaanTerakhir = Pemeriksaan::query()
-                ->with(['dokter', 'resep'])
+                ->with(['dokter', 'resep', 'tindakanDetails'])
                 ->where('pasien_id', $pasien->id)
                 ->latest('tgl_pemeriksaan')
                 ->first();
@@ -92,7 +92,7 @@ class DashboardController extends Controller
 
         if ($pasien) {
             $pemeriksaans = Pemeriksaan::query()
-                ->with(['dokter', 'resep.details.obat'])
+                ->with(['dokter', 'resep.details.obat', 'tindakanDetails'])
                 ->where('pasien_id', $pasien->id)
                 ->latest('tgl_pemeriksaan')
                 ->get();

@@ -45,6 +45,10 @@ class PemeriksaansTable
                     ->label('Obat')
                     ->money('IDR')
                     ->placeholder('Belum ada resep'),
+                TextColumn::make('total_tindakan')
+                    ->label('Tindakan')
+                    ->state(fn ($record): float => $record->totalTindakan())
+                    ->money('IDR'),
             ])
             ->defaultSort('tgl_pemeriksaan', 'desc')
             ->filters([

@@ -21,6 +21,7 @@
             <td><strong>Total Kunjungan</strong><br>{{ number_format($totalKunjungan, 0, ',', '.') }}</td>
             <td><strong>Total Konsultasi</strong><br>Rp {{ number_format($totalKonsultasi, 0, ',', '.') }}</td>
             <td><strong>Total Obat</strong><br>Rp {{ number_format($totalObat, 0, ',', '.') }}</td>
+            <td><strong>Total Tindakan</strong><br>Rp {{ number_format($totalTindakan, 0, ',', '.') }}</td>
         </tr>
     </table>
 
@@ -33,6 +34,7 @@
                 <th>Diagnosa</th>
                 <th class="right">Konsultasi</th>
                 <th class="right">Obat</th>
+                <th class="right">Tindakan</th>
             </tr>
         </thead>
         <tbody>
@@ -44,9 +46,10 @@
                     <td>{{ $pemeriksaan->diagnosa }}</td>
                     <td class="right">Rp {{ number_format($pemeriksaan->biaya_konsultasi, 0, ',', '.') }}</td>
                     <td class="right">Rp {{ number_format($pemeriksaan->resep?->total_harga_obat ?? 0, 0, ',', '.') }}</td>
+                    <td class="right">Rp {{ number_format($pemeriksaan->totalTindakan(), 0, ',', '.') }}</td>
                 </tr>
             @empty
-                <tr><td colspan="6" class="center muted">Tidak ada kunjungan pada periode ini.</td></tr>
+                <tr><td colspan="7" class="center muted">Tidak ada kunjungan pada periode ini.</td></tr>
             @endforelse
         </tbody>
     </table>

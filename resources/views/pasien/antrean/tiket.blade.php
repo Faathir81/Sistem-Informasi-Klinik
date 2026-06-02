@@ -83,12 +83,12 @@
                     </div>
 
                     <div class="mt-6 grid gap-3">
-                        <button onclick="window.print()" id="btn-print-tiket" class="clinic-btn-primary w-full" type="button">
+                        <a href="{{ route('pasien.antrean.tiket.pdf', $antrean->kode_antrean) }}" id="btn-print-tiket" class="clinic-btn-primary w-full">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8V4h10v4m-9 9H6a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2m-8 0h8v3H8v-3Z"/>
                             </svg>
                             Cetak / Simpan PDF
-                        </button>
+                        </a>
 
                         @if($antrean->status === \App\Enums\AntreanStatus::Menunggu->value)
                             <form action="{{ route('pasien.antrean.batal', $antrean->id) }}" method="POST" onsubmit="return confirm('Yakin ingin membatalkan antrean ini?')">

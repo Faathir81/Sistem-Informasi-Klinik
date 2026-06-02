@@ -5,7 +5,9 @@ namespace App\Filament\Resources\Pemeriksaans\Schemas;
 use App\Enums\AntreanStatus;
 use App\Enums\PaymentStatus;
 use App\Models\Antrean;
+use App\Models\Layanan;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -79,13 +81,49 @@ class PemeriksaanForm
                     ->label('Tindakan')
                     ->rows(3)
                     ->columnSpanFull(),
-                TextInput::make('biaya_konsultasi')
-                    ->label('Biaya Konsultasi')
-                    ->numeric()
-                    ->prefix('Rp')
-                    ->minValue(0)
-                    ->default(0)
-                    ->required(),
+                Repeater::make('tindakanDetails')
+                    ->label('Layanan / Tindakan Klinik')
+                    ->relationship()
+                    ->schema([
+                        Select::make('layanan_id')
+                            ->label('Layanan')
+                            ->relationship(
+                                'layanan',
+                                'nama_layanan',
+                                fn (Builder $query) => $query->where('status_aktif', true)
+                            )
+                            ->getOptionLabelFromRecordUsing(fn (Layanan $record): string => "{$record->nama_layanan} - Rp ".number_format((float) $record->tarif_default, 0, ',', '.'))
+                            ->searchable()
+                            ->preload()
+                            ->live()
+                            ->afterStateUpdated(function (?int $state, Set $set): void {
+                                $layanan = $state ? Layanan::find($state) : null;
+
+                                $set('nama_layanan', $layanan?->nama_layanan);
+                                $set('tarif', $layanan ? (int) $layanan->tarif_default : 0);
+                            }),
+                        TextInput::make('nama_layanan')
+                            ->label('Nama Tindakan')
+                            ->placeholder('Contoh: Urut keseleo')
+                            ->required()
+                            ->maxLength(255),
+                        TextInput::make('tarif')
+                            ->label('Tarif')
+                            ->prefix('Rp')
+                            ->numeric()
+                            ->minValue(0)
+                            ->default(0)
+                            ->required(),
+                        Textarea::make('catatan')
+                            ->label('Catatan')
+                            ->placeholder('Contoh: kaki kanan, nyeri setelah jatuh')
+                            ->rows(2)
+                            ->columnSpanFull(),
+                    ])
+                    ->columns(2)
+                    ->defaultItems(0)
+                    ->addActionLabel('Tambah Tindakan')
+                    ->columnSpanFull(),
                 Select::make('status_bayar')
                     ->label('Status Bayar')
                     ->options(PaymentStatus::options())

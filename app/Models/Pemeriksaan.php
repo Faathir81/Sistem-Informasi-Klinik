@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Pemeriksaan extends Model
@@ -29,6 +30,7 @@ class Pemeriksaan extends Model
     {
         static::deleting(function (Pemeriksaan $pemeriksaan) {
             $pemeriksaan->resep?->delete();
+            $pemeriksaan->tindakanDetails()->delete();
         });
     }
 
@@ -57,8 +59,24 @@ class Pemeriksaan extends Model
         return $this->hasOne(Transaksi::class);
     }
 
+    public function tindakanDetails(): HasMany
+    {
+        return $this->hasMany(PemeriksaanTindakan::class);
+    }
+
+    public function totalTindakan(): float
+    {
+        if ($this->relationLoaded('tindakanDetails')) {
+            return (float) $this->tindakanDetails->sum('tarif');
+        }
+
+        return (float) $this->tindakanDetails()->sum('tarif');
+    }
+
     public function totalTagihan(): float
     {
-        return (float) $this->biaya_konsultasi + (float) ($this->resep?->total_harga_obat ?? 0);
+        return (float) $this->biaya_konsultasi
+            + (float) ($this->resep?->total_harga_obat ?? 0)
+            + $this->totalTindakan();
     }
 }

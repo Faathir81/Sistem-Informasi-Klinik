@@ -14,12 +14,21 @@ class MidtransSnapService
 {
     public const REGISTRATION_FEE = 1000;
 
-    public function createTransaction(Pemeriksaan $pemeriksaan, float $amount): Transaksi
+    public function createTransaction(Pemeriksaan $pemeriksaan, float $biayaKonsultasi): Transaksi
     {
         $serverKey = config('services.midtrans.server_key');
 
         if (! $serverKey) {
             throw new RuntimeException('MIDTRANS_SERVER_KEY belum dikonfigurasi.');
+        }
+
+        $biayaKonsultasi = (int) round($biayaKonsultasi);
+        $totalObat = (int) round((float) ($pemeriksaan->resep?->total_harga_obat ?? 0));
+        $totalTindakan = (int) round($pemeriksaan->totalTindakan());
+        $amount = $biayaKonsultasi + $totalObat + $totalTindakan;
+
+        if ($amount < 1000) {
+            throw new RuntimeException('Total pembayaran minimal Rp 1.000.');
         }
 
         $transaksi = Transaksi::updateOrCreate(
@@ -36,21 +45,14 @@ class MidtransSnapService
         $payload = [
             'transaction_details' => [
                 'order_id' => $transaksi->order_id,
-                'gross_amount' => (int) round($amount),
+                'gross_amount' => $amount,
             ],
             'customer_details' => [
                 'first_name' => $pemeriksaan->pasien->nama_pasien,
                 'email' => $pemeriksaan->pasien->user?->email,
                 'phone' => $pemeriksaan->pasien->no_hp,
             ],
-            'item_details' => [
-                [
-                    'id' => 'PEMERIKSAAN-'.$pemeriksaan->id,
-                    'price' => (int) round($amount),
-                    'quantity' => 1,
-                    'name' => 'Tagihan Klinik Ar-Ridlo',
-                ],
-            ],
+            'item_details' => $this->clinicBillItems($pemeriksaan, $biayaKonsultasi, $totalObat, $totalTindakan),
             'enabled_payments' => $this->enabledPayments(),
             'callbacks' => [
                 'finish' => route('pasien.pembayaran.index'),
@@ -169,5 +171,39 @@ class MidtransSnapService
     private function enabledPayments(): array
     {
         return ['gopay', 'qris'];
+    }
+
+    private function clinicBillItems(Pemeriksaan $pemeriksaan, int $biayaKonsultasi, int $totalObat, int $totalTindakan): array
+    {
+        $items = [];
+
+        if ($biayaKonsultasi > 0) {
+            $items[] = [
+                'id' => 'KONSULTASI-'.$pemeriksaan->id,
+                'price' => $biayaKonsultasi,
+                'quantity' => 1,
+                'name' => 'Biaya Konsultasi',
+            ];
+        }
+
+        if ($totalObat > 0) {
+            $items[] = [
+                'id' => 'RESEP-'.$pemeriksaan->id,
+                'price' => $totalObat,
+                'quantity' => 1,
+                'name' => 'Resep Obat',
+            ];
+        }
+
+        if ($totalTindakan > 0) {
+            $items[] = [
+                'id' => 'TINDAKAN-'.$pemeriksaan->id,
+                'price' => $totalTindakan,
+                'quantity' => 1,
+                'name' => 'Tindakan Klinik',
+            ];
+        }
+
+        return $items;
     }
 }

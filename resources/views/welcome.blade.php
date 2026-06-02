@@ -269,7 +269,7 @@
                             @foreach ([
                                 ['q' => 'Bagaimana cara mendaftar antrean online?', 'a' => 'Buat akun pasien, masuk ke dashboard, pilih tanggal kunjungan dan dokter, lalu sistem membuat nomor antrean beserta QR Code.'],
                                 ['q' => 'Apakah tiket antrean bisa dicetak?', 'a' => 'Bisa. Tiket antrean menampilkan nomor, jadwal dokter, kode antrean, dan QR Code yang dapat dicetak atau disimpan sebagai PDF.'],
-                                ['q' => 'Kapan pasien bisa membayar QRIS?', 'a' => 'Pembayaran dibuat setelah admin mencatat pemeriksaan dan resep. Pasien memasukkan nominal, lalu sistem membuat transaksi pembayaran.'],
+                                ['q' => 'Kapan pasien bisa membayar QRIS?', 'a' => 'Pembayaran dibuat setelah admin mencatat pemeriksaan dan resep. Pasien menentukan biaya konsultasi, lalu sistem menjumlahkannya dengan total resep obat.'],
                             ] as $faq)
                                 <details class="clinic-card-solid group p-5">
                                     <summary class="flex cursor-pointer list-none items-center justify-between gap-4 text-left font-black text-[#14342f]">

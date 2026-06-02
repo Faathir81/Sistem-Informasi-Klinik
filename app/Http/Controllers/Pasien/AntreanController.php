@@ -8,6 +8,7 @@ use App\Models\Antrean;
 use App\Models\Dokter;
 use App\Models\Pasien;
 use App\Services\Antrean\AntreanBookingService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -83,19 +84,19 @@ class AntreanController extends Controller
      */
     public function tiket(string $kode)
     {
-        $antrean = Antrean::with(['pasien', 'dokter', 'jadwalDokter'])
-            ->where('kode_antrean', $kode)
-            ->firstOrFail();
-
-        // Pastikan hanya pasien yang bersangkutan bisa melihat tiketnya
-        $user = Auth::user()->load('pasien');
-        $pasien = $user->pasien;
-
-        if (! $pasien || $antrean->pasien_id !== $pasien->id) {
-            abort(403, 'Anda tidak berhak mengakses tiket ini.');
-        }
+        $antrean = $this->authorizedTiket($kode);
 
         return view('pasien.antrean.tiket', compact('antrean'));
+    }
+
+    public function tiketPdf(string $kode)
+    {
+        $antrean = $this->authorizedTiket($kode);
+        $filename = 'tiket-antrean-'.$antrean->kode_antrean.'.pdf';
+
+        return Pdf::loadView('pasien.antrean.tiket-pdf', compact('antrean'))
+            ->setPaper('a4', 'portrait')
+            ->download($filename);
     }
 
     /**
@@ -118,6 +119,22 @@ class AntreanController extends Controller
             ->paginate(10);
 
         return view('pasien.antrean.index', compact('antreans', 'pasien'));
+    }
+
+    private function authorizedTiket(string $kode): Antrean
+    {
+        $antrean = Antrean::with(['pasien', 'dokter', 'jadwalDokter'])
+            ->where('kode_antrean', $kode)
+            ->firstOrFail();
+
+        $user = Auth::user()->load('pasien');
+        $pasien = $user->pasien;
+
+        if (! $pasien || $antrean->pasien_id !== $pasien->id) {
+            abort(403, 'Anda tidak berhak mengakses tiket ini.');
+        }
+
+        return $antrean;
     }
 
     /**

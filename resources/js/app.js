@@ -143,7 +143,7 @@ function initBookingSchedulePicker() {
             const data = await response.json();
 
             resetJadwal();
-            jadwalKosong.textContent = 'Tidak ada jadwal praktek untuk dokter ini pada tanggal yang dipilih.';
+            jadwalKosong.textContent = 'Tidak ada jadwal praktek tersedia untuk dokter ini pada tanggal yang dipilih.';
 
             if (data.length === 0) {
                 jadwalWrapper.classList.add('hidden');

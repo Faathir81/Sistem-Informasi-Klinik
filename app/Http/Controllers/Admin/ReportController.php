@@ -49,7 +49,7 @@ class ReportController extends Controller
         [$startDate, $endDate] = $this->dateRange($request);
 
         $pemeriksaans = Pemeriksaan::query()
-            ->with(['pasien', 'dokter', 'resep.details'])
+            ->with(['pasien', 'dokter', 'resep.details', 'tindakanDetails'])
             ->whereBetween('tgl_pemeriksaan', [$startDate->toDateString(), $endDate->toDateString()])
             ->latest('tgl_pemeriksaan')
             ->get();
@@ -61,6 +61,7 @@ class ReportController extends Controller
             'totalKunjungan' => $pemeriksaans->count(),
             'totalKonsultasi' => $pemeriksaans->sum('biaya_konsultasi'),
             'totalObat' => $pemeriksaans->sum(fn (Pemeriksaan $pemeriksaan): float => (float) ($pemeriksaan->resep?->total_harga_obat ?? 0)),
+            'totalTindakan' => $pemeriksaans->sum(fn (Pemeriksaan $pemeriksaan): float => $pemeriksaan->totalTindakan()),
         ])
             ->setPaper('a4')
             ->download('laporan-kunjungan-'.$startDate->format('Ymd').'-'.$endDate->format('Ymd').'.pdf');

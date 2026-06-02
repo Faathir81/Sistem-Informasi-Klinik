@@ -106,7 +106,7 @@
                         </div>
 
                         <div id="jadwal-kosong" class="hidden rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-semibold text-orange-700">
-                            Tidak ada jadwal praktek untuk dokter ini pada tanggal yang dipilih.
+                            Tidak ada jadwal praktek tersedia untuk dokter ini pada tanggal yang dipilih.
                         </div>
 
                         <button type="submit" id="btn-submit-booking" class="clinic-btn-primary w-full disabled:cursor-not-allowed disabled:opacity-50">

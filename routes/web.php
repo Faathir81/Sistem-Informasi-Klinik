@@ -56,6 +56,7 @@ Route::middleware(['auth', 'is.pasien'])->prefix('pasien')->name('pasien.')->gro
     Route::post('/antrean/booking', [AntreanController::class, 'store'])->name('antrean.store');
     Route::get('/antrean/jadwal', [AntreanController::class, 'getJadwal'])->name('antrean.jadwal');
     Route::get('/antrean/tiket/{kode}', [AntreanController::class, 'tiket'])->name('antrean.tiket');
+    Route::get('/antrean/tiket/{kode}/pdf', [AntreanController::class, 'tiketPdf'])->name('antrean.tiket.pdf');
     Route::patch('/antrean/{antrean}/batal', [AntreanController::class, 'batal'])->name('antrean.batal');
 });
 

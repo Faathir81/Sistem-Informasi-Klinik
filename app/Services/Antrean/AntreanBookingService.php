@@ -7,6 +7,7 @@ use App\Models\Antrean;
 use App\Models\Dokter;
 use App\Models\JadwalDokter;
 use App\Models\Pasien;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -15,12 +16,15 @@ class AntreanBookingService
 {
     public function availableSchedules(int $dokterId, string $tanggal)
     {
-        $hari = now()->parse($tanggal)->locale('id')->isoFormat('dddd');
+        $tanggalKunjungan = Carbon::parse($tanggal, $this->timezone())->startOfDay();
+        $hari = $tanggalKunjungan->locale('id')->isoFormat('dddd');
 
         return JadwalDokter::with('dokter')
             ->where('dokter_id', $dokterId)
             ->where('hari', $hari)
+            ->orderBy('jam_mulai')
             ->get()
+            ->filter(fn (JadwalDokter $jadwal): bool => $this->isScheduleBookable($jadwal, $tanggalKunjungan))
             ->map(function (JadwalDokter $jadwal) use ($tanggal): JadwalDokter {
                 $terpakai = Antrean::query()
                     ->where('jadwal_dokter_id', $jadwal->id)
@@ -31,7 +35,8 @@ class AntreanBookingService
                 $jadwal->sisa_kuota = $jadwal->kuota - $terpakai;
 
                 return $jadwal;
-            });
+            })
+            ->values();
     }
 
     public function create(Pasien $pasien, array $data): Antrean
@@ -53,6 +58,10 @@ class AntreanBookingService
                 ]);
             }
 
+            $tanggalKunjungan = Carbon::parse($data['tanggal_kunjungan'], $this->timezone())->startOfDay();
+
+            $this->ensureScheduleMatchesVisitDate($jadwal, $tanggalKunjungan);
+            $this->ensureScheduleIsBookable($jadwal, $tanggalKunjungan);
             $this->ensureAvailableQuota($jadwal, $data['tanggal_kunjungan']);
             $this->ensureNoActiveDuplicate($pasien, (int) $data['dokter_id'], $data['tanggal_kunjungan']);
 
@@ -66,6 +75,44 @@ class AntreanBookingService
                 'status' => AntreanStatus::Menunggu->value,
             ]);
         });
+    }
+
+    private function ensureScheduleMatchesVisitDate(JadwalDokter $jadwal, Carbon $tanggalKunjungan): void
+    {
+        $hariKunjungan = $tanggalKunjungan->locale('id')->isoFormat('dddd');
+
+        if ($jadwal->hari !== $hariKunjungan) {
+            throw ValidationException::withMessages([
+                'jadwal_dokter_id' => 'Jadwal tidak sesuai dengan tanggal kunjungan yang dipilih.',
+            ]);
+        }
+    }
+
+    private function ensureScheduleIsBookable(JadwalDokter $jadwal, Carbon $tanggalKunjungan): void
+    {
+        if (! $this->isScheduleBookable($jadwal, $tanggalKunjungan)) {
+            throw ValidationException::withMessages([
+                'jadwal_dokter_id' => 'Sesi jadwal ini sudah tutup dan tidak bisa dipilih untuk hari ini.',
+            ]);
+        }
+    }
+
+    private function isScheduleBookable(JadwalDokter $jadwal, Carbon $tanggalKunjungan): bool
+    {
+        $now = now($this->timezone());
+
+        if (! $tanggalKunjungan->isSameDay($now)) {
+            return true;
+        }
+
+        $jamSelesai = Carbon::parse($tanggalKunjungan->toDateString().' '.$jadwal->jam_selesai, $this->timezone());
+
+        return $now->lt($jamSelesai);
+    }
+
+    private function timezone(): string
+    {
+        return config('app.timezone', 'Asia/Jakarta') ?: 'Asia/Jakarta';
     }
 
     private function ensureAvailableQuota(JadwalDokter $jadwal, string $tanggal): void
