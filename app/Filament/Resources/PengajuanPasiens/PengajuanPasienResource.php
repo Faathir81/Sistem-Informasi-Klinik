@@ -30,7 +30,7 @@ class PengajuanPasienResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Data Master Klinik';
+        return 'Operasional';
     }
 
     public static function getNavigationBadge(): ?string

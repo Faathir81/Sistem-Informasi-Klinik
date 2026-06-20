@@ -7,6 +7,7 @@ use App\Http\Controllers\Pasien\AntreanController;
 use App\Http\Controllers\Pasien\DashboardController as PasienDashboard;
 use App\Http\Controllers\Pasien\PembayaranController;
 use App\Http\Controllers\Pasien\PengajuanPasienController;
+use App\Http\Controllers\Pasien\ProfilPasienController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\LiveQueuePreviewController;
 use App\Services\Antrean\LiveQueuePreviewService;
@@ -49,6 +50,10 @@ Route::middleware(['auth', 'is.pasien'])->prefix('pasien')->name('pasien.')->gro
     Route::get('/pembayaran/transaksi/{transaksi}', [PembayaranController::class, 'show'])->name('pembayaran.show');
     Route::get('/pengajuan-pasien', [PengajuanPasienController::class, 'create'])->name('pengajuan-pasien.create');
     Route::post('/pengajuan-pasien', [PengajuanPasienController::class, 'store'])->name('pengajuan-pasien.store');
+    Route::get('/profil-pasien', [ProfilPasienController::class, 'index'])->name('profil.index');
+    Route::get('/profil-pasien/{pasien}/edit', [ProfilPasienController::class, 'edit'])->name('profil.edit');
+    Route::patch('/profil-pasien/{pasien}', [ProfilPasienController::class, 'update'])->name('profil.update');
+    Route::delete('/profil-pasien/{pasien}', [ProfilPasienController::class, 'destroy'])->name('profil.destroy');
 
     // ── Antrean ──────────────────────────────────────────────────────────
     Route::get('/antrean', [AntreanController::class, 'index'])->name('antrean.index');

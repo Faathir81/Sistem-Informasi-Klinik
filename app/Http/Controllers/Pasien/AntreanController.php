@@ -19,16 +19,18 @@ class AntreanController extends Controller
      */
     public function create()
     {
-        $user = Auth::user()->load('pasien');
-        $pasien = $user->pasien;
+        $user = Auth::user()->load('pasiens');
+        $pasiens = $user->pasiens;
 
-        if (! $pasien) {
+        if ($pasiens->isEmpty()) {
             return redirect()->route('pasien.dashboard')
-                ->with('error', 'Data pasien Anda belum aktif. Ajukan data pasien terlebih dahulu agar admin dapat membuat nomor rekam medis.');
+                ->with('error', 'Belum ada profil pasien aktif. Tambahkan profil pasien terlebih dahulu.');
         }
 
-        // Cek jika pasien sudah punya antrean aktif hari ini
-        $antreanHariIni = Antrean::where('pasien_id', $pasien->id)
+        $selectedPasien = $pasiens->firstWhere('id', old('pasien_id')) ?? $pasiens->first();
+
+        $antreanHariIni = Antrean::with(['pasien', 'dokter'])
+            ->whereIn('pasien_id', $pasiens->pluck('id'))
             ->where('tanggal_kunjungan', today())
             ->whereIn('status', AntreanStatus::activeValues())
             ->first();
@@ -36,7 +38,7 @@ class AntreanController extends Controller
         $dokters = Dokter::where('status_aktif', true)->get();
         $hariIni = now()->locale('id')->isoFormat('dddd'); // Senin, Selasa, dst.
 
-        return view('pasien.antrean.create', compact('pasien', 'dokters', 'hariIni', 'antreanHariIni'));
+        return view('pasien.antrean.create', compact('pasiens', 'selectedPasien', 'dokters', 'hariIni', 'antreanHariIni'));
     }
 
     /**
@@ -49,7 +51,7 @@ class AntreanController extends Controller
             'tanggal' => ['nullable', 'date', 'after_or_equal:today'],
         ]);
 
-        return response()->json($booking->availableSchedules(
+        return response()->json($booking->scheduleAvailability(
             (int) $request->dokter_id,
             $request->tanggal ?? today()->toDateString(),
         ));
@@ -61,16 +63,17 @@ class AntreanController extends Controller
     public function store(Request $request, AntreanBookingService $booking)
     {
         $data = $request->validate([
+            'pasien_id' => ['required', 'exists:pasiens,id'],
             'dokter_id' => ['required', 'exists:dokters,id'],
             'jadwal_dokter_id' => ['required', 'exists:jadwal_dokters,id'],
             'tanggal_kunjungan' => ['required', 'date', 'after_or_equal:today'],
         ]);
 
-        $user = Auth::user()->load('pasien');
-        $pasien = $user->pasien;
+        $user = Auth::user()->load('pasiens');
+        $pasien = $user->pasiens->firstWhere('id', (int) $data['pasien_id']);
 
         if (! $pasien) {
-            abort(403, 'Data pasien tidak ditemukan.');
+            abort(403, 'Profil pasien tidak ditemukan.');
         }
 
         $antrean = $booking->create($pasien, $data);
@@ -104,21 +107,21 @@ class AntreanController extends Controller
      */
     public function index()
     {
-        $user = Auth::user()->load('pasien');
-        $pasien = $user->pasien;
+        $user = Auth::user()->load('pasiens');
+        $pasienIds = $user->pasiens->pluck('id');
 
-        if (! $pasien) {
+        if ($pasienIds->isEmpty()) {
             return redirect()->route('pasien.dashboard')
-                ->with('error', 'Data pasien Anda belum aktif. Ajukan data pasien terlebih dahulu agar admin dapat membuat nomor rekam medis.');
+                ->with('error', 'Belum ada profil pasien aktif. Tambahkan profil pasien terlebih dahulu.');
         }
 
-        $antreans = Antrean::with(['dokter', 'jadwalDokter'])
-            ->where('pasien_id', $pasien->id)
+        $antreans = Antrean::with(['pasien', 'dokter', 'jadwalDokter'])
+            ->whereIn('pasien_id', $pasienIds)
             ->orderByDesc('tanggal_kunjungan')
             ->orderByDesc('created_at')
             ->paginate(10);
 
-        return view('pasien.antrean.index', compact('antreans', 'pasien'));
+        return view('pasien.antrean.index', compact('antreans'));
     }
 
     private function authorizedTiket(string $kode): Antrean
@@ -127,10 +130,10 @@ class AntreanController extends Controller
             ->where('kode_antrean', $kode)
             ->firstOrFail();
 
-        $user = Auth::user()->load('pasien');
-        $pasien = $user->pasien;
+        $user = Auth::user()->load('pasiens');
+        $pasienIds = $user->pasiens->pluck('id');
 
-        if (! $pasien || $antrean->pasien_id !== $pasien->id) {
+        if (! $pasienIds->contains($antrean->pasien_id)) {
             abort(403, 'Anda tidak berhak mengakses tiket ini.');
         }
 
@@ -142,14 +145,14 @@ class AntreanController extends Controller
      */
     public function batal(Antrean $antrean)
     {
-        $user = Auth::user()->load('pasien');
-        $pasien = $user->pasien;
+        $user = Auth::user()->load('pasiens');
+        $pasienIds = $user->pasiens->pluck('id');
 
-        if (! $pasien) {
-            abort(403, 'Data pasien tidak ditemukan.');
+        if ($pasienIds->isEmpty()) {
+            abort(403, 'Profil pasien tidak ditemukan.');
         }
 
-        if ($antrean->pasien_id !== $pasien->id) {
+        if (! $pasienIds->contains($antrean->pasien_id)) {
             abort(403);
         }
 

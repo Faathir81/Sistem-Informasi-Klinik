@@ -5,7 +5,7 @@
                 <p class="clinic-kicker">Antrean</p>
                 <h1 class="mt-1 text-2xl font-black text-[#14342f]">Riwayat Antrean Saya</h1>
             </div>
-            <a href="{{ route('pasien.antrean.create') }}" id="btn-booking-baru" class="clinic-btn-primary">
+            <a href="{{ route('pasien.antrean.create') }}" id="btn-booking-baru" class="clinic-btn-primary w-full sm:w-auto">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14"/>
                 </svg>
@@ -41,7 +41,7 @@
                                 <h2 class="text-lg font-black text-[#14342f]">{{ $antrean->dokter->nama_dokter }}</h2>
                                 <x-status-badge type="antrean" :value="$antrean->status" />
                             </div>
-                            <p class="mt-1 text-sm font-semibold text-[#62756f]">{{ $antrean->dokter->spesialisasi }}</p>
+                            <p class="mt-1 text-sm font-semibold text-[#62756f]">{{ $antrean->pasien->nama_pasien }} - {{ $antrean->dokter->spesialisasi }}</p>
                             <div class="mt-3 grid gap-2 text-sm text-[#46665f] md:grid-cols-3">
                                 <span class="rounded-md bg-[#f3faf6] px-3 py-2 font-semibold">{{ $antrean->tanggal_kunjungan->isoFormat('dddd, D MMMM Y') }}</span>
                                 <span class="rounded-md bg-[#f3faf6] px-3 py-2 font-semibold">{{ substr($antrean->jadwalDokter->jam_mulai, 0, 5) }} - {{ substr($antrean->jadwalDokter->jam_selesai, 0, 5) }} WIB</span>

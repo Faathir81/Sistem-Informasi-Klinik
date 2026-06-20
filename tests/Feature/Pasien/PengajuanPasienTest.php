@@ -139,7 +139,7 @@ class PengajuanPasienTest extends TestCase
         ]);
     }
 
-    public function test_registered_patient_is_redirected_from_pengajuan_form(): void
+    public function test_registered_patient_can_open_form_to_add_another_family_profile(): void
     {
         $user = User::factory()->create(['role' => 'pasien']);
 
@@ -156,7 +156,9 @@ class PengajuanPasienTest extends TestCase
         $response = $this->actingAs($user)
             ->get(route('pasien.pengajuan-pasien.create'));
 
-        $response->assertRedirect(route('pasien.dashboard', absolute: false));
+        $response
+            ->assertOk()
+            ->assertSee('Tambah Profil Pasien');
     }
 
     private function validPayload(array $overrides = []): array

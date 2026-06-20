@@ -41,10 +41,6 @@ class PengajuanPasiensTable
                     ->badge()
                     ->placeholder('-')
                     ->toggleable(),
-                TextColumn::make('pasien.no_rekam_medis')
-                    ->label('No. RM')
-                    ->placeholder('-')
-                    ->toggleable(),
                 TextColumn::make('reviewed_at')
                     ->label('Diverifikasi')
                     ->dateTime('d M Y H:i')

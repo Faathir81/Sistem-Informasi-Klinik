@@ -8,7 +8,13 @@ use Illuminate\Support\Carbon;
 
 class DailyVisitsChart extends ChartWidget
 {
+    protected static ?int $sort = 4;
+
     protected ?string $heading = 'Kunjungan Pasien 14 Hari Terakhir';
+
+    protected ?string $description = 'Pergerakan volume pemeriksaan harian.';
+
+    protected ?string $maxHeight = '280px';
 
     protected string $color = 'warning';
 

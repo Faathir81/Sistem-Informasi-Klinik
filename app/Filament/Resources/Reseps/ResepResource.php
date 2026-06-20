@@ -22,13 +22,13 @@ class ResepResource extends Resource
 
     protected static ?string $modelLabel = 'Resep';
 
-    protected static ?string $pluralModelLabel = 'Resep Obat';
+    protected static ?string $pluralModelLabel = 'Resep';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 2;
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Medis & Apotek';
+        return 'Pelayanan Medis';
     }
 
     public static function form(Schema $schema): Schema

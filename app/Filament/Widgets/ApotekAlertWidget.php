@@ -8,6 +8,12 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class ApotekAlertWidget extends BaseWidget
 {
+    protected static ?int $sort = 2;
+
+    protected ?string $heading = 'Kondisi Apotek';
+
+    protected ?string $description = 'Peringatan inventaris yang memerlukan perhatian.';
+
     protected function getStats(): array
     {
         $stokKritis = Obat::stokKritis()->count();

@@ -22,9 +22,9 @@ class PengeluaranResource extends Resource
 
     protected static ?string $modelLabel = 'Pengeluaran';
 
-    protected static ?string $pluralModelLabel = 'Pengeluaran Operasional';
+    protected static ?string $pluralModelLabel = 'Pengeluaran';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 2;
 
     public static function getNavigationGroup(): ?string
     {

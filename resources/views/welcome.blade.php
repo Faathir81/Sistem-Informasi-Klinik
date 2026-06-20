@@ -156,7 +156,7 @@
 
                 <section id="alur" class="bg-[#f3faf6] py-20">
                     <div class="clinic-section">
-                        <div class="grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-center">
+                        <div class="grid gap-6 md:grid-cols-2 md:items-start lg:gap-10">
                             <div>
                                 <p class="clinic-kicker">Alur pasien</p>
                                 <h2 class="clinic-heading mt-3">Dari booking sampai pembayaran dibuat ringkas.</h2>
@@ -167,7 +167,7 @@
                                         ['step' => '03', 'title' => 'Tunjukkan tiket QR', 'body' => 'QR Code antrean menjadi bukti kunjungan saat pasien tiba.'],
                                         ['step' => '04', 'title' => 'Bayar tagihan QRIS', 'body' => 'Setelah pemeriksaan dan resep dicatat, pasien dapat membuat pembayaran QRIS.'],
                                     ] as $item)
-                                        <div class="flex gap-4 rounded-lg border border-white bg-white p-4 shadow-sm">
+                                        <div class="flex items-start gap-4 rounded-lg border border-white bg-white p-4 shadow-sm">
                                             <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#14342f] text-sm font-black text-white">{{ $item['step'] }}</span>
                                             <div>
                                                 <h3 class="font-black text-[#14342f]">{{ $item['title'] }}</h3>
@@ -188,7 +188,7 @@
                                 $previewCode = $previewAntrean ? $maskQueueCode($previewAntrean->kode_antrean) : 'Belum tersedia';
                             @endphp
 
-                            <div class="clinic-card-solid overflow-hidden" data-queue-preview-url="{{ route('antrean.live-preview') }}">
+                            <div class="clinic-card-solid overflow-hidden" style="align-self: end;" data-queue-preview-url="{{ route('antrean.live-preview') }}">
                                 <div class="border-b border-slate-100 bg-white p-5">
                                     <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                                         <div>
@@ -270,18 +270,36 @@
                                 ['q' => 'Bagaimana cara mendaftar antrean online?', 'a' => 'Buat akun pasien, masuk ke dashboard, pilih tanggal kunjungan dan dokter, lalu sistem membuat nomor antrean beserta QR Code.'],
                                 ['q' => 'Apakah tiket antrean bisa dicetak?', 'a' => 'Bisa. Tiket antrean menampilkan nomor, jadwal dokter, kode antrean, dan QR Code yang dapat dicetak atau disimpan sebagai PDF.'],
                                 ['q' => 'Kapan pasien bisa membayar QRIS?', 'a' => 'Pembayaran dibuat setelah admin mencatat pemeriksaan dan resep. Pasien menentukan biaya konsultasi, lalu sistem menjumlahkannya dengan total resep obat.'],
-                            ] as $faq)
-                                <details class="clinic-card-solid group p-5">
-                                    <summary class="flex cursor-pointer list-none items-center justify-between gap-4 text-left font-black text-[#14342f]">
-                                        {{ $faq['q'] }}
-                                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#eef8f2] text-[#386258] transition group-open:rotate-45">
+                            ] as $index => $faq)
+                                <div x-data="{ open: false }" class="clinic-card-solid p-5">
+                                    <button
+                                        type="button"
+                                        @click="open = ! open"
+                                        :aria-expanded="open.toString()"
+                                        aria-controls="faq-answer-{{ $index }}"
+                                        class="flex w-full items-center justify-between gap-4 rounded-md text-left font-black text-[#14342f] focus:outline-none"
+                                    >
+                                        <span>{{ $faq['q'] }}</span>
+                                        <span
+                                            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#eef8f2] text-[#386258] transition duration-300"
+                                            :style="open ? 'transform: rotate(45deg)' : 'transform: rotate(0deg)'"
+                                        >
                                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14M5 12h14"/>
                                             </svg>
                                         </span>
-                                    </summary>
-                                    <p class="mt-4 text-sm leading-7 text-[#62756f]">{{ $faq['a'] }}</p>
-                                </details>
+                                    </button>
+                                    <div
+                                        id="faq-answer-{{ $index }}"
+                                        role="region"
+                                        :aria-hidden="(! open).toString()"
+                                        :style="`display: grid; grid-template-rows: ${open ? '1fr' : '0fr'}; opacity: ${open ? '1' : '0'}; transition: grid-template-rows 320ms cubic-bezier(0.16, 1, 0.3, 1), opacity 220ms ease;`"
+                                    >
+                                        <div class="overflow-hidden">
+                                            <p class="pt-4 text-sm leading-7 text-[#62756f]">{{ $faq['a'] }}</p>
+                                        </div>
+                                    </div>
+                                </div>
                             @endforeach
                         </div>
                     </div>

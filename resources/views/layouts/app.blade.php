@@ -20,7 +20,11 @@
 
             <!-- Page Heading -->
             @isset($header)
-                <header class="border-b border-white/70 bg-white/70 backdrop-blur">
+                <header @class([
+                    'border-b border-white/70 backdrop-blur',
+                    'bg-white/70' => ! request()->routeIs('pasien.dashboard'),
+                    'patient-dashboard-page-header' => request()->routeIs('pasien.dashboard'),
+                ])>
                     <div class="clinic-section py-6">
                         {{ $header }}
                     </div>

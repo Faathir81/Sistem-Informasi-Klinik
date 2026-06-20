@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Obats\Schemas;
 
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
@@ -21,19 +20,6 @@ class ObatForm
                     ->placeholder('Tablet, kapsul, botol, strip')
                     ->required()
                     ->maxLength(100),
-                TextInput::make('stok')
-                    ->label('Stok')
-                    ->numeric()
-                    ->minValue(0)
-                    ->default(0)
-                    ->required(),
-                TextInput::make('harga_beli')
-                    ->label('Harga Beli')
-                    ->numeric()
-                    ->prefix('Rp')
-                    ->minValue(0)
-                    ->default(0)
-                    ->required(),
                 TextInput::make('harga_jual')
                     ->label('Harga Jual')
                     ->numeric()
@@ -41,9 +27,6 @@ class ObatForm
                     ->minValue(0)
                     ->default(0)
                     ->required(),
-                DatePicker::make('tgl_kadaluarsa')
-                    ->label('Tanggal Kadaluarsa')
-                    ->native(false),
             ]);
     }
 }

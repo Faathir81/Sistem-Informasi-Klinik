@@ -24,7 +24,7 @@ class GajiResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Penggajian';
 
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 3;
 
     public static function getNavigationGroup(): ?string
     {

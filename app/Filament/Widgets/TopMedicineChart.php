@@ -7,7 +7,13 @@ use Filament\Widgets\ChartWidget;
 
 class TopMedicineChart extends ChartWidget
 {
+    protected static ?int $sort = 5;
+
     protected ?string $heading = 'Obat Paling Laris';
+
+    protected ?string $description = 'Enam obat dengan pemakaian tertinggi.';
+
+    protected ?string $maxHeight = '280px';
 
     protected function getData(): array
     {

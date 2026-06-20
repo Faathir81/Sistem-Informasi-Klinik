@@ -12,13 +12,16 @@ class Pasien extends Model
 {
     protected $fillable = [
         'user_id',
-        'no_rekam_medis',
         'nik',
         'nama_pasien',
         'tgl_lahir',
         'jenis_kelamin',
         'alamat',
         'no_hp',
+    ];
+
+    protected $hidden = [
+        'no_rekam_medis',
     ];
 
     protected $casts = [

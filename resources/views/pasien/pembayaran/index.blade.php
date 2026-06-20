@@ -1,26 +1,57 @@
 <x-app-layout>
+    <style>
+        .payment-page-content {
+            max-width: 72rem;
+        }
+
+        .payment-intro-grid,
+        .payment-card-head,
+        .payment-meta-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        @media (min-width: 640px) {
+            .payment-meta-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (min-width: 768px) {
+            .payment-intro-grid {
+                grid-template-columns: minmax(0, 1fr) auto;
+                align-items: center;
+            }
+
+            .payment-card-head {
+                grid-template-columns: minmax(0, 1fr) 240px;
+                align-items: start;
+            }
+        }
+    </style>
+
     <x-slot name="header">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
                 <p class="clinic-kicker">Keuangan</p>
                 <h1 class="mt-1 text-2xl font-black text-[#14342f]">Pembayaran QRIS</h1>
             </div>
-            <a href="{{ route('pasien.dashboard') }}" class="clinic-btn-secondary">
+            <a href="{{ route('pasien.dashboard') }}" class="clinic-btn-secondary w-full sm:w-auto">
                 Dashboard
             </a>
         </div>
     </x-slot>
 
     <div class="py-8 sm:py-10">
-        <div class="clinic-section space-y-5">
+        <div class="clinic-section payment-page-content space-y-5">
             <section class="clinic-card-solid p-6">
-                <div class="grid gap-5 md:grid-cols-[1fr_auto] md:items-center">
+                <div class="payment-intro-grid">
                     <div>
                         <p class="clinic-kicker">Tagihan pemeriksaan</p>
                         <h2 class="mt-2 text-2xl font-black text-[#14342f]">Buat pembayaran QRIS.</h2>
                         <p class="mt-2 text-sm leading-6 text-[#62756f]">Tentukan biaya konsultasi, lalu sistem akan menjumlahkannya dengan total resep obat dan tindakan klinik.</p>
                     </div>
-                    <div class="rounded-lg bg-[#fff7ed] p-4 text-sm">
+                    <div class="rounded-lg border border-orange-100 bg-[#fff7ed] px-4 py-3 text-sm">
                         <span class="font-bold text-[#a4531b]">Mode</span>
                         <p class="mt-1 font-black text-[#14342f]">Sandbox QRIS</p>
                     </div>
@@ -29,7 +60,7 @@
 
             @if (! $pasien)
                 <div class="clinic-card-solid p-6 text-sm font-semibold leading-6 text-[#62756f]">
-                    Akun Anda belum terhubung dengan data pasien. Silakan hubungi admin klinik.
+                    Akun Anda belum memiliki profil pasien aktif. Tambahkan profil pasien terlebih dahulu.
                 </div>
             @elseif ($pemeriksaans->isEmpty())
                 <div class="clinic-card-solid p-10 text-center">
@@ -53,32 +84,53 @@
                         @endphp
 
                         <article class="clinic-card-solid overflow-hidden">
-                            <div class="grid gap-5 p-6 lg:grid-cols-[1fr_auto] lg:items-start">
+                            <div class="payment-card-head p-5 sm:p-6">
                                 <div>
-                                    <p class="text-sm font-bold text-[#62756f]">{{ $pemeriksaan->tgl_pemeriksaan->format('d M Y') }}</p>
-                                    <h2 class="mt-1 text-xl font-black text-[#14342f]">{{ $pemeriksaan->dokter->nama_dokter }}</h2>
-                                    <p class="mt-1 text-sm leading-6 text-[#62756f]">{{ $pemeriksaan->diagnosa }}</p>
+                                    <p class="clinic-kicker">Tagihan pemeriksaan</p>
+                                    <h2 class="mt-2 text-2xl font-black text-[#14342f]">{{ $pemeriksaan->pasien->nama_pasien }}</h2>
+                                    <p class="mt-2 text-sm leading-6 text-[#62756f]">Rincian biaya berdasarkan pemeriksaan, tindakan, dan resep yang tercatat.</p>
                                 </div>
-                                <div class="rounded-lg bg-[#f3faf6] p-4 lg:min-w-64">
+                                <div class="rounded-lg border border-[#d6e7dd] bg-[#f3faf6] p-4">
                                     <p class="text-sm font-bold text-[#62756f]">Total pembayaran</p>
                                     <p class="mt-1 text-2xl font-black text-[#14342f]" data-total-payment-summary>Rp {{ number_format($tagihan, 0, ',', '.') }}</p>
                                     <x-status-badge class="mt-3" type="payment" :value="$pemeriksaan->status_bayar" />
                                 </div>
                             </div>
 
+                            <div class="payment-meta-grid px-5 pb-5 sm:px-6 sm:pb-6">
+                                <div class="clinic-soft-row">
+                                    <span class="clinic-stat-label">Tanggal</span>
+                                    <p class="mt-2 text-sm font-black text-[#14342f]">{{ $pemeriksaan->tgl_pemeriksaan->format('d M Y') }}</p>
+                                </div>
+                                <div class="clinic-soft-row">
+                                    <span class="clinic-stat-label">Dokter</span>
+                                    <p class="mt-2 text-sm font-black text-[#14342f]">{{ $pemeriksaan->dokter->nama_dokter }}</p>
+                                </div>
+                                <div class="clinic-soft-row">
+                                    <span class="clinic-stat-label">Diagnosa</span>
+                                    <p class="mt-2 text-sm font-semibold leading-6 text-[#14342f]">{{ $pemeriksaan->diagnosa }}</p>
+                                </div>
+                            </div>
+
                             @if ($transaksi)
-                                <div class="mx-6 rounded-lg border border-slate-100 bg-slate-50 p-4 text-sm font-semibold text-[#62756f]">
-                                    Transaksi terakhir:
-                                    <span class="font-mono text-[#14342f]">{{ $transaksi->order_id }}</span>
-                                    <x-status-badge class="ml-2" type="transaction" :value="$transaksi->status" :dot="false" />
-                                    <a href="{{ route('pasien.pembayaran.show', $transaksi) }}" class="ml-2 font-black text-[#ef7b2d] hover:text-[#c75f1d]">Detail</a>
+                                <div class="border-t border-slate-100 bg-slate-50/80 px-5 py-4 sm:px-6">
+                                    <div class="flex flex-col gap-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+                                        <div class="min-w-0">
+                                            <span class="font-bold text-[#62756f]">Transaksi terakhir</span>
+                                            <p class="mt-1 break-all font-mono font-black text-[#14342f]">{{ $transaksi->order_id }}</p>
+                                        </div>
+                                        <div class="flex shrink-0 items-center gap-3">
+                                            <x-status-badge type="transaction" :value="$transaksi->status" :dot="false" />
+                                            <a href="{{ route('pasien.pembayaran.show', $transaksi) }}" class="font-black text-[#ef7b2d] hover:text-[#c75f1d]">Lihat Detail</a>
+                                        </div>
+                                    </div>
                                 </div>
                             @endif
 
                             @if ($pemeriksaan->status_bayar !== \App\Enums\PaymentStatus::Lunas->value)
-                                <form method="POST" action="{{ route('pasien.pembayaran.store', $pemeriksaan) }}" class="grid gap-4 p-6 md:grid-cols-[1fr_auto] md:items-end" data-payment-form data-total-obat="{{ (int) round($totalObat) }}" data-total-tindakan="{{ (int) round($totalTindakan) }}">
+                                <form method="POST" action="{{ route('pasien.pembayaran.store', $pemeriksaan) }}" class="grid gap-5 border-t border-slate-100 p-5 sm:p-6 xl:grid-cols-[1fr_auto] xl:items-end" data-payment-form data-total-obat="{{ (int) round($totalObat) }}" data-total-tindakan="{{ (int) round($totalTindakan) }}">
                                     @csrf
-                                    <div class="grid gap-4 md:grid-cols-4">
+                                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                                         <div>
                                             <label for="biaya-konsultasi-{{ $pemeriksaan->id }}" class="clinic-label block">Biaya konsultasi</label>
                                             <input id="biaya-konsultasi-{{ $pemeriksaan->id }}" name="biaya_konsultasi" type="number" min="0" step="1" value="{{ $biayaKonsultasi }}" class="clinic-field mt-2" data-consultation-input>
@@ -102,10 +154,10 @@
                                             </div>
                                         </div>
                                         @error('biaya_konsultasi')
-                                            <p class="md:col-span-3 text-sm font-semibold text-red-600">{{ $message }}</p>
+                                            <p class="sm:col-span-2 lg:col-span-4 text-sm font-semibold text-red-600">{{ $message }}</p>
                                         @enderror
                                     </div>
-                                    <button type="submit" class="clinic-btn-primary">
+                                    <button type="submit" class="clinic-btn-primary w-full xl:w-auto">
                                         Buat QRIS
                                     </button>
                                 </form>

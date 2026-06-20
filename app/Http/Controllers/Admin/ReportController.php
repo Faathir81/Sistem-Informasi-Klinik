@@ -4,10 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\TransaksiStatus;
 use App\Http\Controllers\Controller;
-use App\Models\Obat;
 use App\Models\Pemeriksaan;
 use App\Models\Pengeluaran;
 use App\Models\ResepDetail;
+use App\Models\StokObat;
 use App\Models\Transaksi;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -78,17 +78,23 @@ class ReportController extends Controller
             ->get()
             ->keyBy('obat_id');
 
-        $obats = Obat::query()
-            ->orderBy('nama_obat')
+        $obats = StokObat::query()
+            ->with('obat')
+            ->where('stok', '>', 0)
+            ->join('obats', 'stok_obats.obat_id', '=', 'obats.id')
+            ->select('stok_obats.*')
+            ->orderBy('obats.nama_obat')
+            ->orderBy('stok_obats.tgl_kadaluarsa')
             ->get()
-            ->map(function (Obat $obat) use ($pemakaian): array {
-                $usage = $pemakaian->get($obat->id);
+            ->map(function (StokObat $stokObat) use ($pemakaian): array {
+                $usage = $pemakaian->get($stokObat->obat_id);
 
                 return [
-                    'obat' => $obat,
+                    'stok' => $stokObat,
+                    'obat' => $stokObat->obat,
                     'total_terpakai' => (int) ($usage?->total_terpakai ?? 0),
                     'total_nilai' => (float) ($usage?->total_nilai ?? 0),
-                    'nilai_stok' => (float) $obat->stok * (float) $obat->harga_beli,
+                    'nilai_stok' => (float) $stokObat->stok * (float) $stokObat->harga_beli,
                 ];
             });
 

@@ -22,13 +22,13 @@ class PemeriksaanResource extends Resource
 
     protected static ?string $modelLabel = 'Pemeriksaan';
 
-    protected static ?string $pluralModelLabel = 'Rekam Medis';
+    protected static ?string $pluralModelLabel = 'Pemeriksaan';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 1;
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Medis & Apotek';
+        return 'Pelayanan Medis';
     }
 
     public static function form(Schema $schema): Schema

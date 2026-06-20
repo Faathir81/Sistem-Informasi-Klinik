@@ -22,7 +22,7 @@ class DokterResource extends Resource
 
     protected static ?string $modelLabel = 'Dokter';
 
-    protected static ?string $pluralModelLabel = 'Data Dokter';
+    protected static ?string $pluralModelLabel = 'Dokter';
 
     protected static ?int $navigationSort = 2;
 
@@ -30,7 +30,7 @@ class DokterResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Data Master Klinik';
+        return 'Jadwal & SDM';
     }
 
     public static function form(Schema $schema): Schema

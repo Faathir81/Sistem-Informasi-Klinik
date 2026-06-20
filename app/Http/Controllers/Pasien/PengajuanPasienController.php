@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Pasien;
 use App\Enums\PengajuanPasienStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePengajuanPasienRequest;
+use App\Models\Pasien;
 use App\Models\PengajuanPasien;
 use App\Services\MidtransSnapService;
 use Illuminate\Http\RedirectResponse;
@@ -14,13 +15,7 @@ class PengajuanPasienController extends Controller
 {
     public function create(): View|RedirectResponse
     {
-        $user = auth()->user()->load('latestPengajuanPasien.transaksi', 'pasien');
-
-        if ($user->pasien) {
-            return redirect()
-                ->route('pasien.dashboard')
-                ->with('success', 'Data pasien Anda sudah terdaftar.');
-        }
+        $user = auth()->user()->load('latestPengajuanPasien.transaksi', 'pasiens');
 
         $pengajuan = $user->latestPengajuanPasien;
 
@@ -43,13 +38,7 @@ class PengajuanPasienController extends Controller
 
     public function store(StorePengajuanPasienRequest $request, MidtransSnapService $midtrans): RedirectResponse
     {
-        $user = auth()->user()->load('pasien', 'latestPengajuanPasien.transaksi');
-
-        if ($user->pasien) {
-            return redirect()
-                ->route('pasien.dashboard')
-                ->with('success', 'Data pasien Anda sudah terdaftar.');
-        }
+        $user = auth()->user()->load('pasiens', 'latestPengajuanPasien.transaksi');
 
         $pendingPengajuan = PengajuanPasien::where('user_id', $user->id)
             ->whereIn('status', [
@@ -80,6 +69,12 @@ class PengajuanPasienController extends Controller
             return back()
                 ->withInput()
                 ->withErrors(['nik' => 'NIK ini sedang diajukan atau sudah disetujui.']);
+        }
+
+        if (Pasien::where('nik', $data['nik'])->exists()) {
+            return back()
+                ->withInput()
+                ->withErrors(['nik' => 'NIK ini sudah terdaftar sebagai pasien.']);
         }
 
         $pengajuan = PengajuanPasien::create([

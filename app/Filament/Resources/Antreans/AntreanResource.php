@@ -23,7 +23,7 @@ class AntreanResource extends Resource
 
     protected static ?string $modelLabel = 'Antrean';
 
-    protected static ?string $pluralModelLabel = 'Manajemen Antrean';
+    protected static ?string $pluralModelLabel = 'Antrean';
 
     protected static ?int $navigationSort = 1;
 
@@ -31,7 +31,7 @@ class AntreanResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Layanan Klinik';
+        return 'Operasional';
     }
 
     public static function form(Schema $schema): Schema

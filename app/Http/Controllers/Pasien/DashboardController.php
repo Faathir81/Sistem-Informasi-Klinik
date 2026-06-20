@@ -16,7 +16,9 @@ class DashboardController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $pasien = $user->pasien;
+        $pasiens = $user->pasiens;
+        $pasienIds = $pasiens->pluck('id');
+        $pasien = $pasiens->first();
         $pengajuanPasien = $user->latestPengajuanPasien?->load('transaksi');
 
         $antreanAktif = null;
@@ -25,24 +27,24 @@ class DashboardController extends Controller
         $jumlahRiwayat = 0;
         $tagihanBelumLunas = 0;
 
-        if ($pasien) {
+        if ($pasienIds->isNotEmpty()) {
             $antreanAktif = Antrean::query()
-                ->with(['dokter', 'jadwalDokter'])
-                ->where('pasien_id', $pasien->id)
+                ->with(['pasien', 'dokter', 'jadwalDokter'])
+                ->whereIn('pasien_id', $pasienIds)
                 ->whereIn('status', AntreanStatus::activeValues())
                 ->orderBy('tanggal_kunjungan')
                 ->orderBy('nomor_antrean')
                 ->first();
 
             $pemeriksaanTerakhir = Pemeriksaan::query()
-                ->with(['dokter', 'resep', 'tindakanDetails'])
-                ->where('pasien_id', $pasien->id)
+                ->with(['pasien', 'dokter', 'resep', 'tindakanDetails'])
+                ->whereIn('pasien_id', $pasienIds)
                 ->latest('tgl_pemeriksaan')
                 ->first();
 
-            $jumlahAntrean = Antrean::where('pasien_id', $pasien->id)->count();
-            $jumlahRiwayat = Pemeriksaan::where('pasien_id', $pasien->id)->count();
-            $tagihanBelumLunas = Pemeriksaan::where('pasien_id', $pasien->id)
+            $jumlahAntrean = Antrean::whereIn('pasien_id', $pasienIds)->count();
+            $jumlahRiwayat = Pemeriksaan::whereIn('pasien_id', $pasienIds)->count();
+            $tagihanBelumLunas = Pemeriksaan::whereIn('pasien_id', $pasienIds)
                 ->where('status_bayar', '!=', PaymentStatus::Lunas->value)
                 ->count();
         }
@@ -74,6 +76,7 @@ class DashboardController extends Controller
         return view('pasien.dashboard', compact(
             'user',
             'pasien',
+            'pasiens',
             'pengajuanPasien',
             'antreanAktif',
             'pemeriksaanTerakhir',
@@ -86,18 +89,20 @@ class DashboardController extends Controller
 
     public function riwayat()
     {
-        $pasien = auth()->user()->pasien;
+        $pasiens = auth()->user()->pasiens;
+        $pasienIds = $pasiens->pluck('id');
+        $pasien = $pasiens->first();
 
         $pemeriksaans = collect();
 
-        if ($pasien) {
+        if ($pasienIds->isNotEmpty()) {
             $pemeriksaans = Pemeriksaan::query()
-                ->with(['dokter', 'resep.details.obat', 'tindakanDetails'])
-                ->where('pasien_id', $pasien->id)
+                ->with(['pasien', 'dokter', 'resep.details.obat', 'tindakanDetails'])
+                ->whereIn('pasien_id', $pasienIds)
                 ->latest('tgl_pemeriksaan')
                 ->get();
         }
 
-        return view('pasien.riwayat.index', compact('pasien', 'pemeriksaans'));
+        return view('pasien.riwayat.index', compact('pasien', 'pasiens', 'pemeriksaans'));
     }
 }

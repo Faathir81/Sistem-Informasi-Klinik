@@ -57,10 +57,6 @@
                                     <span class="text-xs font-bold text-[#62756f]">Jam Praktek</span>
                                     <p class="mt-1 font-black text-[#14342f]">{{ substr($antrean->jadwalDokter->jam_mulai, 0, 5) }} - {{ substr($antrean->jadwalDokter->jam_selesai, 0, 5) }} WIB</p>
                                 </div>
-                                <div class="rounded-lg bg-slate-50 p-4">
-                                    <span class="text-xs font-bold text-[#62756f]">No. Rekam Medis</span>
-                                    <p class="mt-1 font-mono text-sm font-black text-[#14342f]">{{ $antrean->pasien->no_rekam_medis }}</p>
-                                </div>
                             </div>
 
                             <div class="rounded-lg border border-[#d6e7dd] bg-white p-4">

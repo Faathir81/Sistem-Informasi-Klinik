@@ -30,7 +30,7 @@ class JadwalDokterResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Data Master Klinik';
+        return 'Jadwal & SDM';
     }
 
     public static function form(Schema $schema): Schema

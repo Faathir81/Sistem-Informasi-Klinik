@@ -7,8 +7,8 @@
                 </svg>
             </a>
             <div>
-                <p class="clinic-kicker">Verifikasi pasien</p>
-                <h1 class="mt-1 text-2xl font-black text-[#14342f]">Pengajuan Data Pasien</h1>
+                <p class="clinic-kicker">Profil pasien</p>
+                <h1 class="mt-1 text-2xl font-black text-[#14342f]">Tambah Profil Pasien</h1>
             </div>
         </div>
     </x-slot>
@@ -42,9 +42,9 @@
 
                 <section class="clinic-card-solid overflow-hidden">
                     <div class="border-b border-slate-100 bg-white p-6">
-                        <p class="clinic-kicker">Data pasien</p>
-                        <h2 class="mt-2 text-2xl font-black text-[#14342f]">Lengkapi identitas pasien.</h2>
-                        <p class="mt-2 text-sm leading-6 text-[#62756f]">Setelah data dikirim, Anda akan diarahkan ke pembayaran pendaftaran Rp1.000. Nomor rekam medis dibuat otomatis setelah pembayaran berhasil.</p>
+                        <p class="clinic-kicker">Profil pasien</p>
+                        <h2 class="mt-2 text-2xl font-black text-[#14342f]">Lengkapi identitas anggota keluarga.</h2>
+                        <p class="mt-2 text-sm leading-6 text-[#62756f]">Satu akun bisa memiliki beberapa profil pasien. Setelah data dikirim, Anda akan diarahkan ke pembayaran pendaftaran Rp1.000.</p>
                     </div>
 
                     <form action="{{ route('pasien.pengajuan-pasien.store') }}" method="POST" class="space-y-6 p-6">
@@ -117,7 +117,7 @@
 
                         <div class="flex flex-col gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
                             <p class="text-sm font-semibold leading-6 text-[#62756f]">Biaya pendaftaran: <span class="font-black text-[#14342f]">Rp1.000</span></p>
-                            <button type="submit" class="clinic-btn-primary">
+                            <button type="submit" class="clinic-btn-primary w-full sm:w-auto">
                                 Kirim & Bayar Pendaftaran
                             </button>
                         </div>

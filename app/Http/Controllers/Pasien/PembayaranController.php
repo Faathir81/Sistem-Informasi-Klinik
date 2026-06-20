@@ -15,19 +15,21 @@ class PembayaranController extends Controller
 {
     public function index(): View
     {
-        $pasien = auth()->user()->pasien;
+        $pasiens = auth()->user()->pasiens;
+        $pasienIds = $pasiens->pluck('id');
+        $pasien = $pasiens->first();
 
         $pemeriksaans = collect();
 
-        if ($pasien) {
+        if ($pasienIds->isNotEmpty()) {
             $pemeriksaans = Pemeriksaan::query()
-                ->with(['dokter', 'resep.details.obat', 'tindakanDetails', 'transaksi'])
-                ->where('pasien_id', $pasien->id)
+                ->with(['pasien', 'dokter', 'resep.details.obat', 'tindakanDetails', 'transaksi'])
+                ->whereIn('pasien_id', $pasienIds)
                 ->latest('tgl_pemeriksaan')
                 ->get();
         }
 
-        return view('pasien.pembayaran.index', compact('pasien', 'pemeriksaans'));
+        return view('pasien.pembayaran.index', compact('pasien', 'pasiens', 'pemeriksaans'));
     }
 
     public function store(Request $request, Pemeriksaan $pemeriksaan, MidtransSnapService $midtrans): RedirectResponse

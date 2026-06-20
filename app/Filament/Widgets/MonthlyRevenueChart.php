@@ -10,7 +10,15 @@ use Illuminate\Support\Collection;
 
 class MonthlyRevenueChart extends ChartWidget
 {
+    protected static ?int $sort = 3;
+
+    protected int|string|array $columnSpan = 'full';
+
     protected ?string $heading = 'Tren Pemasukan Bulanan';
+
+    protected ?string $description = 'Nilai transaksi yang sudah diselesaikan.';
+
+    protected ?string $maxHeight = '300px';
 
     protected string $color = 'primary';
 

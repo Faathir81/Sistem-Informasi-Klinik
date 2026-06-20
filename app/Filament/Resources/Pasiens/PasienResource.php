@@ -20,9 +20,9 @@ class PasienResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
 
-    protected static ?string $modelLabel = 'Pasien';
+    protected static ?string $modelLabel = 'Profil Pasien';
 
-    protected static ?string $pluralModelLabel = 'Data Pasien';
+    protected static ?string $pluralModelLabel = 'Profil Pasien';
 
     protected static ?int $navigationSort = 1;
 
@@ -30,7 +30,7 @@ class PasienResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Data Master Klinik';
+        return 'Data User';
     }
 
     public static function form(Schema $schema): Schema

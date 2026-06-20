@@ -5,7 +5,7 @@
                 <p class="clinic-kicker">Rekam medis</p>
                 <h1 class="mt-1 text-2xl font-black text-[#14342f]">Riwayat Medis & Resep</h1>
             </div>
-            <a href="{{ route('pasien.dashboard') }}" class="clinic-btn-secondary">
+            <a href="{{ route('pasien.dashboard') }}" class="clinic-btn-secondary w-full sm:w-auto">
                 Dashboard
             </a>
         </div>
@@ -18,12 +18,12 @@
                     <div>
                         <p class="clinic-kicker">Data pengobatan</p>
                         <h2 class="mt-2 text-2xl font-black text-[#14342f]">Pemeriksaan dan resep yang tercatat.</h2>
-                        <p class="mt-2 text-sm leading-6 text-[#62756f]">Riwayat hanya menampilkan data pasien yang terhubung dengan akun login saat ini.</p>
+                        <p class="mt-2 text-sm leading-6 text-[#62756f]">Riwayat hanya menampilkan profil pasien yang terhubung dengan akun login saat ini.</p>
                     </div>
                     @if($pasien)
                         <div class="rounded-lg bg-[#f3faf6] p-4 text-sm">
-                            <span class="font-bold text-[#62756f]">No. Rekam Medis</span>
-                            <p class="mt-1 font-mono font-black text-[#14342f]">{{ $pasien->no_rekam_medis }}</p>
+                            <span class="font-bold text-[#62756f]">Profil Pasien</span>
+                            <p class="mt-1 font-black text-[#14342f]">{{ $pasiens->count() }} profil terhubung</p>
                         </div>
                     @endif
                 </div>
@@ -31,7 +31,7 @@
 
             @if (! $pasien)
                 <div class="clinic-card-solid p-6 text-sm font-semibold leading-6 text-[#62756f]">
-                    Akun Anda belum terhubung dengan data pasien. Silakan hubungi admin klinik untuk menghubungkan akun dengan nomor rekam medis.
+                    Akun Anda belum memiliki profil pasien aktif. Silakan tambahkan profil pasien terlebih dahulu.
                 </div>
             @elseif ($pemeriksaans->isEmpty())
                 <div class="clinic-card-solid p-10 text-center">
@@ -50,7 +50,8 @@
                             <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                                 <div>
                                     <p class="text-sm font-bold text-[#62756f]">{{ $pemeriksaan->tgl_pemeriksaan->format('d M Y') }}</p>
-                                    <h2 class="mt-1 text-2xl font-black text-[#14342f]">{{ $pemeriksaan->dokter->nama_dokter }}</h2>
+                                    <h2 class="mt-1 text-2xl font-black text-[#14342f]">{{ $pemeriksaan->pasien->nama_pasien }}</h2>
+                                    <p class="mt-1 text-sm font-semibold text-[#62756f]">{{ $pemeriksaan->dokter->nama_dokter }}</p>
                                     <p class="mt-1 text-sm font-semibold text-[#62756f]">{{ $pemeriksaan->dokter->spesialisasi }}</p>
                                 </div>
                                 <div class="flex flex-wrap gap-2">

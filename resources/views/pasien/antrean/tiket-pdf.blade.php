@@ -225,12 +225,6 @@
                                         <span class="value">{{ substr($antrean->jadwalDokter->jam_mulai, 0, 5) }} - {{ substr($antrean->jadwalDokter->jam_selesai, 0, 5) }} WIB</span>
                                     </div>
                                 </td>
-                                <td>
-                                    <div class="detail-box">
-                                        <span class="label">No. Rekam Medis</span>
-                                        <span class="value">{{ $antrean->pasien->no_rekam_medis }}</span>
-                                    </div>
-                                </td>
                             </tr>
                         </table>
 

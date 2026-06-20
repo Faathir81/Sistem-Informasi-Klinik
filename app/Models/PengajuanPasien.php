@@ -46,16 +46,6 @@ class PengajuanPasien extends Model
                 throw new \RuntimeException('Pengajuan ini tidak dapat diproses otomatis.');
             }
 
-            if ($this->user->pasien) {
-                $this->update([
-                    'status' => PengajuanPasienStatus::Disetujui->value,
-                    'pasien_id' => $this->user->pasien->id,
-                    'reviewed_at' => now(),
-                ]);
-
-                return $this->user->pasien;
-            }
-
             if (Pasien::where('nik', $this->nik)->exists()) {
                 throw new \RuntimeException('NIK ini sudah terdaftar sebagai pasien.');
             }

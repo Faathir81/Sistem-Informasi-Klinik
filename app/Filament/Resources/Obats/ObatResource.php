@@ -22,15 +22,15 @@ class ObatResource extends Resource
 
     protected static ?string $modelLabel = 'Obat';
 
-    protected static ?string $pluralModelLabel = 'Inventaris Obat';
+    protected static ?string $pluralModelLabel = 'Katalog Obat';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $recordTitleAttribute = 'nama_obat';
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Medis & Apotek';
+        return 'Apotek';
     }
 
     public static function form(Schema $schema): Schema

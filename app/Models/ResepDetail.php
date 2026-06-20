@@ -43,6 +43,10 @@ class ResepDetail extends Model
             app(ResepDetailStockService::class)->applyUpdated($detail);
         });
 
+        static::deleting(function (ResepDetail $detail) {
+            app(ResepDetailStockService::class)->applyDeleting($detail);
+        });
+
         static::deleted(function (ResepDetail $detail) {
             app(ResepDetailStockService::class)->applyDeleted($detail);
         });

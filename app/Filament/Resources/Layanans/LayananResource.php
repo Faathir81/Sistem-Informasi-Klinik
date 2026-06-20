@@ -22,7 +22,7 @@ class LayananResource extends Resource
 
     protected static ?string $modelLabel = 'Layanan Klinik';
 
-    protected static ?string $pluralModelLabel = 'Layanan Klinik';
+    protected static ?string $pluralModelLabel = 'Tindakan & Layanan';
 
     protected static ?int $navigationSort = 3;
 
@@ -30,7 +30,7 @@ class LayananResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Medis & Apotek';
+        return 'Pelayanan Medis';
     }
 
     public static function form(Schema $schema): Schema

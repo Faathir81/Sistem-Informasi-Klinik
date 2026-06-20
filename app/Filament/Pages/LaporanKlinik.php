@@ -16,7 +16,7 @@ class LaporanKlinik extends Page
 
     protected static ?string $slug = 'laporan-klinik';
 
-    protected static ?int $navigationSort = 8;
+    protected static ?int $navigationSort = 1;
 
     protected string $view = 'filament.pages.laporan-klinik';
 

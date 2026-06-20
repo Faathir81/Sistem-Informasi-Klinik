@@ -28,7 +28,9 @@
         <thead>
             <tr>
                 <th>Obat</th>
+                <th>Batch</th>
                 <th>Satuan</th>
+                <th class="right">Harga Beli</th>
                 <th class="right">Stok Saat Ini</th>
                 <th class="right">Terpakai</th>
                 <th class="right">Nilai Pemakaian</th>
@@ -40,15 +42,17 @@
             @forelse ($obats as $row)
                 <tr>
                     <td>{{ $row['obat']->nama_obat }}</td>
+                    <td>{{ $row['stok']->batch }}</td>
                     <td>{{ $row['obat']->satuan }}</td>
-                    <td class="right">{{ number_format($row['obat']->stok, 0, ',', '.') }}</td>
+                    <td class="right">Rp {{ number_format($row['stok']->harga_beli, 0, ',', '.') }}</td>
+                    <td class="right">{{ number_format($row['stok']->stok, 0, ',', '.') }}</td>
                     <td class="right">{{ number_format($row['total_terpakai'], 0, ',', '.') }}</td>
                     <td class="right">Rp {{ number_format($row['total_nilai'], 0, ',', '.') }}</td>
                     <td class="right">Rp {{ number_format($row['nilai_stok'], 0, ',', '.') }}</td>
-                    <td>{{ $row['obat']->tgl_kadaluarsa?->format('d M Y') ?? '-' }}</td>
+                    <td>{{ $row['stok']->tgl_kadaluarsa?->format('d M Y') ?? '-' }}</td>
                 </tr>
             @empty
-                <tr><td colspan="7" class="center muted">Belum ada data obat.</td></tr>
+                <tr><td colspan="9" class="center muted">Belum ada data stok obat.</td></tr>
             @endforelse
         </tbody>
     </table>

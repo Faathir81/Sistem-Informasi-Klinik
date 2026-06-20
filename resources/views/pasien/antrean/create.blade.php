@@ -18,16 +18,16 @@
             <div class="grid gap-6 lg:grid-cols-[0.78fr_1.22fr]">
                 <aside class="space-y-4">
                     <div class="clinic-card-solid p-6">
-                        <p class="clinic-kicker">Data pasien</p>
-                        <h2 class="mt-2 text-xl font-black text-[#14342f]">{{ $pasien->nama_pasien }}</h2>
+                        <p class="clinic-kicker">Profil pasien</p>
+                        <h2 class="mt-2 text-xl font-black text-[#14342f]">{{ $selectedPasien->nama_pasien }}</h2>
                         <div class="mt-5 space-y-3 text-sm">
                             <div>
-                                <span class="font-bold text-[#62756f]">No. Rekam Medis</span>
-                                <p class="mt-1 font-mono font-bold text-[#14342f]">{{ $pasien->no_rekam_medis }}</p>
+                                <span class="font-bold text-[#62756f]">Nomor HP</span>
+                                <p class="mt-1 font-semibold text-[#14342f]">{{ $selectedPasien->no_hp }}</p>
                             </div>
                             <div>
-                                <span class="font-bold text-[#62756f]">Nomor HP</span>
-                                <p class="mt-1 font-semibold text-[#14342f]">{{ $pasien->no_hp }}</p>
+                                <span class="font-bold text-[#62756f]">Jumlah profil di akun ini</span>
+                                <p class="mt-1 font-semibold text-[#14342f]">{{ $pasiens->count() }} profil</p>
                             </div>
                         </div>
                     </div>
@@ -36,7 +36,7 @@
                         <div class="rounded-lg border border-amber-200 bg-amber-50 p-5">
                             <p class="font-black text-amber-800">Anda sudah memiliki antrean aktif hari ini</p>
                             <p class="mt-2 text-sm leading-6 text-amber-700">
-                                Nomor {{ str_pad($antreanHariIni->nomor_antrean, 3, '0', STR_PAD_LEFT) }} dengan {{ $antreanHariIni->dokter->nama_dokter }}.
+                                Nomor {{ str_pad($antreanHariIni->nomor_antrean, 3, '0', STR_PAD_LEFT) }} untuk {{ $antreanHariIni->pasien->nama_pasien }} dengan {{ $antreanHariIni->dokter->nama_dokter }}.
                             </p>
                             <x-status-badge class="mt-3" type="antrean" :value="$antreanHariIni->status" />
                             <a href="{{ route('pasien.antrean.tiket', $antreanHariIni->kode_antrean) }}" class="mt-4 inline-flex rounded-md border border-amber-300 px-4 py-2 text-sm font-bold text-amber-800 transition hover:bg-amber-100">
@@ -63,6 +63,20 @@
                         @csrf
 
                         <div class="grid gap-5 md:grid-cols-2">
+                            <div>
+                                <label for="pasien_id" class="clinic-label block">Profil Pasien</label>
+                                <select id="pasien_id" name="pasien_id" class="clinic-field mt-2" required>
+                                    @foreach($pasiens as $profile)
+                                        <option value="{{ $profile->id }}" {{ old('pasien_id', $selectedPasien->id) == $profile->id ? 'selected' : '' }}>
+                                            {{ $profile->nama_pasien }} - {{ $profile->jenis_kelamin }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('pasien_id')
+                                    <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+
                             <div>
                                 <label for="tanggal_kunjungan" class="clinic-label block">Tanggal Kunjungan</label>
                                 <input type="date"
@@ -105,11 +119,11 @@
                             @enderror
                         </div>
 
-                        <div id="jadwal-kosong" class="hidden rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-semibold text-orange-700">
+                        <div id="jadwal-kosong" role="alert" class="hidden rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-semibold leading-relaxed text-orange-700">
                             Tidak ada jadwal praktek tersedia untuk dokter ini pada tanggal yang dipilih.
                         </div>
 
-                        <button type="submit" id="btn-submit-booking" class="clinic-btn-primary w-full disabled:cursor-not-allowed disabled:opacity-50">
+                        <button type="submit" id="btn-submit-booking" class="clinic-btn-primary w-full disabled:cursor-not-allowed disabled:opacity-50" disabled>
                             Ambil Nomor Antrean
                         </button>
                     </form>

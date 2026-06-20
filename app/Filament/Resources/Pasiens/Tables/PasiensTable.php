@@ -15,10 +15,9 @@ class PasiensTable
         return $table
             ->columns([
                 TextColumn::make('user.name')
-                    ->numeric()
+                    ->label('Akun User')
+                    ->searchable()
                     ->sortable(),
-                TextColumn::make('no_rekam_medis')
-                    ->searchable(),
                 TextColumn::make('nik')
                     ->searchable(),
                 TextColumn::make('nama_pasien')

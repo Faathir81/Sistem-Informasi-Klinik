@@ -22,7 +22,7 @@ class PegawaiResource extends Resource
 
     protected static ?string $modelLabel = 'Pegawai';
 
-    protected static ?string $pluralModelLabel = 'Data Pegawai';
+    protected static ?string $pluralModelLabel = 'Pegawai';
 
     protected static ?int $navigationSort = 3;
 
@@ -30,7 +30,7 @@ class PegawaiResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Data Master Klinik';
+        return 'Jadwal & SDM';
     }
 
     public static function form(Schema $schema): Schema

@@ -91,10 +91,24 @@ function initBookingSchedulePicker() {
     const jadwalList = document.getElementById('jadwal-list');
     const jadwalKosong = document.getElementById('jadwal-kosong');
     const jadwalHidden = document.getElementById('jadwal_dokter_id');
+    const submitButton = document.getElementById('btn-submit-booking');
+
+    function setSubmitEnabled(enabled) {
+        if (submitButton) {
+            submitButton.disabled = !enabled;
+        }
+    }
 
     function resetJadwal() {
         jadwalList.innerHTML = '';
         jadwalHidden.value = '';
+        setSubmitEnabled(false);
+    }
+
+    function showEmptyMessage(message) {
+        jadwalWrapper.classList.add('hidden');
+        jadwalKosong.classList.remove('hidden');
+        jadwalKosong.textContent = message;
     }
 
     function buildScheduleOption(jadwal) {
@@ -117,6 +131,7 @@ function initBookingSchedulePicker() {
 
         label.querySelector('input[type="radio"]')?.addEventListener('change', (event) => {
             jadwalHidden.value = event.target.value;
+            setSubmitEnabled(true);
         });
 
         return label;
@@ -140,26 +155,38 @@ function initBookingSchedulePicker() {
             url.searchParams.set('tanggal', tanggal);
 
             const response = await fetch(url, { headers: { Accept: 'application/json' } });
-            const data = await response.json();
+            const payload = await response.json();
+
+            if (!response.ok) {
+                throw new Error('Jadwal request failed');
+            }
 
             resetJadwal();
-            jadwalKosong.textContent = 'Tidak ada jadwal praktek tersedia untuk dokter ini pada tanggal yang dipilih.';
+            const schedules = Array.isArray(payload) ? payload : (payload.schedules ?? []);
+            const emptyMessage = Array.isArray(payload)
+                ? 'Tidak ada jadwal praktek tersedia untuk dokter ini pada tanggal yang dipilih.'
+                : (payload.message ?? 'Tidak ada jadwal praktek tersedia untuk dokter ini pada tanggal yang dipilih.');
 
-            if (data.length === 0) {
-                jadwalWrapper.classList.add('hidden');
-                jadwalKosong.classList.remove('hidden');
+            if (schedules.length === 0) {
+                showEmptyMessage(emptyMessage);
 
                 return;
             }
 
             jadwalKosong.classList.add('hidden');
             jadwalWrapper.classList.remove('hidden');
-            data.forEach((jadwal) => jadwalList.appendChild(buildScheduleOption(jadwal)));
+            schedules.forEach((jadwal) => jadwalList.appendChild(buildScheduleOption(jadwal)));
+
+            const firstAvailableInput = jadwalList.querySelector('input[type="radio"]:not(:disabled)');
+
+            if (firstAvailableInput) {
+                firstAvailableInput.checked = true;
+                jadwalHidden.value = firstAvailableInput.value;
+                setSubmitEnabled(true);
+            }
         } catch {
             resetJadwal();
-            jadwalWrapper.classList.add('hidden');
-            jadwalKosong.classList.remove('hidden');
-            jadwalKosong.textContent = 'Jadwal belum bisa dimuat. Coba pilih ulang dokter atau tanggal.';
+            showEmptyMessage('Jadwal belum bisa dimuat. Coba pilih ulang dokter atau tanggal.');
         }
     }
 
@@ -168,6 +195,8 @@ function initBookingSchedulePicker() {
 
     if (dokterSelect.value && tanggalInput.value) {
         loadJadwal();
+    } else {
+        setSubmitEnabled(false);
     }
 }
 

@@ -11,9 +11,9 @@ class Obat extends Model
     protected $fillable = [
         'nama_obat',
         'satuan',
+        'harga_jual',
         'stok',
         'harga_beli',
-        'harga_jual',
         'tgl_kadaluarsa',
     ];
 
@@ -29,15 +29,42 @@ class Obat extends Model
         return $this->hasMany(ResepDetail::class);
     }
 
+    public function stokObats(): HasMany
+    {
+        return $this->hasMany(StokObat::class);
+    }
+
+    public function mutasis(): HasMany
+    {
+        return $this->hasMany(StokObatMutasi::class);
+    }
+
     public function scopeStokKritis(Builder $query): Builder
     {
-        return $query->where('stok', '<', 10);
+        return $query->whereRaw('(select coalesce(sum(stok), 0) from stok_obats where stok_obats.obat_id = obats.id) < 10');
     }
 
     public function scopeKadaluarsaSegera(Builder $query): Builder
     {
-        return $query
-            ->whereNotNull('tgl_kadaluarsa')
-            ->whereDate('tgl_kadaluarsa', '<=', now()->addDays(30));
+        return $query->whereHas('stokObats', fn (Builder $stok): Builder => $stok
+            ->where('stok', '>', 0)
+            ->whereDate('tgl_kadaluarsa', '<=', now()->addDays(30)));
+    }
+
+    public function totalStok(): int
+    {
+        if ($this->relationLoaded('stokObats')) {
+            return (int) $this->stokObats->sum('stok');
+        }
+
+        return (int) $this->stokObats()->sum('stok');
+    }
+
+    public function stokTersedia(): int
+    {
+        return (int) $this->stokObats()
+            ->where('stok', '>', 0)
+            ->whereDate('tgl_kadaluarsa', '>=', now()->toDateString())
+            ->sum('stok');
     }
 }

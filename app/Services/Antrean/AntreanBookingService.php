@@ -6,6 +6,7 @@ use App\Enums\AntreanStatus;
 use App\Models\Antrean;
 use App\Models\Dokter;
 use App\Models\JadwalDokter;
+use App\Models\JadwalLibur;
 use App\Models\Pasien;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -14,10 +15,34 @@ use Illuminate\Validation\ValidationException;
 
 class AntreanBookingService
 {
+    public function scheduleAvailability(int $dokterId, string $tanggal): array
+    {
+        $tanggalKunjungan = Carbon::parse($tanggal, $this->timezone())->startOfDay();
+        $holiday = $this->holidayRecord($dokterId, $tanggalKunjungan);
+
+        if ($holiday) {
+            return [
+                'is_holiday' => true,
+                'message' => $this->holidayMessage($holiday),
+                'schedules' => [],
+            ];
+        }
+
+        return [
+            'is_holiday' => false,
+            'message' => null,
+            'schedules' => $this->availableSchedules($dokterId, $tanggal),
+        ];
+    }
+
     public function availableSchedules(int $dokterId, string $tanggal)
     {
         $tanggalKunjungan = Carbon::parse($tanggal, $this->timezone())->startOfDay();
         $hari = $tanggalKunjungan->locale('id')->isoFormat('dddd');
+
+        if ($this->isHoliday((int) $dokterId, $tanggalKunjungan)) {
+            return collect();
+        }
 
         return JadwalDokter::with('dokter')
             ->where('dokter_id', $dokterId)
@@ -90,15 +115,27 @@ class AntreanBookingService
 
     private function ensureScheduleIsBookable(JadwalDokter $jadwal, Carbon $tanggalKunjungan): void
     {
+        $holiday = $this->holidayRecord((int) $jadwal->dokter_id, $tanggalKunjungan);
+
+        if ($holiday) {
+            throw ValidationException::withMessages([
+                'jadwal_dokter_id' => $this->holidayMessage($holiday),
+            ]);
+        }
+
         if (! $this->isScheduleBookable($jadwal, $tanggalKunjungan)) {
             throw ValidationException::withMessages([
-                'jadwal_dokter_id' => 'Sesi jadwal ini sudah tutup dan tidak bisa dipilih untuk hari ini.',
+                'jadwal_dokter_id' => 'Sesi jadwal ini sudah tutup atau tidak bisa dipilih untuk hari ini.',
             ]);
         }
     }
 
     private function isScheduleBookable(JadwalDokter $jadwal, Carbon $tanggalKunjungan): bool
     {
+        if ($this->isHoliday((int) $jadwal->dokter_id, $tanggalKunjungan)) {
+            return false;
+        }
+
         $now = now($this->timezone());
 
         if (! $tanggalKunjungan->isSameDay($now)) {
@@ -108,6 +145,36 @@ class AntreanBookingService
         $jamSelesai = Carbon::parse($tanggalKunjungan->toDateString().' '.$jadwal->jam_selesai, $this->timezone());
 
         return $now->lt($jamSelesai);
+    }
+
+    private function isHoliday(int $dokterId, Carbon $tanggalKunjungan): bool
+    {
+        return $this->holidayRecord($dokterId, $tanggalKunjungan) !== null;
+    }
+
+    private function holidayRecord(int $dokterId, Carbon $tanggalKunjungan): ?JadwalLibur
+    {
+        $holidays = JadwalLibur::query()
+            ->whereDate('tanggal', $tanggalKunjungan->toDateString())
+            ->where('status_aktif', true)
+            ->where(function ($query) use ($dokterId): void {
+                $query->whereNull('dokter_id')
+                    ->orWhere('dokter_id', $dokterId);
+            })
+            ->get();
+
+        return $holidays->firstWhere('dokter_id', null) ?? $holidays->first();
+    }
+
+    private function holidayMessage(JadwalLibur $jadwalLibur): string
+    {
+        $message = $jadwalLibur->dokter_id
+            ? 'Dokter tidak praktik pada tanggal ini'
+            : 'Klinik libur pada tanggal ini';
+
+        $reason = trim((string) $jadwalLibur->keterangan);
+
+        return $reason !== '' ? "{$message}: {$reason}." : "{$message}.";
     }
 
     private function timezone(): string

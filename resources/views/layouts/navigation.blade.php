@@ -22,6 +22,9 @@
                         <x-nav-link :href="route('pasien.dashboard')" :active="request()->routeIs('pasien.dashboard')">
                             Dashboard
                         </x-nav-link>
+                        <x-nav-link :href="route('pasien.profil.index')" :active="request()->routeIs('pasien.profil.*')">
+                            Profil Pasien
+                        </x-nav-link>
                         <x-nav-link :href="route('pasien.antrean.index')" :active="request()->routeIs('pasien.antrean.*')">
                             Antrean
                         </x-nav-link>
@@ -70,6 +73,9 @@
                         <x-dropdown-link :href="route('profile.edit')">
                             Profil dan keamanan
                         </x-dropdown-link>
+                        <x-dropdown-link :href="route('pasien.profil.index')">
+                            Profil pasien
+                        </x-dropdown-link>
 
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -95,6 +101,9 @@
             <div class="space-y-1 py-3">
                 <x-responsive-nav-link :href="route('pasien.dashboard')" :active="request()->routeIs('pasien.dashboard')">
                     Dashboard
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('pasien.profil.index')" :active="request()->routeIs('pasien.profil.*')">
+                    Profil Pasien
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('pasien.antrean.index')" :active="request()->routeIs('pasien.antrean.*')">
                     Antrean
@@ -125,7 +134,10 @@
                     </a>
                 @endif
                 <a href="{{ route('profile.edit') }}" class="clinic-btn-secondary w-full">
-                    Profil
+                    Akun
+                </a>
+                <a href="{{ route('pasien.profil.index') }}" class="clinic-btn-secondary w-full">
+                    Profil Pasien
                 </a>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
