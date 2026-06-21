@@ -1,6 +1,6 @@
 # Class Diagram - Sistem Informasi Klinik Ar-Ridlo
 
-Class diagram ini menampilkan model domain utama dan service penting yang menjalankan proses bisnis. Class teknis Laravel seperti controller, middleware, migration, request, dan Filament resource tidak ditampilkan agar diagram tetap ringkas untuk laporan.
+Diagram memuat model domain dan service yang menjalankan aturan bisnis utama. Controller, request, middleware, resource Filament, widget, dan view tidak ditampilkan.
 
 ```mermaid
 classDiagram
@@ -9,50 +9,37 @@ classDiagram
         +name
         +email
         +role
-        +no_hp
-        +isAdmin()
-        +isPasien()
+        +isAdmin() bool
+        +isPasien() bool
+        +canAccessPanel() bool
     }
-
     class Pasien {
         +id
         +user_id
         +no_rekam_medis
         +nik
         +nama_pasien
-        +tgl_lahir
-        +jenis_kelamin
-        +alamat
-        +no_hp
     }
-
     class PengajuanPasien {
         +id
         +user_id
         +pasien_id
-        +nik
-        +nama_pasien
         +status
-        +approveFromPayment()
+        +approveFromPayment() Pasien
         +markPaymentFailed()
-        +isMenungguPembayaran()
+        +isMenungguPembayaran() bool
     }
-
     class Dokter {
         +id
         +nama_dokter
         +spesialisasi
-        +no_hp
         +status_aktif
     }
-
     class Pegawai {
         +id
         +nama_pegawai
         +jabatan
-        +no_hp
     }
-
     class JadwalDokter {
         +id
         +dokter_id
@@ -61,7 +48,13 @@ classDiagram
         +jam_selesai
         +kuota
     }
-
+    class JadwalLibur {
+        +id
+        +dokter_id
+        +tanggal
+        +keterangan
+        +status_aktif
+    }
     class Antrean {
         +id
         +pasien_id
@@ -72,21 +65,30 @@ classDiagram
         +kode_antrean
         +status
     }
-
     class Pemeriksaan {
         +id
         +antrean_id
         +pasien_id
         +dokter_id
-        +tgl_pemeriksaan
-        +keluhan
-        +diagnosa
-        +tindakan
         +biaya_konsultasi
         +status_bayar
-        +totalTagihan()
+        +totalTindakan() float
+        +totalTagihan() float
     }
-
+    class Layanan {
+        +id
+        +nama_layanan
+        +tarif_default
+        +status_aktif
+    }
+    class PemeriksaanTindakan {
+        +id
+        +pemeriksaan_id
+        +layanan_id
+        +nama_layanan
+        +tarif
+        +catatan
+    }
     class Resep {
         +id
         +pemeriksaan_id
@@ -94,7 +96,6 @@ classDiagram
         +status_ambil
         +recalculateTotal()
     }
-
     class ResepDetail {
         +id
         +resep_id
@@ -103,19 +104,55 @@ classDiagram
         +aturan_pakai
         +sub_total
     }
-
     class Obat {
         +id
         +nama_obat
         +satuan
         +stok
-        +harga_beli
         +harga_jual
-        +tgl_kadaluarsa
+        +totalStok() int
+        +stokTersedia() int
         +scopeStokKritis()
         +scopeKadaluarsaSegera()
     }
-
+    class PembelianObat {
+        +id
+        +tanggal_pembelian
+        +supplier
+        +total_pembelian
+        +recalculateTotal()
+    }
+    class PembelianObatDetail {
+        +id
+        +pembelian_obat_id
+        +obat_id
+        +batch
+        +harga_beli
+        +jumlah
+        +tgl_kadaluarsa
+        +sub_total
+    }
+    class StokObat {
+        +id
+        +obat_id
+        +batch
+        +harga_beli
+        +stok
+        +tgl_kadaluarsa
+        +scopeTersedia()
+        +scopeKadaluarsa()
+        +isExpired() bool
+    }
+    class StokObatMutasi {
+        +id
+        +obat_id
+        +stok_obat_id
+        +resep_detail_id
+        +pembelian_obat_detail_id
+        +tipe
+        +jumlah_masuk
+        +jumlah_keluar
+    }
     class Transaksi {
         +id
         +pemeriksaan_id
@@ -123,22 +160,17 @@ classDiagram
         +order_id
         +amount
         +status
-        +payment_type
-        +tgl_bayar
         +markSettled()
     }
-
     class Gaji {
         +id
         +role
         +dokter_id
         +pegawai_id
-        +bulan_tahun
         +total_diterima
         +status_bayar
-        +namaPenerima()
+        +namaPenerima() string
     }
-
     class Pengeluaran {
         +id
         +deskripsi
@@ -147,65 +179,99 @@ classDiagram
         +tgl_pengeluaran
     }
 
-    class AntreanBookingService {
-        +book()
-        +cancel()
-        +availableSchedules()
-    }
-
-    class MidtransSnapService {
-        +createTransaction()
-        +createRegistrationTransaction()
-        +isValidSignature()
-        +clientKey()
-    }
-
     class MedicalRecordNumberService {
-        +next()
+        +next() string
     }
-
+    class AntreanBookingService {
+        +scheduleAvailability() array
+        +availableSchedules()
+        +create() Antrean
+    }
+    class LiveQueuePreviewService {
+        +current() Antrean
+        +payload() array
+        +maskQueueCode() string
+    }
+    class MidtransSnapService {
+        +REGISTRATION_FEE int
+        +createTransaction() Transaksi
+        +createRegistrationTransaction() Transaksi
+        +isValidSignature() bool
+        +clientKey() string
+    }
     class ResepDetailStockService {
         +prepareForSave()
         +reserveForCreate()
         +applyCreated()
         +applyUpdating()
-        +applyUpdated()
         +applyDeleted()
     }
+    class PembelianObatStockService {
+        +applyCreated()
+        +applyUpdating()
+        +applyDeleting()
+    }
+    class ObatStockSummaryService {
+        +sync()
+    }
+    class StokObatExpiryService {
+        +removeExpired()
+    }
 
-    User "1" --> "0..1" Pasien
+    User "1" --> "0..*" Pasien
     User "1" --> "0..*" PengajuanPasien
     Pasien "1" --> "0..*" Antrean
     Pasien "1" --> "0..*" Pemeriksaan
-    Pasien "1" --> "0..1" PengajuanPasien
-
+    PengajuanPasien "0..1" --> "0..1" Pasien
     Dokter "1" --> "0..*" JadwalDokter
+    Dokter "0..1" --> "0..*" JadwalLibur
     Dokter "1" --> "0..*" Antrean
     Dokter "1" --> "0..*" Pemeriksaan
-    Dokter "1" --> "0..*" Gaji
-    Pegawai "1" --> "0..*" Gaji
-
     JadwalDokter "1" --> "0..*" Antrean
     Antrean "1" --> "0..1" Pemeriksaan
+    Pemeriksaan "1" --> "0..*" PemeriksaanTindakan
+    Layanan "0..1" --> "0..*" PemeriksaanTindakan
     Pemeriksaan "1" --> "0..1" Resep
-    Pemeriksaan "1" --> "0..1" Transaksi
-    PengajuanPasien "1" --> "0..1" Transaksi
-    Resep "1" --> "1..*" ResepDetail
+    Pemeriksaan "0..1" --> "0..1" Transaksi
+    PengajuanPasien "0..1" --> "0..1" Transaksi
+    Resep "1" --> "0..*" ResepDetail
     Obat "1" --> "0..*" ResepDetail
+    PembelianObat "1" --> "0..*" PembelianObatDetail
+    Obat "1" --> "0..*" PembelianObatDetail
+    Obat "1" --> "0..*" StokObat
+    Obat "1" --> "0..*" StokObatMutasi
+    StokObat "0..1" --> "0..*" StokObatMutasi
+    Dokter "0..1" --> "0..*" Gaji
+    Pegawai "0..1" --> "0..*" Gaji
 
-    AntreanBookingService ..> Antrean
-    AntreanBookingService ..> JadwalDokter
-    MidtransSnapService ..> Transaksi
-    MidtransSnapService ..> PengajuanPasien
-    MedicalRecordNumberService ..> Pasien
-    ResepDetailStockService ..> ResepDetail
-    ResepDetailStockService ..> Obat
+    MedicalRecordNumberService ..> Pasien : membuat nomor RM
+    AntreanBookingService ..> JadwalLibur : memvalidasi
+    AntreanBookingService ..> JadwalDokter : memvalidasi
+    AntreanBookingService ..> Antrean : membuat
+    LiveQueuePreviewService ..> Antrean : membaca
+    MidtransSnapService ..> Transaksi : membuat
+    ResepDetailStockService ..> StokObat : FEFO
+    ResepDetailStockService ..> StokObatMutasi : mencatat
+    PembelianObatStockService ..> StokObat : menambah
+    PembelianObatStockService ..> StokObatMutasi : mencatat
+    ObatStockSummaryService ..> Obat : menyinkronkan
+    StokObatExpiryService ..> StokObat : menolkan
 ```
 
-## Catatan
+## Tanggung Jawab Lapisan
 
-| Bagian | Keterangan |
+| Lapisan | Tanggung jawab |
 |---|---|
-| Model | Merepresentasikan entitas utama klinik dan relasi antar data. |
-| Service | Merepresentasikan proses bisnis penting yang dipisah dari controller dan model. |
-| Controller dan Filament Resource | Tidak ditampilkan karena berperan sebagai lapisan antarmuka/aplikasi, bukan domain inti. |
+| Model | Struktur data, relasi Eloquent, cast, agregasi domain, dan event model. |
+| Service | Transaksi bisnis yang melibatkan validasi, locking, integrasi eksternal, atau beberapa model. |
+| Controller/Request | Otorisasi kepemilikan, validasi input HTTP, orkestrasi service, dan response. |
+| Filament Resource | Antarmuka CRUD dan aksi operasional admin. |
+| View | Presentasi portal pasien, panel admin, tiket, slip, dan laporan. |
+
+## Aturan Bisnis yang Diwakili
+
+- `Pemeriksaan::totalTagihan()` menjumlahkan konsultasi, seluruh tindakan, dan total resep.
+- `Transaksi::markSettled()` melunasi pemeriksaan atau memicu aktivasi pengajuan pasien.
+- `ResepDetailStockService` mengeluarkan stok belum kedaluwarsa dengan urutan FEFO dan mencatat mutasi per batch.
+- `PembelianObatStockService` menambah stok berdasarkan identitas batch sekaligus menghitung ulang total pembelian.
+- `ObatStockSummaryService` menjaga kolom ringkasan pada `obats` tetap sesuai dengan detail `stok_obats`.

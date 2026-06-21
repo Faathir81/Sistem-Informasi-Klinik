@@ -1,6 +1,6 @@
 # Use Case Diagram - Sistem Informasi Klinik Ar-Ridlo
 
-Dokumen ini mendeskripsikan use case utama Sistem Informasi Klinik Ar-Ridlo berdasarkan fitur aktual pada web.
+Diagram berikut disusun dari route pasien, resource Filament, service pembayaran, dan fitur laporan yang tersedia pada codebase.
 
 ```mermaid
 flowchart LR
@@ -9,94 +9,84 @@ flowchart LR
     midtrans[Midtrans]
 
     subgraph sistem["Sistem Informasi Klinik Ar-Ridlo"]
-        register((Register))
-        login((Login))
-        logout((Logout))
-
+        auth((Registrasi, Login, dan Kelola Akun))
         dashboardPasien((Melihat Dashboard Pasien))
-        pengajuanPasien((Pengajuan Data Pasien))
-        pembayaranPendaftaran((Melakukan Pembayaran Pendaftaran))
-        validasiPendaftaran((Validasi Otomatis Pembayaran Pendaftaran))
-        aktivasiPasien((Aktivasi Pasien Otomatis))
+        pengajuan((Mengajukan Data Pasien))
+        bayarDaftar((Membayar Pendaftaran Rp1.000))
+        aktivasi((Aktivasi Pasien Otomatis))
+        profil((Mengelola Profil Pasien))
+        antrean((Booking dan Membatalkan Antrean))
+        tiket((Melihat atau Mengunduh Tiket QR))
+        riwayat((Melihat Riwayat Medis dan Resep))
+        bayarTagihan((Membayar Tagihan Pemeriksaan))
 
-        bookingAntrean((Booking Nomor Antrean))
-        qrAntrean((Mendapatkan QR Code Antrean))
-        pembayaranQris((Melakukan Pembayaran QRIS))
-        validasiPembayaran((Validasi Otomatis Pembayaran))
-        riwayatResep((Melihat Riwayat Medis & Resep))
+        dashboardAdmin((Melihat Dashboard Operasional))
+        akunPasien((Mengelola Akun, Pengajuan, dan Pasien))
+        sdm((Mengelola Dokter, Pegawai, dan Payroll))
+        jadwal((Mengelola Jadwal Dokter dan Hari Libur))
+        pelayanan((Mengelola Antrean, Layanan, Pemeriksaan, dan Resep))
+        apotek((Mengelola Obat, Pembelian, Batch, dan Mutasi Stok))
+        keuangan((Mengelola Transaksi dan Pengeluaran))
+        laporan((Mengunduh Laporan PDF))
 
-        dashboardAdmin((Melihat Dashboard Admin))
-        kelolaAkun((Mengelola Akun))
-        kelolaPasien((Mengelola Data Pasien))
-        kelolaDokterPegawai((Mengelola Data Dokter & Pegawai))
-        kelolaJadwal((Mengelola Jadwal Dokter))
-        kelolaObatResep((Mengelola Stok & Resep Obat))
-        kelolaAntrean((Memantau & Mengatur Antrean))
-        inputBiaya((Input Biaya Konsultasi))
-        monitoring((Monitoring Transaksi & Operasional))
-        laporan((Melihat & Mengekspor Laporan))
+        snap((Membuat Transaksi Snap))
+        webhook((Memvalidasi Notifikasi Pembayaran))
     end
 
-    pasien --> register
-    pasien --> login
-    pasien --> logout
+    pasien --> auth
     pasien --> dashboardPasien
-    pasien --> pengajuanPasien
-    pasien --> bookingAntrean
-    pasien --> pembayaranQris
-    pasien --> riwayatResep
+    pasien --> pengajuan
+    pasien --> profil
+    pasien --> antrean
+    pasien --> tiket
+    pasien --> riwayat
+    pasien --> bayarTagihan
 
-    admin --> login
-    admin --> logout
+    admin --> auth
     admin --> dashboardAdmin
-    admin --> kelolaAkun
-    admin --> kelolaPasien
-    admin --> kelolaDokterPegawai
-    admin --> kelolaJadwal
-    admin --> kelolaObatResep
-    admin --> kelolaAntrean
-    admin --> inputBiaya
-    admin --> monitoring
+    admin --> akunPasien
+    admin --> sdm
+    admin --> jadwal
+    admin --> pelayanan
+    admin --> apotek
+    admin --> keuangan
     admin --> laporan
 
-    pengajuanPasien -. "include" .-> pembayaranPendaftaran
-    pembayaranPendaftaran -. "include" .-> validasiPendaftaran
-    validasiPendaftaran -. "include" .-> aktivasiPasien
+    pengajuan -. "include" .-> bayarDaftar
+    bayarDaftar -. "include" .-> snap
+    bayarTagihan -. "include" .-> snap
+    antrean -. "include" .-> tiket
+    webhook -. "extend: settlement pendaftaran" .-> aktivasi
 
-    bookingAntrean -. "include" .-> qrAntrean
-    pembayaranQris -. "include" .-> validasiPembayaran
-
-    midtrans --> validasiPendaftaran
-    midtrans --> validasiPembayaran
+    midtrans --> snap
+    midtrans --> webhook
 ```
 
 ## Ringkasan Aktor
 
-| Aktor | Peran |
+| Aktor | Hak akses dan tanggung jawab |
 |---|---|
-| Pasien | Mendaftar akun, mengajukan data pasien, melakukan pembayaran, booking antrean, melihat QR antrean, dan melihat riwayat medis serta resep. |
-| Admin | Mengelola data operasional klinik, antrean, pemeriksaan, obat, resep, transaksi, dan laporan. |
-| Midtrans | Menyediakan transaksi pembayaran dan mengirim validasi pembayaran otomatis melalui webhook. |
+| Pasien | Membuat akun, mengajukan data pasien, mengelola profil pasien miliknya, booking atau membatalkan antrean, mengakses tiket, melihat riwayat medis, dan membayar tagihan. |
+| Admin | Mengelola seluruh data operasional melalui panel Filament, memantau dashboard, serta menghasilkan tiket, slip, dan laporan PDF. |
+| Midtrans | Membuat transaksi Snap dan mengirim notifikasi status pembayaran ke webhook sistem. |
 
-## Catatan Use Case
+## Prasyarat dan Hasil Utama
 
-| Use case | Keterangan |
-|---|---|
-| Register | Pasien membuat akun pengguna untuk masuk ke sistem. |
-| Pengajuan Data Pasien | Pasien melengkapi identitas pasien setelah memiliki akun. |
-| Melakukan Pembayaran Pendaftaran | Pasien membayar biaya pendaftaran tetap Rp1.000 sebelum data pasien aktif. |
-| Validasi Otomatis Pembayaran Pendaftaran | Sistem menerima webhook Midtrans dan memvalidasi pembayaran pendaftaran. |
-| Aktivasi Pasien Otomatis | Setelah pembayaran pendaftaran sukses, sistem otomatis membuat/mengaktifkan data pasien. |
-| Booking Nomor Antrean | Pasien memilih dokter, tanggal, dan jadwal kunjungan. |
-| Mendapatkan QR Code Antrean | Sistem menghasilkan nomor antrean, kode antrean, dan QR Code tiket antrean. |
-| Melakukan Pembayaran QRIS | Pasien membayar tagihan pemeriksaan melalui pembayaran QRIS. |
-| Validasi Otomatis Pembayaran | Sistem menerima webhook Midtrans dan memperbarui status transaksi. |
-| Melihat Riwayat Medis & Resep | Pasien melihat data pemeriksaan, diagnosa, tindakan, resep, dan tagihan terkait. |
-| Mengelola Data Pasien | Admin membuat, melihat, mengubah, dan mengelola data pasien. |
-| Mengelola Data Dokter & Pegawai | Admin mengelola data tenaga medis dan pegawai klinik. |
-| Mengelola Jadwal Dokter | Admin mengatur jadwal praktik dokter. |
-| Mengelola Stok & Resep Obat | Admin mengelola obat, stok, resep, dan detail resep. |
-| Memantau & Mengatur Antrean | Admin melihat dan mengubah status antrean pasien. |
-| Input Biaya Konsultasi | Admin memasukkan biaya konsultasi pada data pemeriksaan. |
-| Monitoring Transaksi & Operasional | Admin memantau transaksi, pemasukan, pengeluaran, payroll, dan operasional klinik. |
-| Melihat & Mengekspor Laporan | Admin melihat dan mengekspor laporan keuangan, kunjungan, dan stok obat. |
+| Use case | Prasyarat | Hasil |
+|---|---|---|
+| Registrasi | Pengunjung belum memiliki akun | Akun dengan role `pasien` dibuat dan dapat melakukan verifikasi email. |
+| Pengajuan pasien | Pengguna login sebagai pasien dan belum memiliki pengajuan aktif | Pengajuan serta transaksi pendaftaran berstatus `PENDING` dibuat. |
+| Aktivasi pasien | Signature webhook valid dan transaksi pendaftaran `SETTLEMENT`/`CAPTURE` | Data pasien dengan nomor rekam medis dibuat dan pengajuan menjadi `Disetujui`. |
+| Booking antrean | Pasien aktif, dokter aktif, tanggal tidak lampau, jadwal cocok, bukan hari libur, kuota tersedia | Antrean `Menunggu` dengan nomor dan kode unik dibuat. |
+| Pembatalan antrean | Antrean milik pasien masih `Menunggu` | Status antrean menjadi `Batal`. |
+| Pembayaran pemeriksaan | Pemeriksaan milik pasien dan total tagihan minimal Rp1.000 | Transaksi Snap dibuat dari biaya konsultasi, tindakan, dan obat. |
+| Validasi pembayaran | Signature Midtrans valid | Transaksi diperbarui; settlement membuat pemeriksaan `Lunas` atau mengaktifkan pasien. |
+| Pengeluaran resep | Stok batch yang belum kedaluwarsa mencukupi | Stok dikurangi dengan FEFO dan mutasi resep tercatat. |
+| Laporan | Admin login dan rentang tanggal valid | Laporan keuangan, kunjungan, atau stok obat diunduh sebagai PDF. |
+
+## Aturan Akses
+
+- `/login` digunakan oleh pasien dan admin; `/admin/login` hanya mengarahkan ke `/login`.
+- Route `/pasien/*` dilindungi middleware `auth` dan `is.pasien`.
+- Panel `/admin`, slip gaji, dan laporan dilindungi autentikasi serta pemeriksaan role admin.
+- Pasien hanya dapat mengakses profil, antrean, pemeriksaan, dan transaksi yang terhubung ke akunnya.
