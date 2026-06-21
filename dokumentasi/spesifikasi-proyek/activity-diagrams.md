@@ -1,165 +1,324 @@
 # Activity Diagram - Sistem Informasi Klinik Ar-Ridlo
 
-Activity diagram berikut menggambarkan tujuh proses utama sesuai implementasi aktual.
+Activity diagram berikut menggunakan **swimlane** untuk memisahkan aktivitas berdasarkan pelakunya. Pada Mermaid, setiap sekat dibuat menggunakan `subgraph`, sedangkan perpindahan proses antar-sekat ditunjukkan oleh panah yang menghubungkan node pada subgraph berbeda.
 
 ## 1. Autentikasi dan Pengalihan Berdasarkan Role
 
 ```mermaid
-flowchart TD
-    start((Mulai)) --> open[Buka /login]
-    open --> submit[Masukkan email dan password]
-    submit --> valid{Kredensial valid?}
-    valid -- Tidak --> error[Tampilkan kesalahan] --> submit
-    valid -- Ya --> verify{Email terverifikasi?}
-    verify -- Tidak --> notice[Halaman verifikasi email]
-    verify -- Ya --> role{Role pengguna}
-    role -- admin --> admin[Redirect ke /admin]
-    role -- pasien --> pasien[Redirect ke /pasien/dashboard]
-    admin --> logout[Logout]
-    pasien --> logout
-    logout --> finish((Selesai))
+flowchart LR
+    subgraph penggunaLane["Pengguna"]
+        direction TB
+        start((Mulai))
+        open[Buka halaman login]
+        submit[Masukkan email dan password]
+        retry[Perbaiki data login]
+        notice[Buka halaman verifikasi email]
+        adminView[Melihat dashboard admin]
+        pasienView[Melihat dashboard pasien]
+        logout[Logout]
+    end
+
+    subgraph sistemLane["Sistem"]
+        direction TB
+        valid{Kredensial valid?}
+        error[Tampilkan kesalahan]
+        verify{Email terverifikasi?}
+        role{Role pengguna?}
+        admin[Redirect ke /admin]
+        pasien[Redirect ke /pasien/dashboard]
+        finish((Selesai))
+    end
+
+    start --> open --> submit --> valid
+    valid -- Tidak --> error --> retry --> submit
+    valid -- Ya --> verify
+    verify -- Tidak --> notice
+    verify -- Ya --> role
+    role -- Admin --> admin --> adminView
+    role -- Pasien --> pasien --> pasienView
+    adminView --> logout --> finish
+    pasienView --> logout
 ```
 
 ## 2. Pengajuan dan Aktivasi Pasien
 
 ```mermaid
-flowchart TD
-    start((Mulai)) --> login[Pasien login]
-    login --> active{Sudah memiliki profil pasien?}
-    active -- Ya --> dashboard[Dashboard pasien] --> finish((Selesai))
-    active -- Tidak --> pending{Ada pengajuan menunggu pembayaran?}
-    pending -- Ya --> payment[Alihkan ke transaksi yang tersedia]
-    pending -- Tidak --> form[Isi identitas pasien]
-    form --> valid{Data valid dan NIK belum terdaftar?}
+flowchart LR
+    subgraph pasienLane["Pasien"]
+        direction TB
+        start((Mulai))
+        login[Login]
+        form[Isi identitas pasien]
+        payment[Buka transaksi pendaftaran]
+        pay[Lakukan pembayaran]
+        dashboard[Melihat dashboard pasien]
+    end
+
+    subgraph sistemLane["Sistem Klinik"]
+        direction TB
+        active{Sudah memiliki profil pasien?}
+        pending{Ada pengajuan menunggu pembayaran?}
+        valid{Data valid dan NIK tersedia?}
+        submission[Simpan pengajuan Menunggu Pembayaran]
+        failed[Tandai Pembayaran Gagal]
+        signature{Signature valid?}
+        reject[Tolak webhook HTTP 403]
+        settled{Status SETTLEMENT/CAPTURE?}
+        update[Perbarui status transaksi]
+        create[Buat pasien dan nomor rekam medis]
+        approve[Ubah pengajuan menjadi Disetujui]
+        finish((Selesai))
+    end
+
+    subgraph midtransLane["Midtrans"]
+        direction TB
+        snap{Berhasil membuat Snap Rp1.000?}
+        webhook[Kirim notifikasi webhook]
+    end
+
+    start --> login --> active
+    active -- Ya --> dashboard --> finish
+    active -- Tidak --> pending
+    pending -- Ya --> payment
+    pending -- Tidak --> form --> valid
     valid -- Tidak --> form
-    valid -- Ya --> submission[Simpan pengajuan Menunggu Pembayaran]
-    submission --> snap{Midtrans berhasil membuat Snap Rp1.000?}
-    snap -- Tidak --> failed[Tandai Pembayaran Gagal] --> form
-    snap -- Ya --> payment
-    payment --> pay[Pasien membayar]
-    pay --> webhook[Midtrans mengirim webhook]
-    webhook --> signature{Signature valid?}
-    signature -- Tidak --> reject[Tolak 403] --> finish
-    signature -- Ya --> settled{Status SETTLEMENT/CAPTURE?}
-    settled -- Tidak --> update[Perbarui Pending/Expire/Cancel] --> finish
-    settled -- Ya --> create[Buat pasien dan nomor rekam medis]
-    create --> approve[Setujui pengajuan] --> dashboard
+    valid -- Ya --> submission --> snap
+    snap -- Tidak --> failed --> form
+    snap -- Ya --> payment --> pay --> webhook --> signature
+    signature -- Tidak --> reject --> finish
+    signature -- Ya --> settled
+    settled -- Tidak --> update --> finish
+    settled -- Ya --> create --> approve --> dashboard
 ```
 
 ## 3. Booking dan Pembatalan Antrean
 
 ```mermaid
-flowchart TD
-    start((Mulai)) --> login[Pasien login]
-    login --> profile{Memiliki profil pasien aktif?}
-    profile -- Tidak --> dashboard[Kembali ke dashboard] --> finish((Selesai))
-    profile -- Ya --> choose[Pilih profil pasien, dokter, dan tanggal]
-    choose --> schedule[Sistem memuat jadwal]
-    schedule --> holiday{Klinik/dokter libur?}
+flowchart LR
+    subgraph pasienLane["Pasien"]
+        direction TB
+        start((Mulai))
+        login[Login]
+        choose[Pilih profil pasien, dokter, dan tanggal]
+        select[Pilih sesi praktik]
+        ticket[Melihat tiket QR]
+        pdf{Unduh PDF?}
+        download[Unduh tiket PDF]
+        cancel{Batalkan antrean?}
+    end
+
+    subgraph sistemLane["Sistem"]
+        direction TB
+        profile{Memiliki profil pasien aktif?}
+        dashboard[Kembali ke dashboard]
+        schedule[Memuat jadwal dokter]
+        holiday{Klinik atau dokter libur?}
+        validate{Tanggal, sesi, kuota, dan duplikasi valid?}
+        queue[Buat nomor dan kode antrean unik]
+        generatePdf[Hasilkan tiket PDF]
+        waiting{Status masih Menunggu?}
+        error[Tolak pembatalan]
+        cancelled[Ubah status menjadi Batal]
+        finish((Selesai))
+    end
+
+    start --> login --> profile
+    profile -- Tidak --> dashboard --> finish
+    profile -- Ya --> choose --> schedule --> holiday
     holiday -- Ya --> choose
-    holiday -- Tidak --> select[Pilih sesi praktik]
-    select --> validate{Tanggal, hari, sesi, kuota, dan duplikasi valid?}
+    holiday -- Tidak --> select --> validate
     validate -- Tidak --> choose
-    validate -- Ya --> queue[Buat nomor dan kode antrean unik]
-    queue --> ticket[Tampilkan tiket QR]
-    ticket --> pdf{Unduh PDF?}
-    pdf -- Ya --> download[Hasilkan tiket PDF] --> cancel
-    pdf -- Tidak --> cancel{Batalkan antrean?}
+    validate -- Ya --> queue --> ticket --> pdf
+    pdf -- Ya --> generatePdf --> download --> cancel
+    pdf -- Tidak --> cancel
     cancel -- Tidak --> finish
-    cancel -- Ya --> waiting{Status masih Menunggu?}
-    waiting -- Tidak --> error[Tolak pembatalan] --> finish
-    waiting -- Ya --> cancelled[Ubah status menjadi Batal] --> finish
+    cancel -- Ya --> waiting
+    waiting -- Tidak --> error --> finish
+    waiting -- Ya --> cancelled --> finish
 ```
 
 ## 4. Pemeriksaan, Tindakan, dan Resep
 
 ```mermaid
-flowchart TD
-    start((Mulai)) --> login[Admin login]
-    login --> queue[Pilih antrean]
-    queue --> exam[Input keluhan, diagnosis, dan biaya konsultasi]
-    exam --> action{Ada tindakan medis?}
-    action -- Ya --> service[Pilih layanan dan tarif tindakan]
+flowchart LR
+    subgraph adminLane["Admin"]
+        direction TB
+        start((Mulai))
+        login[Login ke panel admin]
+        queue[Pilih antrean pasien]
+        exam[Input keluhan, diagnosis, dan biaya konsultasi]
+        action{Ada tindakan medis?}
+        service[Pilih layanan dan tarif tindakan]
+        recipe{Ada resep?}
+        detail[Input obat, jumlah, dan aturan pakai]
+        revise[Perbaiki detail resep]
+    end
+
+    subgraph sistemLane["Sistem"]
+        direction TB
+        stock{Stok belum kedaluwarsa mencukupi?}
+        fefo[Kurangi stok batch dengan FEFO]
+        mutation[Catat mutasi dan hitung subtotal resep]
+        total[Hitung konsultasi + tindakan + obat]
+        save[Simpan pemeriksaan]
+        finish((Selesai))
+    end
+
+    start --> login --> queue --> exam --> action
+    action -- Ya --> service --> recipe
     action -- Tidak --> recipe
-    service --> recipe{Ada resep?}
-    recipe -- Tidak --> total[Hitung total konsultasi + tindakan]
-    recipe -- Ya --> detail[Input obat, jumlah, dan aturan pakai]
-    detail --> stock{Stok belum kedaluwarsa mencukupi?}
-    stock -- Tidak --> detail
-    stock -- Ya --> fefo[Kurangi stok batch dengan FEFO]
-    fefo --> mutation[Catat mutasi dan hitung subtotal resep]
-    mutation --> total[Hitung konsultasi + tindakan + obat]
-    total --> save[Simpan pemeriksaan] --> finish((Selesai))
+    recipe -- Tidak --> total
+    recipe -- Ya --> detail --> stock
+    stock -- Tidak --> revise --> detail
+    stock -- Ya --> fefo --> mutation --> total
+    total --> save --> finish
 ```
 
 ## 5. Pembayaran Tagihan Pemeriksaan
 
 ```mermaid
-flowchart TD
-    start((Mulai)) --> list[Buka daftar pembayaran]
-    list --> bill[Pilih pemeriksaan milik pasien]
-    bill --> settled{Transaksi sudah settlement?}
-    settled -- Ya --> paid[Tampilkan tagihan lunas] --> finish((Selesai))
-    settled -- Tidak --> amount[Hitung konsultasi + tindakan + obat]
-    amount --> minimum{Total minimal Rp1.000?}
-    minimum -- Tidak --> error[Tampilkan kesalahan] --> finish
-    minimum -- Ya --> snap[Buat/perbarui transaksi Midtrans Snap]
-    snap --> pay[Pasien menyelesaikan pembayaran]
-    pay --> webhook[Webhook tervalidasi]
-    webhook --> status{Status transaksi}
-    status -- SETTLEMENT/CAPTURE --> update[Transaksi settlement dan pemeriksaan Lunas]
-    status -- EXPIRE --> expire[Transaksi Expire]
-    status -- CANCEL/DENY/FAILURE --> cancel[Transaksi Cancel]
-    status -- Lainnya --> pending[Transaksi Pending]
-    update --> finish
-    expire --> finish
-    cancel --> finish
-    pending --> finish
+flowchart LR
+    subgraph pasienLane["Pasien"]
+        direction TB
+        start((Mulai))
+        list[Buka daftar pembayaran]
+        bill[Pilih pemeriksaan]
+        pay[Lakukan pembayaran]
+        statusView[Melihat status pembayaran]
+    end
+
+    subgraph sistemLane["Sistem Klinik"]
+        direction TB
+        owner{Pemeriksaan milik pasien?}
+        forbidden[Tolak akses]
+        settled{Sudah settlement?}
+        paid[Tampilkan tagihan lunas]
+        amount[Hitung konsultasi + tindakan + obat]
+        minimum{Total minimal Rp1.000?}
+        error[Tampilkan kesalahan]
+        createSnap[Buat atau perbarui transaksi Pending]
+        signature{Signature webhook valid?}
+        reject[Tolak webhook HTTP 403]
+        status{Status transaksi?}
+        update[Settlement dan pemeriksaan Lunas]
+        expire[Transaksi Expire]
+        cancel[Transaksi Cancel]
+        pending[Transaksi Pending]
+        finish((Selesai))
+    end
+
+    subgraph midtransLane["Midtrans"]
+        direction TB
+        snap[Buat transaksi Snap]
+        webhook[Kirim notifikasi webhook]
+    end
+
+    start --> list --> bill --> owner
+    owner -- Tidak --> forbidden --> finish
+    owner -- Ya --> settled
+    settled -- Ya --> paid --> statusView --> finish
+    settled -- Tidak --> amount --> minimum
+    minimum -- Tidak --> error --> finish
+    minimum -- Ya --> createSnap --> snap --> pay --> webhook --> signature
+    signature -- Tidak --> reject --> finish
+    signature -- Ya --> status
+    status -- SETTLEMENT/CAPTURE --> update --> statusView
+    status -- EXPIRE --> expire --> statusView
+    status -- CANCEL/DENY/FAILURE --> cancel --> statusView
+    status -- Lainnya --> pending --> statusView
 ```
 
 ## 6. Pembelian dan Pergerakan Stok Obat
 
 ```mermaid
-flowchart TD
-    start((Mulai)) --> input[Admin input pembelian dan detail obat]
-    input --> valid{Obat, batch, harga beli, jumlah, kedaluwarsa valid?}
-    valid -- Tidak --> input
-    valid -- Ya --> batch[Cari/buat stok berdasarkan obat + batch + harga beli + kedaluwarsa]
-    batch --> add[Tambah stok dan catat mutasi pembelian]
-    add --> totals[Hitung ulang total pembelian dan ringkasan obat]
-    totals --> choice{Proses berikutnya}
-    choice -- Resep --> available{Stok belum kedaluwarsa cukup?}
-    available -- Tidak --> reject[Tolak detail resep] --> finish((Selesai))
-    available -- Ya --> fefo[Ambil batch dengan kedaluwarsa terdekat]
-    fefo --> out[Catat mutasi keluar resep] --> finish
-    choice -- Hapus stok kedaluwarsa --> expired{Batch sudah kedaluwarsa?}
-    expired -- Tidak --> rejectExpiry[Tolak penghapusan] --> finish
-    expired -- Ya --> zero[Nolkan stok dan catat mutasi penghapusan] --> finish
+flowchart LR
+    subgraph adminLane["Admin"]
+        direction TB
+        start((Mulai))
+        input[Input pembelian dan detail obat]
+        revise[Perbaiki data pembelian]
+        choice{Pilih proses stok}
+        recipe[Input obat pada resep]
+        remove[Pilih penghapusan batch]
+    end
+
+    subgraph sistemLane["Sistem"]
+        direction TB
+        valid{Obat, batch, harga, jumlah, dan kedaluwarsa valid?}
+        batch[Cari atau buat stok berdasarkan identitas batch]
+        add[Tambah stok dan catat mutasi pembelian]
+        totals[Hitung total pembelian dan sinkronkan ringkasan obat]
+        available{Stok belum kedaluwarsa cukup?}
+        reject[Tolak detail resep]
+        fefo[Ambil batch berkedaluwarsa terdekat]
+        out[Catat mutasi keluar resep]
+        expired{Batch sudah kedaluwarsa?}
+        rejectExpiry[Tolak penghapusan]
+        zero[Nolkan stok dan catat mutasi penghapusan]
+        finish((Selesai))
+    end
+
+    start --> input --> valid
+    valid -- Tidak --> revise --> input
+    valid -- Ya --> batch --> add --> totals --> choice
+    choice -- Pengeluaran resep --> recipe --> available
+    available -- Tidak --> reject --> finish
+    available -- Ya --> fefo --> out --> finish
+    choice -- Penghapusan kedaluwarsa --> remove --> expired
+    expired -- Tidak --> rejectExpiry --> finish
+    expired -- Ya --> zero --> finish
 ```
 
 ## 7. Administrasi dan Laporan
 
 ```mermaid
-flowchart TD
-    start((Mulai)) --> login[Admin login]
-    login --> dashboard[Dashboard statistik dan peringatan apotek]
-    dashboard --> menu{Pilih kelompok menu}
-    menu -- Pasien --> patient[Kelola akun, pengajuan, pasien, antrean]
-    menu -- Jadwal dan SDM --> hr[Kelola dokter, pegawai, jadwal, libur, gaji]
-    menu -- Pelayanan --> medical[Kelola layanan, pemeriksaan, resep]
-    menu -- Apotek --> pharmacy[Kelola obat, pembelian, stok batch]
-    menu -- Keuangan --> finance[Kelola transaksi dan pengeluaran]
-    menu -- Laporan --> range[Pilih jenis dan rentang tanggal]
-    patient --> save[Simpan perubahan] --> dashboard
-    hr --> save
-    medical --> save
-    pharmacy --> save
-    finance --> save
-    range --> valid{Rentang tanggal valid?}
-    valid -- Tidak --> range
-    valid -- Ya --> type{Jenis laporan}
-    type -- Keuangan --> pdf[Generate PDF]
-    type -- Kunjungan --> pdf
-    type -- Stok obat --> pdf
-    pdf --> download[Unduh laporan] --> finish((Selesai))
+flowchart LR
+    subgraph adminLane["Admin"]
+        direction TB
+        start((Mulai))
+        login[Login]
+        menu{Pilih kelompok menu}
+        patient[Kelola akun, pengajuan, pasien, dan antrean]
+        hr[Kelola dokter, pegawai, jadwal, libur, dan gaji]
+        medical[Kelola layanan, pemeriksaan, dan resep]
+        pharmacy[Kelola obat, pembelian, dan stok batch]
+        finance[Kelola transaksi dan pengeluaran]
+        range[Pilih jenis laporan dan rentang tanggal]
+        revise[Perbaiki rentang tanggal]
+        download[Unduh laporan PDF]
+    end
+
+    subgraph sistemLane["Sistem"]
+        direction TB
+        dashboard[Tampilkan statistik dan peringatan apotek]
+        save[Simpan perubahan]
+        valid{Rentang tanggal valid?}
+        type{Jenis laporan?}
+        financePdf[Susun data laporan keuangan]
+        visitPdf[Susun data laporan kunjungan]
+        stockPdf[Susun data laporan stok obat]
+        pdf[Render laporan dengan DomPDF]
+        finish((Selesai))
+    end
+
+    start --> login --> dashboard --> menu
+    menu -- Pasien --> patient --> save --> dashboard
+    menu -- Jadwal dan SDM --> hr --> save
+    menu -- Pelayanan --> medical --> save
+    menu -- Apotek --> pharmacy --> save
+    menu -- Keuangan --> finance --> save
+    menu -- Laporan --> range --> valid
+    valid -- Tidak --> revise --> range
+    valid -- Ya --> type
+    type -- Keuangan --> financePdf --> pdf
+    type -- Kunjungan --> visitPdf --> pdf
+    type -- Stok obat --> stockPdf --> pdf
+    pdf --> download --> finish
 ```
+
+## Catatan Tampilan Mermaid
+
+- `subgraph` berfungsi sebagai sekat atau swimlane.
+- `flowchart LR` menempatkan lane dari kiri ke kanan, sedangkan `direction TB` mengarahkan aktivitas di dalam setiap lane dari atas ke bawah.
+- Posisi akhir dapat sedikit berbeda antar-renderer Mermaid karena layout dihitung otomatis.
+- Untuk hasil skripsi yang benar-benar presisi seperti diagram UML pada contoh, hasil Mermaid dapat diekspor ke SVG lalu dirapikan di draw.io tanpa mengubah alurnya.
