@@ -10,12 +10,12 @@ erDiagram
         string email UK
         string password
         enum role "admin, pasien"
-        string no_hp NULL
-        timestamp email_verified_at NULL
+        string no_hp "nullable"
+        timestamp email_verified_at "nullable"
     }
     PASIENS {
         bigint id PK
-        bigint user_id FK "NULL"
+        bigint user_id FK "nullable"
         string no_rekam_medis UK
         string nik UK
         string nama_pasien
@@ -27,18 +27,18 @@ erDiagram
     PENGAJUAN_PASIENS {
         bigint id PK
         bigint user_id FK
-        bigint pasien_id FK "NULL"
-        bigint reviewed_by FK "NULL"
+        bigint pasien_id FK "nullable"
+        bigint reviewed_by FK "nullable"
         string nik
         string nama_pasien
         date tgl_lahir
         enum jenis_kelamin
         text alamat
         string no_hp
-        text catatan_pasien NULL
+        text catatan_pasien "nullable"
         string status
-        text alasan_penolakan NULL
-        timestamp reviewed_at NULL
+        text alasan_penolakan "nullable"
+        timestamp reviewed_at "nullable"
     }
     DOKTERS {
         bigint id PK
@@ -63,9 +63,9 @@ erDiagram
     }
     JADWAL_LIBURS {
         bigint id PK
-        bigint dokter_id FK "NULL = seluruh klinik"
+        bigint dokter_id FK "nullable, seluruh klinik"
         date tanggal
-        string keterangan NULL
+        string keterangan "nullable"
         boolean status_aktif
     }
     ANTREANS {
@@ -80,13 +80,13 @@ erDiagram
     }
     PEMERIKSAANS {
         bigint id PK
-        bigint antrean_id FK,UK
+        bigint antrean_id FK "unique"
         bigint pasien_id FK
         bigint dokter_id FK
         date tgl_pemeriksaan
         text keluhan
         text diagnosa
-        text tindakan NULL
+        text tindakan "nullable"
         decimal biaya_konsultasi
         enum status_bayar
     }
@@ -99,14 +99,14 @@ erDiagram
     PEMERIKSAAN_TINDAKANS {
         bigint id PK
         bigint pemeriksaan_id FK
-        bigint layanan_id FK "NULL"
+        bigint layanan_id FK "nullable"
         string nama_layanan
         decimal tarif
-        text catatan NULL
+        text catatan "nullable"
     }
     RESEPS {
         bigint id PK
-        bigint pemeriksaan_id FK,UK
+        bigint pemeriksaan_id FK "unique"
         decimal total_harga_obat
         enum status_ambil
     }
@@ -130,9 +130,9 @@ erDiagram
     PEMBELIAN_OBATS {
         bigint id PK
         date tanggal_pembelian
-        string supplier NULL
+        string supplier "nullable"
         decimal total_pembelian
-        text catatan NULL
+        text catatan "nullable"
     }
     PEMBELIAN_OBAT_DETAILS {
         bigint id PK
@@ -155,40 +155,40 @@ erDiagram
     STOK_OBAT_MUTASIS {
         bigint id PK
         bigint obat_id FK
-        bigint stok_obat_id FK "NULL"
-        bigint resep_detail_id FK "NULL"
-        bigint pembelian_obat_detail_id FK "NULL"
+        bigint stok_obat_id FK "nullable"
+        bigint resep_detail_id FK "nullable"
+        bigint pembelian_obat_detail_id FK "nullable"
         string tipe
         uint jumlah_masuk
         uint jumlah_keluar
-        string batch NULL
-        date tgl_kadaluarsa NULL
-        string keterangan NULL
+        string batch "nullable"
+        date tgl_kadaluarsa "nullable"
+        string keterangan "nullable"
     }
     TRANSAKSIS {
         bigint id PK
-        bigint pemeriksaan_id FK,UK "NULL"
-        bigint pengajuan_pasien_id FK,UK "NULL"
+        bigint pemeriksaan_id FK "nullable, unique"
+        bigint pengajuan_pasien_id FK "nullable, unique"
         string order_id UK
         decimal amount
         enum status
-        string snap_token NULL
-        string snap_url NULL
-        string payment_type NULL
-        timestamp tgl_bayar NULL
+        string snap_token "nullable"
+        string snap_url "nullable"
+        string payment_type "nullable"
+        timestamp tgl_bayar "nullable"
     }
     GAJIS {
         bigint id PK
         enum role "Dokter, Pegawai"
-        bigint dokter_id FK "NULL"
-        bigint pegawai_id FK "NULL"
+        bigint dokter_id FK "nullable"
+        bigint pegawai_id FK "nullable"
         string bulan_tahun
         decimal gaji_pokok
         decimal tunjangan
         decimal potongan
         decimal total_diterima
         enum status_bayar
-        date tgl_bayar NULL
+        date tgl_bayar "nullable"
     }
     PENGELUARANS {
         bigint id PK
