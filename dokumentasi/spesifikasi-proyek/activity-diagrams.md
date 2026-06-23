@@ -1,6 +1,6 @@
 # Activity Diagram - Sistem Informasi Klinik Ar-Ridlo
 
-Activity diagram berikut menggunakan **swimlane** untuk memisahkan aktivitas berdasarkan pelakunya. Pada Mermaid, setiap sekat dibuat menggunakan `subgraph`, sedangkan perpindahan proses antar-sekat ditunjukkan oleh panah yang menghubungkan node pada subgraph berbeda.
+Activity diagram berikut dibuat dalam bentuk ringkas agar mudah ditempatkan pada laporan skripsi. Seluruh diagram hanya menampilkan alur utama dan keputusan penting, sedangkan detail teknis seperti validasi field, status webhook, dan proses internal service dijelaskan pada sequence diagram.
 
 ## 1. Autentikasi dan Pengalihan Berdasarkan Role
 
@@ -9,31 +9,28 @@ flowchart LR
     subgraph penggunaLane["Pengguna"]
         direction TB
         start((Mulai))
-        open[Buka halaman login]
-        submit[Masukkan email dan password]
-        retry[Perbaiki data login]
-        adminView[Melihat dashboard admin]
-        pasienView[Melihat dashboard pasien]
+        login[Buka login]
+        input[Isi email dan password]
+        dashboard[Melihat dashboard]
         logout[Logout]
     end
 
     subgraph sistemLane["Sistem"]
         direction TB
-        valid{Kredensial valid?}
-        error[Tampilkan kesalahan]
-        role{Role pengguna?}
-        admin[Redirect ke /admin]
-        pasien[Redirect ke /pasien/dashboard]
+        cek{Login valid?}
+        role{Role pengguna}
+        admin[Dashboard admin]
+        pasien[Dashboard pasien]
+        error[Tampilkan pesan gagal]
         finish((Selesai))
     end
 
-    start --> open --> submit --> valid
-    valid -- Tidak --> error --> retry --> submit
-    valid -- Ya --> role
-    role -- Admin --> admin --> adminView
-    role -- Pasien --> pasien --> pasienView
-    adminView --> logout --> finish
-    pasienView --> logout
+    start --> login --> input --> cek
+    cek -- Tidak --> error --> input
+    cek -- Ya --> role
+    role -- Admin --> admin --> dashboard
+    role -- Pasien --> pasien --> dashboard
+    dashboard --> logout --> finish
 ```
 
 ## 2. Pengajuan dan Aktivasi Pasien
@@ -44,45 +41,32 @@ flowchart LR
         direction TB
         start((Mulai))
         login[Login]
+        form[Isi pengajuan pasien]
+        bayar[Bayar pendaftaran]
         dashboard[Melihat dashboard pasien]
-        openForm[Buka form pengajuan profil pasien]
-        form[Isi identitas pasien]
-        payment[Buka transaksi pendaftaran]
-        pay[Lakukan pembayaran]
     end
 
     subgraph sistemLane["Sistem Klinik"]
         direction TB
-        pending{Ada pengajuan menunggu pembayaran atau menunggu proses?}
-        valid{Data valid dan NIK tersedia?}
-        submission[Simpan pengajuan Menunggu Pembayaran]
-        failed[Tandai Pembayaran Gagal]
-        signature{Signature valid?}
-        reject[Tolak webhook HTTP 403]
-        settled{Status SETTLEMENT/CAPTURE?}
-        update[Perbarui status transaksi]
-        create[Buat pasien dan nomor rekam medis]
-        approve[Ubah pengajuan menjadi Disetujui]
+        cek{Pengajuan dapat diproses?}
+        simpan[Simpan pengajuan]
+        transaksi[Buat transaksi]
+        aktifkan[Aktifkan profil pasien]
+        gagal[Tampilkan status gagal]
         finish((Selesai))
     end
 
     subgraph midtransLane["Midtrans"]
         direction TB
-        snap{Berhasil membuat Snap Rp1.000?}
-        webhook[Kirim notifikasi webhook]
+        proses[Proses pembayaran]
+        notif[Kirim notifikasi]
     end
 
-    start --> login --> dashboard --> openForm --> pending
-    pending -- Ya --> payment
-    pending -- Tidak --> form --> valid
-    valid -- Tidak --> form
-    valid -- Ya --> submission --> snap
-    snap -- Tidak --> failed --> form
-    snap -- Ya --> payment --> pay --> webhook --> signature
-    signature -- Tidak --> reject --> finish
-    signature -- Ya --> settled
-    settled -- Tidak --> update --> finish
-    settled -- Ya --> create --> approve --> dashboard
+    start --> login --> form --> cek
+    cek -- Tidak --> form
+    cek -- Ya --> simpan --> transaksi --> bayar
+    bayar --> proses --> notif --> aktifkan --> dashboard --> finish
+    proses -- Gagal --> gagal --> finish
 ```
 
 ## 3. Booking dan Pembatalan Antrean
@@ -92,43 +76,25 @@ flowchart LR
     subgraph pasienLane["Pasien"]
         direction TB
         start((Mulai))
-        login[Login]
-        choose[Pilih profil pasien, dokter, dan tanggal]
-        select[Pilih sesi praktik]
-        ticket[Melihat tiket QR]
-        pdf{Unduh PDF?}
-        download[Unduh tiket PDF]
-        cancel{Batalkan antrean?}
+        pilih[Pilih jadwal kunjungan]
+        tiket[Melihat tiket]
+        batal{Batalkan antrean?}
     end
 
     subgraph sistemLane["Sistem"]
         direction TB
-        profile{Memiliki profil pasien aktif?}
-        dashboard[Kembali ke dashboard]
-        schedule[Memuat jadwal dokter]
-        holiday{Klinik atau dokter libur?}
-        validate{Tanggal, sesi, kuota, dan duplikasi valid?}
-        queue[Buat nomor dan kode antrean unik]
-        generatePdf[Hasilkan tiket PDF]
-        waiting{Status masih Menunggu?}
-        error[Tolak pembatalan]
-        cancelled[Ubah status menjadi Batal]
+        cek{Jadwal tersedia?}
+        buat[Buat antrean]
+        ubah[Batalkan antrean]
+        pesan[Tampilkan pesan gagal]
         finish((Selesai))
     end
 
-    start --> login --> profile
-    profile -- Tidak --> dashboard --> finish
-    profile -- Ya --> choose --> schedule --> holiday
-    holiday -- Ya --> choose
-    holiday -- Tidak --> select --> validate
-    validate -- Tidak --> choose
-    validate -- Ya --> queue --> ticket --> pdf
-    pdf -- Ya --> generatePdf --> download --> cancel
-    pdf -- Tidak --> cancel
-    cancel -- Tidak --> finish
-    cancel -- Ya --> waiting
-    waiting -- Tidak --> error --> finish
-    waiting -- Ya --> cancelled --> finish
+    start --> pilih --> cek
+    cek -- Tidak --> pesan --> pilih
+    cek -- Ya --> buat --> tiket --> batal
+    batal -- Tidak --> finish
+    batal -- Ya --> ubah --> finish
 ```
 
 ## 4. Pemeriksaan, Tindakan, dan Resep
@@ -138,37 +104,26 @@ flowchart LR
     subgraph adminLane["Admin"]
         direction TB
         start((Mulai))
-        login[Login ke panel admin]
-        queue[Pilih antrean pasien]
-        exam[Input keluhan, diagnosis, tindakan umum, dan status bayar]
-        action{Ada tindakan medis?}
-        service[Pilih layanan dan tarif tindakan]
-        saveExam[Simpan pemeriksaan]
-        recipe{Ada resep?}
-        openRecipe[Buka menu Resep dan pilih pemeriksaan]
-        detail[Input obat, jumlah, dan aturan pakai]
-        revise[Perbaiki detail resep]
+        pilih[Pilih pasien]
+        periksa[Input hasil pemeriksaan]
+        resep{Ada resep?}
+        obat[Input detail obat]
     end
 
     subgraph sistemLane["Sistem"]
         direction TB
-        stock{Stok belum kedaluwarsa mencukupi?}
-        fefo[Kurangi stok batch dengan FEFO]
-        mutation[Catat mutasi dan hitung subtotal resep]
-        totalExam[Hitung total tindakan pemeriksaan]
-        totalRecipe[Hitung total obat resep]
-        saveRecipe[Simpan resep]
+        simpan[Simpan pemeriksaan]
+        stok{Stok cukup?}
+        simpanResep[Simpan resep]
+        tagihan[Perbarui tagihan pasien]
         finish((Selesai))
     end
 
-    start --> login --> queue --> exam --> action
-    action -- Ya --> service --> totalExam
-    action -- Tidak --> totalExam
-    totalExam --> saveExam --> recipe
-    recipe -- Tidak --> finish
-    recipe -- Ya --> openRecipe --> detail --> stock
-    stock -- Tidak --> revise --> detail
-    stock -- Ya --> fefo --> mutation --> totalRecipe --> saveRecipe --> finish
+    start --> pilih --> periksa --> simpan --> resep
+    resep -- Tidak --> tagihan --> finish
+    resep -- Ya --> obat --> stok
+    stok -- Tidak --> obat
+    stok -- Ya --> simpanResep --> tagihan --> finish
 ```
 
 ## 5. Pembayaran Tagihan Pemeriksaan
@@ -178,51 +133,30 @@ flowchart LR
     subgraph pasienLane["Pasien"]
         direction TB
         start((Mulai))
-        list[Buka daftar pembayaran]
-        bill[Pilih pemeriksaan]
-        pay[Lakukan pembayaran]
-        statusView[Melihat status pembayaran]
+        pilih[Pilih tagihan]
+        bayar[Lakukan pembayaran]
+        status[Melihat status pembayaran]
     end
 
     subgraph sistemLane["Sistem Klinik"]
         direction TB
-        owner{Pemeriksaan milik pasien?}
-        forbidden[Tolak akses]
-        settled{Sudah settlement?}
-        paid[Tampilkan tagihan lunas]
-        amount[Hitung konsultasi + tindakan + obat]
-        minimum{Total minimal Rp1.000?}
-        error[Tampilkan kesalahan]
-        createSnap[Buat atau perbarui transaksi Pending]
-        signature{Signature webhook valid?}
-        reject[Tolak webhook HTTP 403]
-        status{Status transaksi?}
-        update[Settlement dan pemeriksaan Lunas]
-        expire[Transaksi Expire]
-        cancel[Transaksi Cancel]
-        pending[Transaksi Pending]
+        cek{Tagihan dapat dibayar?}
+        transaksi[Buat transaksi]
+        update[Perbarui status tagihan]
+        gagal[Tampilkan pesan gagal]
         finish((Selesai))
     end
 
     subgraph midtransLane["Midtrans"]
         direction TB
-        snap[Buat transaksi Snap]
-        webhook[Kirim notifikasi webhook]
+        proses[Proses pembayaran]
+        notif[Kirim notifikasi]
     end
 
-    start --> list --> bill --> owner
-    owner -- Tidak --> forbidden --> finish
-    owner -- Ya --> settled
-    settled -- Ya --> paid --> statusView --> finish
-    settled -- Tidak --> amount --> minimum
-    minimum -- Tidak --> error --> finish
-    minimum -- Ya --> createSnap --> snap --> pay --> webhook --> signature
-    signature -- Tidak --> reject --> finish
-    signature -- Ya --> status
-    status -- SETTLEMENT/CAPTURE --> update --> statusView
-    status -- EXPIRE --> expire --> statusView
-    status -- CANCEL/DENY/FAILURE --> cancel --> statusView
-    status -- Lainnya --> pending --> statusView
+    start --> pilih --> cek
+    cek -- Tidak --> gagal --> finish
+    cek -- Ya --> transaksi --> bayar --> proses --> notif --> update --> status --> finish
+    proses -- Gagal --> gagal --> status
 ```
 
 ## 6. Pembelian dan Pergerakan Stok Obat
@@ -232,38 +166,30 @@ flowchart LR
     subgraph adminLane["Admin"]
         direction TB
         start((Mulai))
-        input[Input pembelian dan detail obat]
-        revise[Perbaiki data pembelian]
-        choice{Pilih proses stok}
-        recipe[Input obat pada resep]
-        remove[Pilih penghapusan batch]
+        pilih{Pilih aktivitas stok}
+        beli[Input pembelian]
+        resep[Input pemakaian resep]
+        hapus[Hapus stok kadaluarsa]
     end
 
     subgraph sistemLane["Sistem"]
         direction TB
-        valid{Obat, batch, harga, jumlah, dan kedaluwarsa valid?}
-        batch[Cari atau buat stok berdasarkan identitas batch]
-        add[Tambah stok dan catat mutasi pembelian]
-        totals[Hitung total pembelian dan sinkronkan ringkasan obat]
-        available{Stok belum kedaluwarsa cukup?}
-        reject[Tolak detail resep]
-        fefo[Ambil batch berkedaluwarsa terdekat]
-        out[Catat mutasi keluar resep]
-        expired{Batch sudah kedaluwarsa?}
-        rejectExpiry[Tolak penghapusan]
-        zero[Nolkan stok dan catat mutasi penghapusan]
+        tambah[Tambah stok]
+        cek{Stok tersedia?}
+        keluar[Kurangi stok]
+        kadaluarsa{Sudah kadaluarsa?}
+        mutasi[Catat mutasi stok]
         finish((Selesai))
     end
 
-    start --> input --> valid
-    valid -- Tidak --> revise --> input
-    valid -- Ya --> batch --> add --> totals --> choice
-    choice -- Pengeluaran resep --> recipe --> available
-    available -- Tidak --> reject --> finish
-    available -- Ya --> fefo --> out --> finish
-    choice -- Penghapusan kedaluwarsa --> remove --> expired
-    expired -- Tidak --> rejectExpiry --> finish
-    expired -- Ya --> zero --> finish
+    start --> pilih
+    pilih -- Pembelian --> beli --> tambah --> mutasi --> finish
+    pilih -- Resep --> resep --> cek
+    cek -- Tidak --> finish
+    cek -- Ya --> keluar --> mutasi
+    pilih -- Kadaluarsa --> hapus --> kadaluarsa
+    kadaluarsa -- Tidak --> finish
+    kadaluarsa -- Ya --> mutasi
 ```
 
 ## 7. Administrasi dan Laporan
@@ -273,49 +199,28 @@ flowchart LR
     subgraph adminLane["Admin"]
         direction TB
         start((Mulai))
-        login[Login]
-        menu{Pilih kelompok menu}
-        patient[Kelola akun, pengajuan, pasien, dan antrean]
-        hr[Kelola dokter, pegawai, jadwal, libur, dan gaji]
-        medical[Kelola layanan, pemeriksaan, dan resep]
-        pharmacy[Kelola obat, pembelian, dan stok batch]
-        finance[Kelola transaksi dan pengeluaran]
-        range[Pilih jenis laporan dan rentang tanggal]
-        revise[Perbaiki rentang tanggal]
-        download[Unduh laporan PDF]
+        dashboard[Buka panel admin]
+        menu{Pilih menu}
+        kelola[Kelola data]
+        laporan[Buat laporan]
+        unduh[Unduh PDF]
     end
 
     subgraph sistemLane["Sistem"]
         direction TB
-        dashboard[Tampilkan statistik dan peringatan apotek]
-        save[Simpan perubahan]
-        valid{Rentang tanggal valid?}
-        type{Jenis laporan?}
-        financePdf[Susun data laporan keuangan]
-        visitPdf[Susun data laporan kunjungan]
-        stockPdf[Susun data laporan stok obat]
-        pdf[Render laporan dengan DomPDF]
+        simpan[Simpan perubahan data]
+        olah[Olah data laporan]
+        pdf[Render laporan PDF]
         finish((Selesai))
     end
 
-    start --> login --> dashboard --> menu
-    menu -- Pasien --> patient --> save --> dashboard
-    menu -- Jadwal dan SDM --> hr --> save
-    menu -- Pelayanan --> medical --> save
-    menu -- Apotek --> pharmacy --> save
-    menu -- Keuangan --> finance --> save
-    menu -- Laporan --> range --> valid
-    valid -- Tidak --> revise --> range
-    valid -- Ya --> type
-    type -- Keuangan --> financePdf --> pdf
-    type -- Kunjungan --> visitPdf --> pdf
-    type -- Stok obat --> stockPdf --> pdf
-    pdf --> download --> finish
+    start --> dashboard --> menu
+    menu -- Data Klinik --> kelola --> simpan --> dashboard
+    menu -- Laporan --> laporan --> olah --> pdf --> unduh --> finish
 ```
 
 ## Catatan Tampilan Mermaid
 
-- `subgraph` berfungsi sebagai sekat atau swimlane.
-- `flowchart LR` menempatkan lane dari kiri ke kanan, sedangkan `direction TB` mengarahkan aktivitas di dalam setiap lane dari atas ke bawah.
-- Posisi akhir dapat sedikit berbeda antar-renderer Mermaid karena layout dihitung otomatis.
-- Untuk hasil skripsi yang benar-benar presisi seperti diagram UML pada contoh, hasil Mermaid dapat diekspor ke SVG lalu dirapikan di draw.io tanpa mengubah alurnya.
+- Activity diagram dibuat ringkas agar tetap terbaca ketika dimasukkan ke laporan.
+- Detail teknis sistem tetap dijelaskan pada sequence diagram.
+- Jika diagram masih terlalu lebar, orientasi Mermaid dapat diubah dari `flowchart LR` menjadi `flowchart TB` sebelum diekspor.
