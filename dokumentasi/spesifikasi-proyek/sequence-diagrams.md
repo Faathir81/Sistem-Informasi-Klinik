@@ -9,25 +9,27 @@ sequenceDiagram
     actor Pengguna
     participant Web
     participant Auth as AuthenticatedSessionController
+    participant Login as LoginRequest
     participant User
-    participant Middleware
-    participant Dashboard
+    participant Panel as Filament Admin Panel
+    participant PasienDash as PasienDashboardController
 
     Pengguna->>Web: POST /login
     Web->>Auth: email, password
-    Auth->>User: autentikasi kredensial
+    Auth->>Login: authenticate()
+    Login->>User: validasi kredensial
     alt kredensial tidak valid
-        User-->>Pengguna: kesalahan validasi
+        Login-->>Pengguna: kesalahan validasi
     else kredensial valid
-        Auth->>Web: regenerasi session dan redirect /dashboard
-        Web->>Middleware: auth + verified
-        Middleware->>User: baca role
+        Auth->>Web: regenerasi session
+        Auth->>User: baca role
         alt role admin
-            Middleware->>Dashboard: redirect /admin
+            Auth->>Panel: redirect /admin
+            Panel-->>Pengguna: dashboard admin
         else role pasien
-            Middleware->>Dashboard: redirect /pasien/dashboard
+            Auth->>PasienDash: redirect /pasien/dashboard
+            PasienDash-->>Pengguna: dashboard pasien
         end
-        Dashboard-->>Pengguna: dashboard sesuai role
     end
 ```
 
@@ -107,31 +109,41 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor Admin
-    participant Resource as PemeriksaanResource
+    participant PemeriksaanResource
     participant Pemeriksaan
     participant Tindakan as PemeriksaanTindakan
+    participant ResepResource
     participant Resep
     participant Detail as ResepDetail
     participant Stock as ResepDetailStockService
     participant Stok as StokObat
     participant Mutasi as StokObatMutasi
 
-    Admin->>Resource: simpan pemeriksaan
-    Resource->>Pemeriksaan: create/update
+    Admin->>PemeriksaanResource: simpan pemeriksaan
+    PemeriksaanResource->>Pemeriksaan: create/update kunjungan, keluhan, diagnosa, status bayar
     opt tindakan medis
-        Resource->>Tindakan: simpan layanan, tarif, catatan
+        PemeriksaanResource->>Tindakan: simpan layanan, tarif, catatan
     end
+    Pemeriksaan->>Pemeriksaan: totalTindakan()
+    PemeriksaanResource-->>Admin: pemeriksaan tersimpan
+
     opt resep obat
-        Resource->>Resep: simpan resep
-        Resource->>Detail: simpan obat, jumlah, aturan pakai
-        Detail->>Stock: prepareForSave + reserveForCreate
-        Stock->>Stok: validasi stok tersedia
-        Stock->>Stok: kurangi batch berurutan FEFO
-        Stock->>Mutasi: catat pengeluaran resep
-        Stock->>Resep: recalculateTotal()
+        Admin->>ResepResource: pilih pemeriksaan dan simpan resep
+        ResepResource->>Resep: create/update resep
+        ResepResource->>Detail: create/update obat, jumlah, aturan pakai
+        Detail->>Stock: prepareForSave()
+        Stock->>Detail: hitung sub_total dari harga jual obat
+        Detail->>Stock: reserveForCreate()/applyUpdating()
+        Stock->>Stok: validasi stok tersedia dan belum kedaluwarsa
+        alt stok tidak mencukupi
+            Stock-->>Admin: kesalahan validasi
+        else stok cukup
+            Stock->>Stok: kurangi batch FEFO
+            Stock->>Mutasi: catat pengeluaran resep
+            Stock->>Resep: recalculateTotal()
+            ResepResource-->>Admin: resep tersimpan
+        end
     end
-    Pemeriksaan->>Pemeriksaan: totalTagihan()
-    Resource-->>Admin: pemeriksaan tersimpan
 ```
 
 ## 5. Pembayaran Pemeriksaan
@@ -148,7 +160,15 @@ sequenceDiagram
 
     Pasien->>Controller: POST pembayaran pemeriksaan
     Controller->>Pemeriksaan: verifikasi kepemilikan dan ambil rincian
+    alt bukan milik pasien
+        Controller-->>Pasien: HTTP 403
+    else sudah lunas
+        Controller-->>Pasien: halaman transaksi lunas
+    else belum lunas
     Controller->>Pemeriksaan: hitung konsultasi + tindakan + obat
+        alt total kurang dari Rp1.000
+            Controller-->>Pasien: kesalahan validasi minimum pembayaran
+        else total valid
     Controller->>Snap: createTransaction()
     Snap->>Transaksi: updateOrCreate PENDING
     Snap->>Midtrans: request Snap
@@ -157,9 +177,24 @@ sequenceDiagram
     Pasien->>Midtrans: bayar tagihan
     Midtrans->>Webhook: notifikasi pembayaran
     Webhook->>Snap: validasi signature
-    Webhook->>Transaksi: markSettled()
-    Transaksi->>Pemeriksaan: status_bayar = Lunas
-    Webhook-->>Midtrans: OK
+            alt signature tidak valid
+                Webhook-->>Midtrans: HTTP 403
+            else settlement/capture
+                Webhook->>Transaksi: markSettled()
+                Transaksi->>Pemeriksaan: status_bayar = Lunas
+                Webhook-->>Midtrans: OK
+            else expire
+                Webhook->>Transaksi: status Expire
+                Webhook-->>Midtrans: OK
+            else cancel/deny/failure
+                Webhook->>Transaksi: status Cancel
+                Webhook-->>Midtrans: OK
+            else status lain
+                Webhook->>Transaksi: status Pending
+                Webhook-->>Midtrans: OK
+            end
+        end
+    end
 ```
 
 ## 6. Pembelian dan Stok Obat
@@ -168,23 +203,57 @@ sequenceDiagram
 sequenceDiagram
     actor Admin
     participant Resource as PembelianObatResource
-    participant Pembelian as PembelianObatDetail
-    participant Service as PembelianObatStockService
+    participant Detail as PembelianObatDetail
+    participant PurchaseStock as PembelianObatStockService
+    participant ExpiryStock as StokObatExpiryService
+    participant RecipeStock as ResepDetailStockService
     participant Stok as StokObat
     participant Mutasi as StokObatMutasi
     participant Ringkasan as ObatStockSummaryService
 
     Admin->>Resource: simpan detail pembelian
-    Resource->>Pembelian: create detail
-    Pembelian->>Service: applyCreated()
-    Service->>Stok: firstOrCreate identitas batch
-    Service->>Stok: tambah jumlah stok
-    Service->>Mutasi: catat jumlah_masuk pembelian
-    Service->>Pembelian: hitung ulang total pembelian
-    Service->>Ringkasan: sync(obat_id)
+    Resource->>Detail: create detail
+    Detail->>PurchaseStock: applyCreated()
+    PurchaseStock->>Stok: firstOrCreate obat + batch + harga beli + kadaluarsa
+    PurchaseStock->>Stok: tambah jumlah stok
+    PurchaseStock->>Mutasi: catat jumlah_masuk pembelian
+    PurchaseStock->>Detail: hitung ulang total pembelian
+    PurchaseStock->>Ringkasan: sync(obat_id)
     Ringkasan->>Stok: jumlahkan semua batch
     Ringkasan-->>Resource: stok agregat obat terbaru
-    Resource-->>Admin: pembelian tersimpan
+
+    opt koreksi atau hapus detail pembelian
+        Admin->>Resource: ubah/hapus detail pembelian
+        Resource->>Detail: update/delete detail
+        Detail->>PurchaseStock: ensureOriginalStockCanBeReversed()
+        alt batch sudah dipakai resep atau stok tidak cukup
+            PurchaseStock-->>Admin: kesalahan validasi
+        else stok bisa dikoreksi
+            PurchaseStock->>Stok: kembalikan stok pembelian lama
+            PurchaseStock->>Mutasi: catat koreksi_pembelian
+            PurchaseStock->>Ringkasan: sync(obat_id)
+        end
+    end
+
+    opt pengeluaran resep
+        RecipeStock->>Stok: validasi stok tersedia
+        RecipeStock->>Stok: kurangi batch FEFO
+        RecipeStock->>Mutasi: catat jumlah_keluar resep
+        RecipeStock->>Ringkasan: sync(obat_id)
+    end
+
+    opt hapus stok kedaluwarsa
+        Admin->>ExpiryStock: removeExpired(stokObat)
+        alt batch belum kedaluwarsa
+            ExpiryStock-->>Admin: kesalahan validasi
+        else batch kedaluwarsa
+            ExpiryStock->>Stok: set stok menjadi 0
+            ExpiryStock->>Mutasi: catat penghapusan_kadaluarsa
+            ExpiryStock->>Ringkasan: sync(obat_id)
+        end
+    end
+
+    Resource-->>Admin: stok obat tersinkron
 ```
 
 ## 7. Administrasi dan Laporan
@@ -202,7 +271,7 @@ sequenceDiagram
     Panel->>DB: ambil statistik dan peringatan
     DB-->>Panel: ringkasan operasional
     alt kelola data
-        Admin->>Resource: tambah/ubah/hapus data
+        Admin->>Resource: akses, tambah, ubah, atau hapus sesuai fitur resource
         Resource->>DB: validasi dan simpan perubahan
         DB-->>Resource: data terbaru
         Resource-->>Admin: tabel/form terbaru

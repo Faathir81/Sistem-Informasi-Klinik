@@ -12,7 +12,6 @@ flowchart LR
         open[Buka halaman login]
         submit[Masukkan email dan password]
         retry[Perbaiki data login]
-        notice[Buka halaman verifikasi email]
         adminView[Melihat dashboard admin]
         pasienView[Melihat dashboard pasien]
         logout[Logout]
@@ -22,7 +21,6 @@ flowchart LR
         direction TB
         valid{Kredensial valid?}
         error[Tampilkan kesalahan]
-        verify{Email terverifikasi?}
         role{Role pengguna?}
         admin[Redirect ke /admin]
         pasien[Redirect ke /pasien/dashboard]
@@ -31,9 +29,7 @@ flowchart LR
 
     start --> open --> submit --> valid
     valid -- Tidak --> error --> retry --> submit
-    valid -- Ya --> verify
-    verify -- Tidak --> notice
-    verify -- Ya --> role
+    valid -- Ya --> role
     role -- Admin --> admin --> adminView
     role -- Pasien --> pasien --> pasienView
     adminView --> logout --> finish
@@ -48,16 +44,16 @@ flowchart LR
         direction TB
         start((Mulai))
         login[Login]
+        dashboard[Melihat dashboard pasien]
+        openForm[Buka form pengajuan profil pasien]
         form[Isi identitas pasien]
         payment[Buka transaksi pendaftaran]
         pay[Lakukan pembayaran]
-        dashboard[Melihat dashboard pasien]
     end
 
     subgraph sistemLane["Sistem Klinik"]
         direction TB
-        active{Sudah memiliki profil pasien?}
-        pending{Ada pengajuan menunggu pembayaran?}
+        pending{Ada pengajuan menunggu pembayaran atau menunggu proses?}
         valid{Data valid dan NIK tersedia?}
         submission[Simpan pengajuan Menunggu Pembayaran]
         failed[Tandai Pembayaran Gagal]
@@ -76,9 +72,7 @@ flowchart LR
         webhook[Kirim notifikasi webhook]
     end
 
-    start --> login --> active
-    active -- Ya --> dashboard --> finish
-    active -- Tidak --> pending
+    start --> login --> dashboard --> openForm --> pending
     pending -- Ya --> payment
     pending -- Tidak --> form --> valid
     valid -- Tidak --> form
@@ -146,10 +140,12 @@ flowchart LR
         start((Mulai))
         login[Login ke panel admin]
         queue[Pilih antrean pasien]
-        exam[Input keluhan, diagnosis, dan biaya konsultasi]
+        exam[Input keluhan, diagnosis, tindakan umum, dan status bayar]
         action{Ada tindakan medis?}
         service[Pilih layanan dan tarif tindakan]
+        saveExam[Simpan pemeriksaan]
         recipe{Ada resep?}
+        openRecipe[Buka menu Resep dan pilih pemeriksaan]
         detail[Input obat, jumlah, dan aturan pakai]
         revise[Perbaiki detail resep]
     end
@@ -159,19 +155,20 @@ flowchart LR
         stock{Stok belum kedaluwarsa mencukupi?}
         fefo[Kurangi stok batch dengan FEFO]
         mutation[Catat mutasi dan hitung subtotal resep]
-        total[Hitung konsultasi + tindakan + obat]
-        save[Simpan pemeriksaan]
+        totalExam[Hitung total tindakan pemeriksaan]
+        totalRecipe[Hitung total obat resep]
+        saveRecipe[Simpan resep]
         finish((Selesai))
     end
 
     start --> login --> queue --> exam --> action
-    action -- Ya --> service --> recipe
-    action -- Tidak --> recipe
-    recipe -- Tidak --> total
-    recipe -- Ya --> detail --> stock
+    action -- Ya --> service --> totalExam
+    action -- Tidak --> totalExam
+    totalExam --> saveExam --> recipe
+    recipe -- Tidak --> finish
+    recipe -- Ya --> openRecipe --> detail --> stock
     stock -- Tidak --> revise --> detail
-    stock -- Ya --> fefo --> mutation --> total
-    total --> save --> finish
+    stock -- Ya --> fefo --> mutation --> totalRecipe --> saveRecipe --> finish
 ```
 
 ## 5. Pembayaran Tagihan Pemeriksaan
