@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('transaksis', function (Blueprint $table) {
             $table->id();
             $table->foreignId('pemeriksaan_id')->nullable()->unique()->constrained('pemeriksaans')->cascadeOnDelete();
+            $table->foreignId('pengajuan_pasien_id')->nullable()->unique()->constrained('pengajuan_pasiens')->cascadeOnDelete();
             $table->string('order_id')->unique();
             $table->decimal('amount', 10, 2);
             $table->enum('status', ['PENDING', 'SETTLEMENT', 'EXPIRE', 'CANCEL'])->default('PENDING');

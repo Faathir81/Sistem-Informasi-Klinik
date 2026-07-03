@@ -19,6 +19,8 @@ return new class extends Migration
             $table->enum('status', ['Menunggu', 'Dipanggil', 'Selesai', 'Batal'])->default('Menunggu');
             $table->timestamps();
 
+            $table->index('pasien_id', 'antreans_pasien_id_index');
+            $table->index('dokter_id', 'antreans_dokter_id_index');
             $table->index(['pasien_id', 'dokter_id', 'tanggal_kunjungan', 'status'], 'antreans_patient_doctor_date_status_index');
             $table->unique(['dokter_id', 'tanggal_kunjungan', 'nomor_antrean'], 'antreans_doctor_date_number_unique');
         });

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->date('tgl_kadaluarsa');
             $table->timestamps();
 
-            $table->unique(['obat_id', 'batch', 'tgl_kadaluarsa']);
+            $table->unique(['obat_id', 'batch', 'harga_beli', 'tgl_kadaluarsa'], 'stok_obats_purchase_identity_unique');
             $table->index(['obat_id', 'tgl_kadaluarsa']);
             $table->index(['tgl_kadaluarsa', 'stok']);
         });
