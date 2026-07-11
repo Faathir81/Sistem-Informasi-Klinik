@@ -213,49 +213,49 @@ sequenceDiagram
     participant Mutasi as StokObatMutasi
     participant Ringkasan as ObatStockSummaryService
 
-    Admin->>Resource: simpan detail pembelian
-    Resource->>Detail: create detail
-    Detail->>PurchaseStock: applyCreated()
-    PurchaseStock->>Stok: firstOrCreate obat + batch + harga beli + kadaluarsa
-    PurchaseStock->>Stok: tambah jumlah stok
-    PurchaseStock->>Mutasi: catat jumlah_masuk pembelian
-    PurchaseStock->>Detail: hitung ulang total pembelian
-    PurchaseStock->>Ringkasan: sync(obat_id)
-    Ringkasan->>Stok: jumlahkan semua batch
-    Ringkasan-->>Resource: stok agregat obat terbaru
+    Admin->>Resource: Form Submission (Save)
+    Resource->>Detail: PembelianObatDetail::create()
+    Detail->>PurchaseStock: applyCreated(PembelianObatDetail $detail) (created event)
+    PurchaseStock->>Stok: StokObat::firstOrCreate(...) (within stockRow())
+    PurchaseStock->>Stok: $stok->increment('stok', $jumlah)
+    PurchaseStock->>Mutasi: StokObatMutasi::create([...]) (within recordMutation())
+    PurchaseStock->>Detail: $detail->pembelianObat->recalculateTotal()
+    PurchaseStock->>Ringkasan: sync($obatId)
+    Ringkasan->>Stok: queries database sum of stok
+    Ringkasan-->>Resource: Updated stock summary data
 
-    opt koreksi atau hapus detail pembelian
-        Admin->>Resource: ubah/hapus detail pembelian
-        Resource->>Detail: update/delete detail
-        Detail->>PurchaseStock: ensureOriginalStockCanBeReversed()
-        alt batch sudah dipakai resep atau stok tidak cukup
-            PurchaseStock-->>Admin: kesalahan validasi
-        else stok bisa dikoreksi
-            PurchaseStock->>Stok: kembalikan stok pembelian lama
-            PurchaseStock->>Mutasi: catat koreksi_pembelian
-            PurchaseStock->>Ringkasan: sync(obat_id)
+    opt [koreksi atau hapus detail pembelian]
+        Admin->>Resource: Form Submission (Edit / Delete)
+        Resource->>Detail: update() / delete()
+        Detail->>PurchaseStock: applyUpdating() / applyDeleting() executing ensureOriginalStockCanBeReversed()
+        alt [batch sudah dipakai resep atau stok tidak cukup]
+            PurchaseStock-->>Admin: throw ValidationException
+        else [stok bisa dikoreksi]
+            PurchaseStock->>Stok: reverseOriginal($detail) (decrements stok)
+            PurchaseStock->>Mutasi: StokObatMutasi::create([...]) (type = 'koreksi_pembelian')
+            PurchaseStock->>Ringkasan: sync($obatId)
         end
     end
 
-    opt pengeluaran resep
-        RecipeStock->>Stok: validasi stok tersedia
-        RecipeStock->>Stok: kurangi batch FEFO
-        RecipeStock->>Mutasi: catat jumlah_keluar resep
-        RecipeStock->>Ringkasan: sync(obat_id)
+    opt [pengeluaran resep]
+        RecipeStock->>Stok: ensureStock($obatId, $jumlah)
+        RecipeStock->>Stok: takeStockFefo(...) (decrements stok)
+        RecipeStock->>Mutasi: StokObatMutasi::create([...]) (type = 'resep')
+        RecipeStock->>Ringkasan: sync($obatId)
     end
 
-    opt hapus stok kedaluwarsa
-        Admin->>ExpiryStock: removeExpired(stokObat)
-        alt batch belum kedaluwarsa
-            ExpiryStock-->>Admin: kesalahan validasi
-        else batch kedaluwarsa
-            ExpiryStock->>Stok: set stok menjadi 0
-            ExpiryStock->>Mutasi: catat penghapusan_kadaluarsa
-            ExpiryStock->>Ringkasan: sync(obat_id)
+    opt [hapus stok kedaluwarsa]
+        Admin->>ExpiryStock: removeExpired(StokObat $stokObat)
+        alt [!$stokObat->isExpired()]
+            ExpiryStock-->>Admin: throw ValidationException
+        else [$stokObat->isExpired()]
+            ExpiryStock->>Stok: $stokObat->update(['stok' => 0])
+            ExpiryStock->>Mutasi: StokObatMutasi::create([...]) (type = 'penghapusan_kadaluarsa')
+            ExpiryStock->>Ringkasan: sync($obatId)
         end
     end
 
-    Resource-->>Admin: stok obat tersinkron
+    Resource-->>Admin: redirect() / Notification::make()->success()
 ```
 
 ## 7. Administrasi dan Laporan
@@ -267,21 +267,21 @@ sequenceDiagram
     participant Resource as Filament Resource
     participant DB as Eloquent/Database
     participant Report as ReportController
-    participant PDF as DomPDF
+    participant PDF as DomPDF (Barryvdh\DomPDF)
 
-    Admin->>Panel: buka /admin
-    Panel->>DB: ambil statistik dan peringatan
-    DB-->>Panel: ringkasan operasional
-    alt kelola data
-        Admin->>Resource: akses, tambah, ubah, atau hapus sesuai fitur resource
-        Resource->>DB: validasi dan simpan perubahan
-        DB-->>Resource: data terbaru
-        Resource-->>Admin: tabel/form terbaru
-    else unduh laporan
-        Admin->>Report: jenis laporan + rentang tanggal
-        Report->>DB: query data keuangan/kunjungan/stok
-        DB-->>Report: dataset laporan
-        Report->>PDF: render Blade menjadi PDF
-        PDF-->>Admin: file laporan
+    Admin->>Panel: GET /admin (Visits Dashboard)
+    Panel->>DB: Database Queries (Retrieve operational metrics & alerts)
+    DB-->>Panel: Query results / dataset
+    alt [kelola data]
+        Admin->>Resource: Page action / Form submission (List/Create/Edit/Delete)
+        Resource->>DB: Eloquent models validation & save() / update() / delete()
+        DB-->>Resource: Updated Eloquent records
+        Resource-->>Admin: Renders updated Filament list / form page
+    else [unduh laporan]
+        Admin->>Report: GET /admin/reports/{keuangan|kunjungan|stokObat}?tanggal_mulai=...&tanggal_selesai=...
+        Report->>DB: Database query filtering on date range (Transaksi / Pemeriksaan / ResepDetail)
+        DB-->>Report: Query result collections
+        Report->>PDF: Pdf::loadView('reports.pdf.{keuangan|kunjungan|stok-obat}', $data)->download($filename)
+        PDF-->>Admin: Streamed PDF file download response
     end
 ```
