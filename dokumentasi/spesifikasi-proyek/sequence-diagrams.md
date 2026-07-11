@@ -18,9 +18,9 @@ sequenceDiagram
     Web->>Auth: store(LoginRequest $request)
     Auth->>Login: authenticate()
     Login->>User: Auth::attempt($credentials)
-    alt Auth::attempt() gagal
+    alt [Auth::attempt() == false]
         Login-->>Pengguna: throw ValidationException
-    else Auth::attempt() sukses
+    else [Auth::attempt() == true]
         Auth->>Web: $request->session()->regenerate()
         Auth->>User: Auth::user()->role
         alt role == 'admin'
@@ -98,7 +98,7 @@ sequenceDiagram
     Booking->>Antrean: nextQueueNumber(), queueCode(), Antrean::create()
     Antrean-->>Controller: Antrean $antrean
     Controller-->>Pasien: redirect()->route('pasien.antrean.tiket', $antrean->kode_antrean)
-    opt [unduh tiket]
+    opt [download ticket]
         Pasien->>Controller: tiketPdf($kode)
         Controller->>PDF: Pdf::loadView('pasien.antrean.tiket-pdf')
         PDF-->>Pasien: download($filename)
@@ -122,13 +122,13 @@ sequenceDiagram
 
     Admin->>PemeriksaanResource: Form Submission (Save)
     PemeriksaanResource->>Pemeriksaan: Pemeriksaan::create() / update()
-    opt [tindakan medis]
+    opt [has tindakan]
         PemeriksaanResource->>Tindakan: PemeriksaanTindakan::create()
     end
     Pemeriksaan->>Pemeriksaan: totalTindakan()
     PemeriksaanResource-->>Admin: redirect() / Notification::make()->success()
 
-    opt [resep obat]
+    opt [has resep]
         Admin->>ResepResource: Form Submission (Save)
         ResepResource->>Resep: Resep::create() / update()
         ResepResource->>Detail: ResepDetail::create() / update()
@@ -136,9 +136,9 @@ sequenceDiagram
         Stock->>Detail: $detail->sub_total = $obat->harga_jual * $detail->jumlah
         Detail->>Stock: reserveForCreate() (creating event) / applyUpdating() (updating event)
         Stock->>Stok: ensureStock($obatId, $jumlah) (queries StokObat)
-        alt [stok tidak mencukupi]
+        alt [stok < jumlah]
             Stock-->>Admin: throw ValidationException
-        else [stok cukup]
+        else [stok >= jumlah]
             Stock->>Stok: takeStockFefo($detail, $obatId, $jumlah) (decrements StokObat)
             Stock->>Mutasi: StokObatMutasi::create([...])
             Stock->>Resep: recalculateTotal() (via applyCreated / applyUpdated)
@@ -161,11 +161,11 @@ sequenceDiagram
 
     Pasien->>Controller: store(Request $request, Pemeriksaan $pemeriksaan)
     Controller->>Pemeriksaan: abort_unless($pemeriksaan->pasien->user_id === auth()->id(), 403)
-    alt [bukan milik pasien]
+    alt [$pemeriksaan->pasien->user_id !== auth()->id()]
         Controller-->>Pasien: abort(403)
-    else [sudah lunas ($pemeriksaan->transaksi->status == 'settlement')]
+    else [$pemeriksaan->transaksi?->status == 'settlement']
         Controller-->>Pasien: redirect()->route('pasien.pembayaran.show', $transaksi)
-    else [belum lunas]
+    else [otherwise]
         Controller->>Pemeriksaan: $totalPembayaran = $biayaKonsultasi + $totalObat + $totalTindakan
         alt [$totalPembayaran < 1000]
             Controller-->>Pasien: back()->withErrors(['biaya_konsultasi' => '...'])
@@ -191,7 +191,7 @@ sequenceDiagram
             else [transaction_status == 'CANCEL' or 'DENY' or 'FAILURE']
                 Webhook->>Transaksi: markFailed($transaksi, TransaksiStatus::Cancel)
                 Webhook-->>Midtrans: response()->json(['message' => 'OK'])
-            else [status lain]
+            else [default]
                 Webhook->>Transaksi: $transaksi->update(['status' => 'Pending'])
                 Webhook-->>Midtrans: response()->json(['message' => 'OK'])
             end
@@ -224,27 +224,27 @@ sequenceDiagram
     Ringkasan->>Stok: queries database sum of stok
     Ringkasan-->>Resource: Updated stock summary data
 
-    opt [koreksi atau hapus detail pembelian]
+    opt [action == 'edit' or 'delete']
         Admin->>Resource: Form Submission (Edit / Delete)
         Resource->>Detail: update() / delete()
         Detail->>PurchaseStock: applyUpdating() / applyDeleting() executing ensureOriginalStockCanBeReversed()
-        alt [batch sudah dipakai resep atau stok tidak cukup]
+        alt [$hasDispensing || $stok->stok < $originalJumlah]
             PurchaseStock-->>Admin: throw ValidationException
-        else [stok bisa dikoreksi]
+        else [otherwise]
             PurchaseStock->>Stok: reverseOriginal($detail) (decrements stok)
             PurchaseStock->>Mutasi: StokObatMutasi::create([...]) (type = 'koreksi_pembelian')
             PurchaseStock->>Ringkasan: sync($obatId)
         end
     end
 
-    opt [pengeluaran resep]
+    opt [dispensing prescription]
         RecipeStock->>Stok: ensureStock($obatId, $jumlah)
         RecipeStock->>Stok: takeStockFefo(...) (decrements stok)
         RecipeStock->>Mutasi: StokObatMutasi::create([...]) (type = 'resep')
         RecipeStock->>Ringkasan: sync($obatId)
     end
 
-    opt [hapus stok kedaluwarsa]
+    opt [action == 'remove_expired']
         Admin->>ExpiryStock: removeExpired(StokObat $stokObat)
         alt [!$stokObat->isExpired()]
             ExpiryStock-->>Admin: throw ValidationException
@@ -272,12 +272,12 @@ sequenceDiagram
     Admin->>Panel: GET /admin (Visits Dashboard)
     Panel->>DB: Database Queries (Retrieve operational metrics & alerts)
     DB-->>Panel: Query results / dataset
-    alt [kelola data]
+    alt [action == 'manage_data']
         Admin->>Resource: Page action / Form submission (List/Create/Edit/Delete)
         Resource->>DB: Eloquent models validation & save() / update() / delete()
         DB-->>Resource: Updated Eloquent records
         Resource-->>Admin: Renders updated Filament list / form page
-    else [unduh laporan]
+    else [action == 'download_report']
         Admin->>Report: GET /admin/reports/{keuangan|kunjungan|stokObat}?tanggal_mulai=...&tanggal_selesai=...
         Report->>DB: Database query filtering on date range (Transaksi / Pemeriksaan / ResepDetail)
         DB-->>Report: Query result collections
