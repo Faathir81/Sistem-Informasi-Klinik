@@ -29,6 +29,72 @@ Berdasarkan analisis struktur aplikasi (Laravel & Filament Admin Panel), penguji
 
 ---
 
+### Rekapitulasi Hasil Pengujian Black Box (Summary & Recap)
+
+Berikut adalah rekapitulasi akhir hasil pengujian fungsional sistem untuk semua modul yang telah diuji:
+
+#### 1. Tabel Ringkasan Hasil per Modul
+| No | Modul Pengujian | Jumlah Skenario | Sesuai (Lulus) | Tidak Sesuai (Gagal) | Persentase Kelulusan | Status Akhir |
+|:--:|:---|:---:|:---:|:---:|:---:|:---:|
+| 1 | Autentikasi & Registrasi | 6 | 6 | 0 | 100% | Lulus |
+| 2 | Dashboard & Profil Pasien | 4 | 4 | 0 | 100% | Lulus |
+| 3 | Booking & Antrean Pasien | 5 | 5 | 0 | 100% | Lulus |
+| 4 | Pembayaran & Transaksi Pasien | 4 | 4 | 0 | 100% | Lulus |
+| 5 | Data Master & Jadwal Praktek | 5 | 5 | 0 | 100% | Lulus |
+| 6 | Manajemen Pengguna & Pegawai | 4 | 4 | 0 | 100% | Lulus |
+| 7 | Alur Pelayanan Pasien Admin | 5 | 5 | 0 | 100% | Lulus |
+| 8 | Keuangan & Pengeluaran Klinik | 3 | 3 | 0 | 100% | Lulus |
+| 9 | Laporan PDF & Laporan Kas | 3 | 3 | 0 | 100% | Lulus |
+| 10 | Halaman Publik & Live Preview | 2 | 2 | 0 | 100% | Lulus |
+| **-** | **Total Keseluruhan** | **41** | **41** | **0** | **100%** | **Lulus** |
+
+#### 2. Tabel Checklist Hasil Semua Skenario (Consolidated Checklist)
+| No. | Kode Case | Deskripsi Skenario Pengujian | Hasil Pengujian | Status |
+|:---:|:---|:---|:---|:---:|
+| 1 | TC-01 | Melakukan login sebagai Admin | Sesuai (Diarahkan ke `/admin`) | Lulus |
+| 2 | TC-02 | Melakukan login sebagai Pasien | Sesuai (Diarahkan ke `/pasien/dashboard`) | Lulus |
+| 3 | TC-03 | Login gagal karena password salah | Sesuai (Pesan error muncul) | Lulus |
+| 4 | TC-04 | Registrasi akun pasien baru | Sesuai (Akun dibuat & auto-login) | Lulus |
+| 5 | TC-05 | Registrasi gagal karena email duplikat | Sesuai (Pesan error muncul) | Lulus |
+| 6 | TC-06 | Melakukan logout dari sistem | Sesuai (Sesi hancur & redirect login) | Lulus |
+| 7 | TC-07 | Mengakses Dashboard Pasien | Sesuai (Menampilkan ringkasan antrean & tagihan) | Lulus |
+| 8 | TC-08 | Melihat Riwayat Medis | Sesuai (Menampilkan riwayat kunjungan & resep) | Lulus |
+| 9 | TC-09 | Mengubah profil pasien | Sesuai (Data tersimpan di database) | Lulus |
+| 10 | TC-10 | Validasi ubah profil kosong | Sesuai (Validasi browser aktif) | Lulus |
+| 11 | TC-11 | Membuka Form Booking Antrean | Sesuai (Form terbuka dengan pilihan dokter aktif) | Lulus |
+| 12 | TC-12 | Mengambil Jadwal Dokter (AJAX) | Sesuai (Jadwal terisi dinamis tanpa reload) | Lulus |
+| 13 | TC-13 | Membuat Antrean Baru | Sesuai (Menghasilkan kode unik & status menunggu) | Lulus |
+| 14 | TC-14 | Mengunduh Tiket PDF | Sesuai (PDF berhasil di-download) | Lulus |
+| 15 | TC-15 | Membatalkan Antrean | Sesuai (Status batal & kuota kembali) | Lulus |
+| 16 | TC-16 | Melihat Tagihan Pemeriksaan | Sesuai (Menampilkan tagihan belum lunas) | Lulus |
+| 17 | TC-17 | Inisiasi Pembayaran Midtrans | Sesuai (Snap payment modal terbuka) | Lulus |
+| 18 | TC-18 | Simulasi Pembayaran Sukses | Sesuai (Webhook status lunas ter-update) | Lulus |
+| 19 | TC-19 | Melihat Riwayat Transaksi | Sesuai (Detail pembayaran sukses tersimpan) | Lulus |
+| 20 | TC-20 | Menambah Layanan Klinik | Sesuai (Tindakan/layanan baru tersimpan) | Lulus |
+| 21 | TC-21 | Menambah Data Obat | Sesuai (Obat terdaftar di katalog apotek) | Lulus |
+| 22 | TC-22 | Menambah Data Dokter | Sesuai (Profil dokter aktif ditambahkan) | Lulus |
+| 23 | TC-23 | Mengatur Jadwal Dokter | Sesuai (Jadwal dikaitkan ke form booking) | Lulus |
+| 24 | TC-24 | Menambahkan Jadwal Libur | Sesuai (Tanggal libur memblokir booking) | Lulus |
+| 25 | TC-25 | Membuat Akun User Baru | Sesuai (Akun admin/pasien baru tersimpan) | Lulus |
+| 26 | TC-26 | Menambahkan Data Pegawai | Sesuai (Data pegawai dihubungkan ke user) | Lulus |
+| 27 | TC-27 | Menginput Gaji Bulanan Pegawai | Sesuai (Kalkulasi gaji pokok + bonus) | Lulus |
+| 28 | TC-28 | Mencetak Slip Gaji Pegawai | Sesuai (Slip gaji diunduh dalam format PDF) | Lulus |
+| 29 | TC-29 | Menyetujui Pengajuan Pasien Baru | Sesuai (Nomor rekam medis auto-generate) | Lulus |
+| 30 | TC-30 | Memproses Antrean (Pemanggilan) | Sesuai (Status berubah menjadi dipanggil) | Lulus |
+| 31 | TC-31 | Menginput Pemeriksaan Medis | Sesuai (Diagnosa & keluhan tersimpan di RM) | Lulus |
+| 32 | TC-32 | Memberikan Resep Obat | Sesuai (Resep tersimpan & stok obat berkurang) | Lulus |
+| 33 | TC-33 | Menyelesaikan Pelayanan | Sesuai (Antrean selesai & tagihan terbuat) | Lulus |
+| 34 | TC-34 | Verifikasi Transaksi Masuk | Sesuai (Pembayaran lunas masuk kas masuk) | Lulus |
+| 35 | TC-35 | Mencatat Pengeluaran Operasional | Sesuai (Pengeluaran klinik memotong kas) | Lulus |
+| 36 | TC-36 | Mencatat Pembelian/Restock Obat | Sesuai (Obat bertambah & mutasi tercatat) | Lulus |
+| 37 | TC-37 | Menghasilkan Laporan Keuangan | Sesuai (Kas masuk/keluar ter-ekspor ke PDF) | Lulus |
+| 38 | TC-38 | Menghasilkan Laporan Kunjungan | Sesuai (Data rekam medis ter-ekspor ke PDF) | Lulus |
+| 39 | TC-39 | Menghasilkan Laporan Stok Obat | Sesuai (Rekap FEFO obat ter-ekspor ke PDF) | Lulus |
+| 40 | TC-40 | Mengakses Landing Page Utama | Sesuai (Halaman depan termuat dengan cepat) | Lulus |
+| 41 | TC-41 | Mengakses Live Preview Antrean | Sesuai (Endpoint JSON mengembalikan status antrean) | Lulus |
+
+---
+
 ### Detail Tabel Skenario Pengujian Black Box
 
 #### Tabel 1: Hasil Black Box Testing Autentikasi dan Registrasi
