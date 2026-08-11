@@ -43,7 +43,7 @@ class StokObatsTable
             ->filters([
                 Filter::make('stok_tersedia')
                     ->label('Stok tersedia')
-                    ->query(fn (Builder $query): Builder => $query->where('stok', '>', 0)),
+                    ->query(fn (Builder $query): Builder => $query->where('stok_obats.stok', '>', 0)),
                 Filter::make('kadaluarsa')
                     ->label('Sudah kadaluwarsa')
                     ->query(fn (Builder $query): Builder => $query->kadaluarsa()),

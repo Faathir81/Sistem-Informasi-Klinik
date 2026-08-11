@@ -47,8 +47,8 @@ class Obat extends Model
     public function scopeKadaluarsaSegera(Builder $query): Builder
     {
         return $query->whereHas('stokObats', fn (Builder $stok): Builder => $stok
-            ->where('stok', '>', 0)
-            ->whereDate('tgl_kadaluarsa', '<=', now()->addDays(30)));
+            ->where('stok_obats.stok', '>', 0)
+            ->whereDate('stok_obats.tgl_kadaluarsa', '<=', now()->addDays(30)));
     }
 
     public function totalStok(): int
@@ -63,8 +63,8 @@ class Obat extends Model
     public function stokTersedia(): int
     {
         return (int) $this->stokObats()
-            ->where('stok', '>', 0)
-            ->whereDate('tgl_kadaluarsa', '>=', now()->toDateString())
+            ->where('stok_obats.stok', '>', 0)
+            ->whereDate('stok_obats.tgl_kadaluarsa', '>=', now()->toDateString())
             ->sum('stok');
     }
 }

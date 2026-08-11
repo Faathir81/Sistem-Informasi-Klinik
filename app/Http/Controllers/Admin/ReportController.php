@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\PayrollPaymentStatus;
 use App\Enums\TransaksiStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Gaji;
 use App\Models\Pemeriksaan;
 use App\Models\Pengeluaran;
 use App\Models\ResepDetail;
@@ -32,13 +34,21 @@ class ReportController extends Controller
             ->latest('tgl_pengeluaran')
             ->get();
 
+        $penggajians = Gaji::query()
+            ->with(['dokter', 'pegawai'])
+            ->where('status_bayar', PayrollPaymentStatus::Lunas->value)
+            ->whereBetween('tgl_bayar', [$startDate->toDateString(), $endDate->toDateString()])
+            ->latest('tgl_bayar')
+            ->get();
+
         return Pdf::loadView('reports.pdf.keuangan', [
             'startDate' => $startDate,
             'endDate' => $endDate,
             'transaksis' => $transaksis,
             'pengeluarans' => $pengeluarans,
+            'penggajians' => $penggajians,
             'totalPemasukan' => $transaksis->sum('amount'),
-            'totalPengeluaran' => $pengeluarans->sum('jumlah'),
+            'totalPengeluaran' => $pengeluarans->sum('jumlah') + $penggajians->sum('total_diterima'),
         ])
             ->setPaper('a4')
             ->download('laporan-keuangan-'.$startDate->format('Ymd').'-'.$endDate->format('Ymd').'.pdf');
@@ -80,7 +90,7 @@ class ReportController extends Controller
 
         $obats = StokObat::query()
             ->with('obat')
-            ->where('stok', '>', 0)
+            ->where('stok_obats.stok', '>', 0)
             ->join('obats', 'stok_obats.obat_id', '=', 'obats.id')
             ->select('stok_obats.*')
             ->orderBy('obats.nama_obat')

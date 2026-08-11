@@ -12,6 +12,7 @@ erDiagram
         enum role "admin, pasien"
         string no_hp "nullable"
         timestamp email_verified_at "nullable"
+        string remember_token "nullable"
     }
     PASIENS {
         bigint id PK
@@ -125,7 +126,7 @@ erDiagram
         uint stok "ringkasan semua batch"
         decimal harga_beli "batch tersedia terdekat"
         decimal harga_jual
-        date tgl_kadaluarsa "batch tersedia terdekat"
+        date tgl_kadaluarsa "nullable, batch tersedia terdekat"
     }
     PEMBELIAN_OBATS {
         bigint id PK

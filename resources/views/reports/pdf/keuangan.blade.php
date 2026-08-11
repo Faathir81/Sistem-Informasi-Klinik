@@ -73,5 +73,31 @@
             @endforelse
         </tbody>
     </table>
+
+    <h3 class="section-title">Pengeluaran Penggajian</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Tanggal</th>
+                <th>Penerima</th>
+                <th>Role</th>
+                <th>Periode (Bulan/Tahun)</th>
+                <th class="right">Nominal</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse ($penggajians as $gaji)
+                <tr>
+                    <td>{{ $gaji->tgl_bayar?->format('d M Y') ?? '-' }}</td>
+                    <td>{{ $gaji->namaPenerima() }}</td>
+                    <td>{{ $gaji->role }}</td>
+                    <td>{{ $gaji->bulan_tahun }}</td>
+                    <td class="right">Rp {{ number_format($gaji->total_diterima, 0, ',', '.') }}</td>
+                </tr>
+            @empty
+                <tr><td colspan="5" class="center muted">Tidak ada pengeluaran gaji pada periode ini.</td></tr>
+            @endforelse
+        </tbody>
+    </table>
 </body>
 </html>

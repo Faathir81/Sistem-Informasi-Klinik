@@ -37,15 +37,15 @@ class StokObat extends Model
     public function scopeTersedia(Builder $query): Builder
     {
         return $query
-            ->where('stok', '>', 0)
-            ->whereDate('tgl_kadaluarsa', '>=', now()->toDateString());
+            ->where('stok_obats.stok', '>', 0)
+            ->whereDate('stok_obats.tgl_kadaluarsa', '>=', now()->toDateString());
     }
 
     public function scopeKadaluarsa(Builder $query): Builder
     {
         return $query
-            ->where('stok', '>', 0)
-            ->whereDate('tgl_kadaluarsa', '<', now()->toDateString());
+            ->where('stok_obats.stok', '>', 0)
+            ->whereDate('stok_obats.tgl_kadaluarsa', '<', now()->toDateString());
     }
 
     public function isExpired(?Carbon $referenceDate = null): bool

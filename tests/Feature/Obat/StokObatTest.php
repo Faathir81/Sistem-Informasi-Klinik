@@ -168,6 +168,28 @@ class StokObatTest extends TestCase
         ]);
     }
 
+    public function test_stok_obat_query_handles_join_with_obats_without_ambiguous_stok_column_error(): void
+    {
+        $obat = $this->createObat();
+        StokObat::create([
+            'obat_id' => $obat->id,
+            'batch' => 'BATCH-TEST',
+            'harga_beli' => 1000,
+            'stok' => 10,
+            'tgl_kadaluarsa' => today()->addYear(),
+        ]);
+
+        $results = StokObat::query()
+            ->where('stok_obats.stok', '>', 0)
+            ->join('obats', 'stok_obats.obat_id', '=', 'obats.id')
+            ->select('stok_obats.*')
+            ->orderBy('obats.nama_obat')
+            ->orderBy('stok_obats.tgl_kadaluarsa')
+            ->get();
+
+        $this->assertCount(1, $results);
+    }
+
     private function purchaseWithDispensedStock(): array
     {
         $obat = $this->createObat();
